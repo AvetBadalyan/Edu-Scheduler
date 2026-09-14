@@ -1,28 +1,47 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import {
+	Column,
+	CreateDateColumn,
+	Entity,
+	JoinColumn,
+	ManyToOne,
+	PrimaryGeneratedColumn,
+	UpdateDateColumn
+} from 'typeorm'
+import { University } from './University'
 
 @Entity('lecturers')
 export class Lecturer {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string
+	@PrimaryGeneratedColumn('uuid')
+	id!: string
 
-  @Column()
-  name!: string
+	@Column({ type: 'varchar', name: 'university_id', nullable: true })
+	universityId!: string | null
 
-  @Column()
-  surname!: string
+	@ManyToOne(() => University, university => university.lecturers, {
+		onDelete: 'CASCADE',
+		nullable: true
+	})
+	@JoinColumn({ name: 'university_id' })
+	university!: University | null
 
-  @Column('simple-array')
-  specialties!: string[]
+	@Column({ type: 'varchar' })
+	name!: string
 
-  @Column({ name: 'image_url', nullable: true })
-  imageUrl!: string | null
+	@Column({ type: 'varchar' })
+	surname!: string
 
-  @Column({ type: 'jsonb', default: '{}' })
-  availability!: object
+	@Column('simple-array')
+	specialties!: string[]
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt!: Date
+	@Column({ type: 'varchar', name: 'image_url', nullable: true })
+	imageUrl!: string | null
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt!: Date
+	@Column({ type: 'jsonb', default: '{}' })
+	availability!: object
+
+	@CreateDateColumn({ name: 'created_at' })
+	createdAt!: Date
+
+	@UpdateDateColumn({ name: 'updated_at' })
+	updatedAt!: Date
 }

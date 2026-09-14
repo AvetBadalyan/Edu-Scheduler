@@ -2,6 +2,7 @@
  * Redux store — single source of truth.
  *
  * Slices:
+ *   app         — application-level state (current university)
  *   auth        — session, login/logout
  *   entities    — lecturers, rooms, faculties (normalized)
  *   schedule    — timetable assignment state
@@ -10,21 +11,23 @@
  *   toast       — notification queue
  */
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer          from './authSlice'
-import entityReducer        from './entitySlice'
-import scheduleReducer      from './scheduleSlice'
-import editHistoryReducer   from './editHistorySlice'
+import appReducer from './appSlice'
+import authReducer from './authSlice'
+import editHistoryReducer from './editHistorySlice'
+import entityReducer from './entitySlice'
+import scheduleReducer from './scheduleSlice'
+import toastReducer from './toastSlice'
 import visualizationReducer from './visualizationSlice'
-import toastReducer         from './toastSlice'
 
 export const store = configureStore({
 	reducer: {
-		auth:          authReducer,
-		entities:      entityReducer,
-		schedule:      scheduleReducer,
-		editHistory:   editHistoryReducer,
+		app: appReducer,
+		auth: authReducer,
+		entities: entityReducer,
+		schedule: scheduleReducer,
+		editHistory: editHistoryReducer,
 		visualization: visualizationReducer,
-		toast:         toastReducer,
+		toast: toastReducer
 	},
 	middleware: getDefaultMiddleware =>
 		getDefaultMiddleware({
@@ -32,10 +35,11 @@ export const store = configureStore({
 			// for the demo. When the backend is wired in they become ISO strings.
 			serializableCheck: {
 				ignoredPaths: [
+					'app.currentUniversity',
 					'entities.lecturers.entities',
 					'entities.rooms.entities',
 					'entities.faculties.entities',
-					'auth.user',
+					'auth.user'
 				],
 				ignoredActions: [
 					'entities/addLecturer',
@@ -45,11 +49,11 @@ export const store = configureStore({
 					'entities/addFaculty',
 					'entities/updateFaculty',
 					'auth/login/fulfilled',
-					'editHistory/pushEdit',
-				],
-			},
-		}),
+					'editHistory/pushEdit'
+				]
+			}
+		})
 })
 
-export type RootState   = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch

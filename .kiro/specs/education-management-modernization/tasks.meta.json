@@ -1963,6 +1963,394 @@
 				"chatSessionId": "sess_57381bdd-b254-4ec9-86df-b2f76b7bb35f",
 				"timestamp": 1789330510918
 			}
+		],
+		"1.1 Run application and verify core functionality works": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401838843
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401936105
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402180523
+			}
+		],
+		"2. Checkpoint - Current implementation verified": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401841194
+			}
+		],
+		"3.1 Create LandingPage component": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401843449
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402191470
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402347521
+			}
+		],
+		"3.2 Update routing to show landing page at root": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401845737
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402545815
+			}
+		],
+		"3.3 Add mode indicator to AppLayout": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401848669
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402352879
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402547295
+			}
+		],
+		"4. Checkpoint - Landing page complete": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401850572
+			}
+		],
+		"5.1 Create University TypeORM entity": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401852834
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402559159
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402643408
+			}
+		],
+		"5.2 Add universityId to existing entities": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401855141
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402648705
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402770176
+			}
+		],
+		"5.3 Update seed data to include demo university": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401857103
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402650151
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402771799
+			}
+		],
+		"5.4 Add university state to Redux store": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401859362
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402777494
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402865515
+			}
+		],
+		"6. Checkpoint - University entity added": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401861640
+			}
+		],
+		"7.1 Set up Supabase project": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401863728
+			},
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402876960
+			}
+		],
+		"7.2 Install and configure Supabase client": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401865940
+			}
+		],
+		"7.3 Update authSlice for Supabase": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401868213
+			}
+		],
+		"7.4 Update LoginPage for Supabase": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401870464
+			}
+		],
+		"7.5 Update ProtectedRoute for Supabase session": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401872741
+			}
+		],
+		"8. Checkpoint - Supabase auth working": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401875037
+			}
+		],
+		"9.1 Configure data source for Supabase": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401876973
+			}
+		],
+		"9.2 Create Supabase auth middleware": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401879237
+			}
+		],
+		"9.3 Update existing routes to use new auth middleware": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401881502
+			}
+		],
+		"9.4 Create University API routes": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401883450
+			}
+		],
+		"9.5 Update schedules routes for new structure": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401885743
+			}
+		],
+		"10. Checkpoint - Backend API working with Supabase": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401888024
+			}
+		],
+		"11.1 Create API client module": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401890151
+			}
+		],
+		"11.2 Create API service functions": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401892376
+			}
+		],
+		"11.3 Add mode-aware actions to entity slice": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401894581
+			}
+		],
+		"11.4 Implement authenticated mode flow": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401896653
+			}
+		],
+		"12. Checkpoint - Authenticated mode works end-to-end": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401898943
+			}
+		],
+		"13.1 Set up fast-check testing library": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401901249
+			}
+		],
+		"13.2 Write property tests for scheduling constraints": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401903186
+			}
+		],
+		"13.3 Write property tests for schedule editing": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401905438
+			}
+		],
+		"14. Checkpoint - Property tests pass": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401907709
+			}
+		],
+		"15.1 Set up Playwright": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401909595
+			}
+		],
+		"15.2 Write E2E test for demo mode flow": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401911821
+			}
+		],
+		"15.3 Write E2E test for authenticated mode flow": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401914100
+			}
+		],
+		"15.4 Configure CI to run tests": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401916289
+			}
+		],
+		"16. Checkpoint - E2E tests pass": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401918520
+			}
+		],
+		"17.1 Configure Vercel deployment": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401920762
+			}
+		],
+		"17.2 Configure production Supabase": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401922735
+			}
+		],
+		"17.3 Update README with live demo": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401925020
+			}
+		],
+		"18. Final checkpoint - Production deployment complete": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789401927248
+			}
+		],
+		"1. Verify existing implementation": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402182892
+			}
+		],
+		"3. Create landing page with demo entry point": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402549603
+			}
+		],
+		"5. Add University entity for multi-tenancy": [
+			{
+				"executionId": "61ae8fe3-b0ad-4536-814f-d869ec028213",
+				"chatSessionId": "sess_99937f30-c63d-4d95-bac5-ce1b3c7c0616",
+				"timestamp": 1789402867810
+			}
 		]
 	}
 }

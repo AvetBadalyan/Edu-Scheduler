@@ -19,15 +19,49 @@ portfolio piece demonstrating:
 - Fullstack capabilities with JWT authentication and PostgreSQL persistence
 - Professional UX with drag-and-drop editing and comprehensive error handling
 
+### Portfolio Demo Strategy
+
+This is a **portfolio app** designed to impress employers with a zero-friction
+demo experience. The goal is to showcase technical skills within 2-5 minutes of
+landing on the app.
+
+#### The Employer Journey
+
+1. **Opens README** → sees what the app does
+2. **Clicks "Live Demo" link** → lands on the deployed app
+3. **Wants to see it WORK immediately** → no signup walls
+4. **Plays with it for 2-5 minutes** → explores the algorithm visualization
+5. **Either impressed or not** → decides to contact or move on
+
+#### Two Modes
+
+| Mode                   | Entry Point                                     | Behavior                                                           |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------ |
+| **Demo Mode**          | One-click "Try with Armenian Code Academy data" | Pre-seeded data, full algorithm/visualization, nothing saves to DB |
+| **Authenticated Mode** | Supabase login (email/password or OAuth)        | Create your own university, full CRUD, saves to PostgreSQL         |
+
+#### Why This Approach?
+
+- **Zero friction for employers** evaluating the portfolio — no signup required
+  to see the app work
+- **Algorithm visualization is the WOW factor** — show it immediately without
+  barriers
+- **Proves fullstack skills** when user chooses to sign up and create their own
+  data
+- **Demonstrates UX awareness** — understanding that users abandon apps
+  requiring signup before trying
+
 ### Key Design Decisions
 
-| Decision         | Choice                           | Rationale                                                                   |
-| ---------------- | -------------------------------- | --------------------------------------------------------------------------- |
-| Build Tool       | Vite                             | Sub-second HMR, native ESM, maintained ecosystem                            |
-| State Management | Zustand                          | Simpler API than Redux Toolkit, built-in TypeScript support, no boilerplate |
-| UI Framework     | Tailwind CSS + shadcn/ui         | Utility-first approach, accessible components, no conflicting dependencies  |
-| Backend          | Node.js + Express + PostgreSQL   | Familiar JavaScript stack, mature ORM options (Prisma)                      |
-| Testing          | Vitest + Playwright + fast-check | Unified tooling with Vite, property-based testing for algorithm correctness |
+| Decision         | Choice                                  | Rationale                                                                   |
+| ---------------- | --------------------------------------- | --------------------------------------------------------------------------- |
+| Build Tool       | Vite                                    | Sub-second HMR, native ESM, maintained ecosystem                            |
+| State Management | Zustand                                 | Simpler API than Redux Toolkit, built-in TypeScript support, no boilerplate |
+| UI Framework     | Tailwind CSS + shadcn/ui                | Utility-first approach, accessible components, no conflicting dependencies  |
+| Backend          | Node.js + Express + Supabase PostgreSQL | Same proven pattern as Music App portfolio project                          |
+| Authentication   | Supabase Auth (optional)                | Only required for persistent data; demo mode needs no auth                  |
+| Deployment       | Vercel + Supabase                       | Free tier, zero-config deployment                                           |
+| Testing          | Vitest + Playwright + fast-check        | Unified tooling with Vite, property-based testing for algorithm correctness |
 
 ### Scope
 
@@ -49,23 +83,24 @@ The modernization covers:
 
 ```mermaid
 graph TB
-    subgraph Client["Client (React 19 + Vite)"]
-        UI[UI Components]
-        Stores[Zustand Stores]
-        Algo[Scheduling Algorithm]
-        Viz[Visualization Engine]
+    subgraph Vercel["Vercel (Hosting)"]
+        subgraph Client["Frontend (React 19 + Vite)"]
+            UI[UI Components]
+            Stores[Zustand Stores]
+            Algo[Scheduling Algorithm]
+            Viz[Visualization Engine]
+        end
+
+        subgraph ServerlessAPI["API Routes"]
+            API[Express API]
+            AuthMW[Auth Middleware]
+            Services[Business Logic]
+        end
     end
 
-    subgraph Server["Server (Node.js + Express)"]
-        API[REST API]
-        Auth[JWT Auth Middleware]
-        Services[Business Logic]
-    end
-
-    subgraph Database["PostgreSQL"]
-        Users[(Users)]
-        Schedules[(Schedules)]
-        Entities[(Entities)]
+    subgraph Supabase["Supabase"]
+        SupaAuth[Supabase Auth]
+        SupaDB[(PostgreSQL)]
     end
 
     UI --> Stores
@@ -73,10 +108,24 @@ graph TB
     Stores --> Algo
     Viz --> Algo
     Stores <--> API
-    API --> Auth
-    Auth --> Services
-    Services --> Database
+
+    %% Auth flow
+    UI -- "login/signup" --> SupaAuth
+    SupaAuth -- "JWT tokens" --> UI
+    API --> AuthMW
+    AuthMW -- "validate token" --> SupaAuth
+    AuthMW --> Services
+    Services --> SupaDB
 ```
+
+**Auth Token Flow:**
+
+1. User logs in via Supabase Auth (email/password)
+2. Supabase returns JWT access token + refresh token
+3. Frontend stores tokens via Supabase client (automatic refresh)
+4. API requests include `Authorization: Bearer <token>`
+5. API middleware validates token with Supabase
+6. On expiry, Supabase client auto-refreshes tokens
 
 ### Layered Architecture
 
@@ -97,10 +146,10 @@ The application follows a clean layered architecture:
 │  API Client, Request/Response Types, Error Handling          │
 ├─────────────────────────────────────────────────────────────┤
 │                    API Layer (Backend)                       │
-│  Express Routes, Controllers, Middleware                     │
+│  Express Routes, Controllers, Supabase Auth Middleware       │
 ├─────────────────────────────────────────────────────────────┤
 │                    Persistence Layer                         │
-│  Prisma ORM, PostgreSQL, Migrations                          │
+│  TypeORM, Supabase PostgreSQL, Migrations                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -127,7 +176,7 @@ education-management/
 │   ├── routes/              # Express route handlers
 │   ├── middleware/          # Auth, error handling middleware
 │   ├── services/            # Business logic services
-│   └── prisma/              # Database schema and migrations
+│   └── entities/            # TypeORM entity definitions
 ├── tests/
 │   ├── unit/                # Unit tests (Vitest)
 │   ├── integration/         # API integration tests
@@ -141,6 +190,46 @@ education-management/
 ## Components and Interfaces
 
 ### Core Zustand Stores
+
+#### AppStore
+
+Manages the application mode and current university context.
+
+```typescript
+interface AppStore {
+	// State
+	mode: 'demo' | 'authenticated'
+	university: University | null
+
+	// Actions
+	enterDemoMode: () => void
+	exitDemoMode: () => void
+	setUniversity: (university: University) => void
+
+	// Behavior based on mode:
+	// - When mode='demo': API calls are blocked, data is in-memory only
+	// - When mode='authenticated': Full CRUD with real API calls
+}
+
+const useAppStore = create<AppStore>(set => ({
+	mode: 'demo',
+	university: null,
+
+	enterDemoMode: () => {
+		// Load pre-seeded ACA data into stores
+		set({ mode: 'demo', university: ACA_DEMO_UNIVERSITY })
+		entityStore.loadDemoData(ACA_DEMO_DATA)
+	},
+
+	exitDemoMode: () => {
+		// Clear demo data, require authentication for real data
+		set({ mode: 'authenticated', university: null })
+		entityStore.clearAll()
+	},
+
+	setUniversity: university => set({ university })
+}))
+```
 
 #### ScheduleStore
 
@@ -199,21 +288,103 @@ interface VisualizationStore {
 
 #### AuthStore
 
-Manages authentication state and tokens.
+Manages authentication state using Supabase client (same pattern as Music App).
 
 ```typescript
+import {
+	createClient,
+	User as SupabaseUser,
+	Session
+} from '@supabase/supabase-js'
+
+// Supabase client initialization
+const supabase = createClient(
+	import.meta.env.VITE_SUPABASE_URL,
+	import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+
 interface AuthStore {
 	// State
-	user: User | null
+	user: SupabaseUser | null
+	session: Session | null
 	isAuthenticated: boolean
 	isLoading: boolean
 
 	// Actions
-	login: (credentials: LoginCredentials) => Promise<LoginResult>
+	login: (email: string, password: string) => Promise<LoginResult>
+	signup: (
+		email: string,
+		password: string,
+		name: string
+	) => Promise<SignupResult>
 	logout: () => Promise<void>
-	refreshToken: () => Promise<boolean>
 	checkAuth: () => Promise<void>
+
+	// Supabase handles token refresh automatically via onAuthStateChange
 }
+
+// Usage example in store
+const useAuthStore = create<AuthStore>((set, get) => ({
+	user: null,
+	session: null,
+	isAuthenticated: false,
+	isLoading: true,
+
+	login: async (email, password) => {
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email,
+			password
+		})
+		if (error) {
+			return { success: false, error: error.message }
+		}
+		set({ user: data.user, session: data.session, isAuthenticated: true })
+		return { success: true }
+	},
+
+	signup: async (email, password, name) => {
+		const { data, error } = await supabase.auth.signUp({
+			email,
+			password,
+			options: { data: { name } }
+		})
+		if (error) {
+			return { success: false, error: error.message }
+		}
+		set({
+			user: data.user,
+			session: data.session,
+			isAuthenticated: !!data.session
+		})
+		return { success: true }
+	},
+
+	logout: async () => {
+		await supabase.auth.signOut()
+		set({ user: null, session: null, isAuthenticated: false })
+	},
+
+	checkAuth: async () => {
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+		set({
+			user: session?.user ?? null,
+			session,
+			isAuthenticated: !!session,
+			isLoading: false
+		})
+	}
+}))
+
+// Listen for auth state changes (handles auto token refresh)
+supabase.auth.onAuthStateChange((event, session) => {
+	useAuthStore.setState({
+		user: session?.user ?? null,
+		session,
+		isAuthenticated: !!session
+	})
+})
 ```
 
 #### EntityStore
@@ -313,23 +484,30 @@ interface SchedulingAlgorithm {
 ### API Client Interface
 
 ```typescript
-interface ApiClient {
-	// Authentication
-	auth: {
-		login(credentials: LoginCredentials): Promise<AuthResponse>
-		logout(): Promise<void>
-		refresh(): Promise<AuthResponse>
-		register(data: RegisterData): Promise<AuthResponse>
-	}
+import { createClient } from '@supabase/supabase-js'
 
-	// Entities
+const supabase = createClient(
+	import.meta.env.VITE_SUPABASE_URL,
+	import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+
+interface ApiClient {
+	// Authentication is handled by Supabase client directly (see AuthStore)
+	// Token is automatically included in requests via supabase client
+
+	// Entities (include university context)
 	lecturers: CrudEndpoint<Lecturer, CreateLecturerInput, UpdateLecturerInput>
 	rooms: CrudEndpoint<Room, CreateRoomInput, UpdateRoomInput>
 	faculties: CrudEndpoint<Faculty, CreateFacultyInput, UpdateFacultyInput>
+	universities: CrudEndpoint<
+		University,
+		CreateUniversityInput,
+		UpdateUniversityInput
+	>
 
 	// Schedules
 	schedules: {
-		list(): Promise<ScheduleSummary[]>
+		list(universityId: string): Promise<ScheduleSummary[]>
 		get(id: string): Promise<Schedule>
 		create(data: CreateScheduleInput): Promise<Schedule>
 		update(id: string, data: UpdateScheduleInput): Promise<Schedule>
@@ -338,11 +516,33 @@ interface ApiClient {
 }
 
 interface CrudEndpoint<T, CreateInput, UpdateInput> {
-	list(params?: ListParams): Promise<PaginatedResponse<T>>
+	list(universityId: string, params?: ListParams): Promise<PaginatedResponse<T>>
 	get(id: string): Promise<T>
 	create(data: CreateInput): Promise<T>
 	update(id: string, data: UpdateInput): Promise<T>
 	delete(id: string): Promise<void>
+}
+
+// Server-side auth middleware (same pattern as Music App's requireAdmin)
+// Uses Supabase to validate tokens
+const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+	const authHeader = req.headers.authorization
+	if (!authHeader?.startsWith('Bearer ')) {
+		return res.status(401).json({ error: 'Missing authorization header' })
+	}
+
+	const token = authHeader.substring(7)
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser(token)
+
+	if (error || !user) {
+		return res.status(401).json({ error: 'Invalid or expired token' })
+	}
+
+	req.user = user
+	next()
 }
 ```
 
@@ -414,6 +614,76 @@ interface EntityFormProps<T> {
 
 ---
 
+## Data Model Explained
+
+### Simple Relationship Model
+
+The data model follows a **flat ownership pattern** where the University is the
+single organizing entity:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        University                            │
+│  (owned by a Supabase user - the person who created it)     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌───────────┐    ┌───────────┐    ┌───────────┐          │
+│   │ Lecturers │    │   Rooms   │    │ Faculties │          │
+│   └───────────┘    └───────────┘    └───────────┘          │
+│         │                │                │                  │
+│         └────────────────┼────────────────┘                  │
+│                          │                                   │
+│                  Same University                             │
+│                          │                                   │
+│                    ┌─────┴─────┐                            │
+│                    │ Schedule  │                            │
+│                    │  (state)  │                            │
+│                    └───────────┘                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Design Principles
+
+1. **No Complex Foreign Keys Between Entities**
+   - Lecturers, Rooms, and Faculties do **NOT** have direct foreign key
+     relationships with each other
+   - They only share the same `universityId` (belonging to the same university)
+   - This keeps the schema simple and flexible
+
+2. **Schedule as Algorithm Output**
+   - The `Schedule` entity stores the algorithm's output in a JSON `state` field
+   - This `state` contains all the assignments that connect lecturers, rooms,
+     and faculties
+   - Assignments are only valid within the context of a schedule
+
+3. **Schedule State Structure**
+
+   ```typescript
+   // Schedule.state stores the algorithm output as JSON
+   interface ScheduleState {
+   	assignments: Assignment[]
+   }
+
+   interface Assignment {
+   	lecturerId: string
+   	roomId: string
+   	facultyId: string
+   	subject: string
+   	day: 1 | 2 | 3 | 4 | 5 // Monday-Friday
+   	hour: 1 | 2 | 3 | 4 // Hour slots
+   	isManual: boolean // true if manually placed
+   }
+   ```
+
+4. **Why This Approach?**
+   - **Simplicity**: No junction tables, no complex joins
+   - **Flexibility**: Easy to regenerate schedules without cascade concerns
+   - **Performance**: Fast reads since schedule state is pre-computed JSON
+   - **Algorithm-First**: The scheduling algorithm creates the relationships,
+     not the database
+
+---
+
 ## Data Models
 
 ### Core Domain Types
@@ -425,6 +695,15 @@ type RoomId = string
 type FacultyId = string
 type ScheduleId = string
 type UserId = string
+type UniversityId = string
+
+// University - the root organizing entity
+interface University {
+	id: UniversityId
+	name: string
+	ownerId: string // Supabase user ID who created it
+	createdAt: Date
+}
 
 // Time representation
 type DayOfWeek = 1 | 2 | 3 | 4 | 5 // Monday = 1, Friday = 5
@@ -450,6 +729,7 @@ type Timetable = Record<DayOfWeek, TimetableDay>
 ```typescript
 interface Lecturer {
 	id: LecturerId
+	universityId: UniversityId
 	name: string
 	surname: string
 	specialties: string[] // Can teach multiple subjects
@@ -465,6 +745,7 @@ interface LecturerWithTimetable extends Lecturer {
 
 interface Room {
 	id: RoomId
+	universityId: UniversityId
 	number: string
 	capacity: number
 	availability: Timetable
@@ -489,6 +770,7 @@ interface SyllabusEntry {
 
 interface Faculty {
 	id: FacultyId
+	universityId: UniversityId
 	name: string
 	syllabus: SyllabusEntry[]
 	students: Student[]
@@ -522,8 +804,9 @@ interface ScheduleState {
 
 interface ScheduleMetadata {
 	id: ScheduleId
+	universityId: UniversityId
 	name: string
-	userId: UserId
+	ownerId: string // Supabase user ID
 	createdAt: Date
 	updatedAt: Date
 	isComplete: boolean
@@ -649,28 +932,27 @@ interface Conflict {
 ### Authentication Models
 
 ```typescript
-interface User {
-	id: UserId
-	email: string
-	name: string
-	createdAt: Date
-}
+// User type comes from Supabase
+import { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
-interface LoginCredentials {
-	email: string
-	password: string
-}
-
-interface AuthResponse {
-	user: User
-	accessToken: string
-	refreshToken: string
-}
+// No custom User model needed - Supabase handles user management
+// Access user via supabase.auth.getUser() or session.user
 
 interface LoginResult {
 	success: boolean
-	error?: 'invalid_credentials' | 'account_locked' | 'session_expired'
+	error?: string // Supabase error message
 }
+
+interface SignupResult {
+	success: boolean
+	error?: string
+}
+
+// Supabase handles all token management internally:
+// - Access tokens (JWT)
+// - Refresh tokens
+// - Automatic token refresh via onAuthStateChange
+// - Secure token storage
 ```
 
 ### API Response Models
@@ -700,59 +982,172 @@ interface ListParams {
 }
 ```
 
-### Database Schema (Prisma)
+### Database Schema (TypeORM)
 
-```prisma
-model User {
-  id           String     @id @default(uuid())
-  email        String     @unique
-  passwordHash String
-  name         String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  schedules    Schedule[]
+**Note:** The project uses TypeORM (not Prisma) since the existing server code
+already uses TypeORM entities. Demo mode doesn't touch the database at all —
+data is loaded from hardcoded JSON into Zustand stores.
+
+```typescript
+// server/src/entities/University.ts
+@Entity()
+export class University {
+	@PrimaryGeneratedColumn('uuid')
+	id: string
+
+	@Column()
+	name: string
+
+	@Column()
+	ownerId: string // Supabase user ID
+
+	@CreateDateColumn()
+	createdAt: Date
+
+	@OneToMany(() => Lecturer, (lecturer) => lecturer.university)
+	lecturers: Lecturer[]
+
+	@OneToMany(() => Room, (room) => room.university)
+	rooms: Room[]
+
+	@OneToMany(() => Faculty, (faculty) => faculty.university)
+	faculties: Faculty[]
+
+	@OneToMany(() => Schedule, (schedule) => schedule.university)
+	schedules: Schedule[]
 }
 
-model Lecturer {
-  id           String   @id @default(uuid())
-  name         String
-  surname      String
-  specialties  String[]
-  imageUrl     String?
-  availability Json     // Timetable structure
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// server/src/entities/Lecturer.ts
+@Entity()
+export class Lecturer {
+	@PrimaryGeneratedColumn('uuid')
+	id: string
+
+	@Column()
+	universityId: string
+
+	@ManyToOne(() => University, (university) => university.lecturers)
+	@JoinColumn({ name: 'universityId' })
+	university: University
+
+	@Column()
+	name: string
+
+	@Column()
+	surname: string
+
+	@Column('simple-array')
+	specialties: string[]
+
+	@Column({ nullable: true })
+	imageUrl: string
+
+	@Column('json')
+	availability: object // Timetable structure
+
+	@CreateDateColumn()
+	createdAt: Date
+
+	@UpdateDateColumn()
+	updatedAt: Date
 }
 
-model Room {
-  id           String   @id @default(uuid())
-  number       String   @unique
-  capacity     Int
-  availability Json     // Timetable structure
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// server/src/entities/Room.ts
+@Entity()
+export class Room {
+	@PrimaryGeneratedColumn('uuid')
+	id: string
+
+	@Column()
+	universityId: string
+
+	@ManyToOne(() => University, (university) => university.rooms)
+	@JoinColumn({ name: 'universityId' })
+	university: University
+
+	@Column()
+	number: string
+
+	@Column('int')
+	capacity: number
+
+	@Column('json')
+	availability: object // Timetable structure
+
+	@CreateDateColumn()
+	createdAt: Date
+
+	@UpdateDateColumn()
+	updatedAt: Date
+
+	@@Unique(['universityId', 'number'])
 }
 
-model Faculty {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  syllabus  Json     // SyllabusEntry[]
-  students  Json     // Student[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// server/src/entities/Faculty.ts
+@Entity()
+export class Faculty {
+	@PrimaryGeneratedColumn('uuid')
+	id: string
+
+	@Column()
+	universityId: string
+
+	@ManyToOne(() => University, (university) => university.faculties)
+	@JoinColumn({ name: 'universityId' })
+	university: University
+
+	@Column()
+	name: string
+
+	@Column('json')
+	syllabus: object // SyllabusEntry[]
+
+	@Column('json')
+	students: object // Student[]
+
+	@CreateDateColumn()
+	createdAt: Date
+
+	@UpdateDateColumn()
+	updatedAt: Date
+
+	@@Unique(['universityId', 'name'])
 }
 
-model Schedule {
-  id        String   @id @default(uuid())
-  name      String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  state     Json     // ScheduleState
-  stats     Json     // ScheduleStats
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// server/src/entities/Schedule.ts
+@Entity()
+export class Schedule {
+	@PrimaryGeneratedColumn('uuid')
+	id: string
 
-  @@index([userId])
+	@Column()
+	universityId: string
+
+	@ManyToOne(() => University, (university) => university.schedules)
+	@JoinColumn({ name: 'universityId' })
+	university: University
+
+	@Column()
+	name: string
+
+	@Column()
+	ownerId: string // Supabase user ID
+
+	@Column('json')
+	state: object // ScheduleState
+
+	@Column('json')
+	stats: object // ScheduleStats
+
+	@CreateDateColumn()
+	createdAt: Date
+
+	@UpdateDateColumn()
+	updatedAt: Date
+
+	@Index()
+	@@Index(['universityId'])
+	@@Index(['ownerId'])
 }
 ```
 
@@ -846,11 +1241,12 @@ empty AND the destination slot SHALL contain the moved assignment.
 
 **Validates: Requirements 12.1, 12.5**
 
-### Property 12: Authentication Token Validity
+### Property 12: Supabase Token Validation
 
-_For any_ authenticated request, if the access token is valid, the request SHALL
-succeed; if expired but refresh token is valid, a new access token SHALL be
-issued automatically.
+_For any_ authenticated API request, if the Supabase token is valid, the request
+SHALL succeed and return the user's data; if the token is invalid or expired,
+the request SHALL return a 401 error. Supabase client handles token refresh
+automatically on the frontend.
 
 **Validates: Requirements 6.2, 6.3**
 
@@ -1274,3 +1670,23 @@ export default defineConfig({
 | SEO                    | ≥ 90   |
 | First Contentful Paint | < 1.5s |
 | Time to Interactive    | < 3s   |
+
+---
+
+## Interview Talking Points
+
+This section prepares strong answers for common technical interview questions
+about this portfolio project.
+
+| Question                          | Strong Answer                                                                                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "Why no login for demo?"          | UX best practice — users abandon apps requiring signup before trying. The algorithm visualization is the WOW factor, so I show it immediately. Authenticated mode proves fullstack skills later. |
+| "How does scheduling work?"       | Constraint satisfaction with backtracking. The visualization shows each decision: evaluating lecturers, checking room capacity, detecting conflicts, and backtracking when stuck.                |
+| "Can it scale?"                   | Yes. Authenticated users create their own university. All data is scoped by `universityId`. The algorithm handles 100 lecturers, 50 rooms, 20 faculties in under 5 seconds.                      |
+| "What's the tech stack?"          | Vite + React 19 + TypeScript + Zustand frontend, Express + TypeORM + Supabase PostgreSQL backend. Same proven pattern as my Music App portfolio project.                                         |
+| "Why Zustand over Redux?"         | Simpler API, no boilerplate, built-in TypeScript support. Perfect for a project where state complexity is moderate but type safety is important.                                                 |
+| "Why Supabase?"                   | Handles auth (JWT + refresh tokens) automatically, PostgreSQL hosting, free tier for portfolio apps. Lets me focus on the algorithm instead of auth boilerplate.                                 |
+| "How did you test the algorithm?" | Property-based testing with fast-check. I defined 14 correctness properties (no double-booking, capacity constraints, undo/redo reversibility) and ran 100+ iterations per property.             |
+| "What was the hardest part?"      | The algorithm visualization — making the constraint solver yield intermediate steps while remaining efficient, and syncing those steps with React state for smooth playback controls.            |
+| "How do you handle conflicts?"    | The algorithm detects them during generation and highlights them in red. For manual edits, drag-and-drop validates constraints before allowing placement and explains any violations.            |
+| "What would you improve?"         | Add collaborative editing (multiple admins), export to Google Calendar, and a mobile-responsive timetable view. The architecture supports all of these.                                          |

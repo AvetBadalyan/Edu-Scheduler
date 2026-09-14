@@ -1,15 +1,12 @@
 import 'reflect-metadata'
-import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
+import express from 'express'
 import { connectToDatabase } from './utils/db'
-import { authRouter }      from './routes/auth'
-import { lecturersRouter } from './routes/lecturers'
-import { roomsRouter }     from './routes/rooms'
-import { facultiesRouter } from './routes/faculties'
-import { schedulesRouter } from './routes/schedules'
-
-dotenv.config()
+import { facultiesRouter }    from './routes/faculties'
+import { lecturersRouter }    from './routes/lecturers'
+import { roomsRouter }        from './routes/rooms'
+import { schedulesRouter }    from './routes/schedules'
+import { universitiesRouter } from './routes/universities'
 
 const app = express()
 
@@ -19,8 +16,13 @@ app.use(cors({
 }))
 app.use(express.json())
 
-// Attach DB connection to every request
-app.use(async (_req, _res, next) => {
+// Health check — MUST be before the DB middleware so it always responds
+app.get('/healthz', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Ensure DB is connected before API routes
+app.use('/api', async (_req, _res, next) => {
   try {
     await connectToDatabase()
     next()
@@ -29,17 +31,12 @@ app.use(async (_req, _res, next) => {
   }
 })
 
-// Health check (works even when DB is slow)
-app.get('/healthz', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
 // Routes
-app.use('/api/auth',      authRouter)
-app.use('/api/lecturers', lecturersRouter)
-app.use('/api/rooms',     roomsRouter)
-app.use('/api/faculties', facultiesRouter)
-app.use('/api/schedules', schedulesRouter)
+app.use('/api/universities', universitiesRouter)
+app.use('/api/lecturers',    lecturersRouter)
+app.use('/api/rooms',        roomsRouter)
+app.use('/api/faculties',    facultiesRouter)
+app.use('/api/schedules',    schedulesRouter)
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

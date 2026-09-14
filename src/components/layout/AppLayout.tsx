@@ -6,12 +6,13 @@
 import { SkipLink } from '@/components/accessibility/SkipLink'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { selectUser, logoutThunk } from "@/store/authSlice"
+import { logoutThunk, selectIsDemoMode, selectUser } from '@/store/authSlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
 	BrainCircuit,
 	CalendarDays,
 	DoorOpen,
+	FlaskConical,
 	GraduationCap,
 	LayoutDashboard,
 	LogOut,
@@ -20,7 +21,7 @@ import {
 	X
 } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 interface NavItem {
 	to: string
@@ -29,7 +30,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-	{ to: '/', label: 'Dashboard', icon: LayoutDashboard },
+	{ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 	{ to: '/lecturers', label: 'Lecturers', icon: Users },
 	{ to: '/rooms', label: 'Rooms', icon: DoorOpen },
 	{ to: '/faculties', label: 'Faculties', icon: GraduationCap },
@@ -49,9 +50,10 @@ function PageFallback() {
 export function AppLayout() {
 	const [mobileOpen, setMobileOpen] = useState(false)
 	const location = useLocation()
+	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 	const user = useAppSelector(selectUser)
-	
+	const isDemoMode = useAppSelector(selectIsDemoMode)
 
 	useEffect(() => {
 		setMobileOpen(false)
@@ -99,7 +101,7 @@ export function AppLayout() {
 						<NavLink
 							key={to}
 							to={to}
-							end={to === '/'}
+							end={to === '/dashboard'}
 							className={({ isActive }) =>
 								cn(
 									'group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200',
@@ -141,6 +143,20 @@ export function AppLayout() {
 
 				{/* Footer */}
 				<div className="border-t border-white/10 p-4 space-y-3">
+					{/* Mode badge */}
+					{isDemoMode && (
+						<div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+							<FlaskConical
+								className="size-3.5 shrink-0 text-amber-400"
+								aria-hidden
+							/>
+							<span className="text-xs font-semibold text-amber-400 tracking-wide">
+								Demo Mode
+							</span>
+						</div>
+					)}
+
+					{/* User info */}
 					<div className="flex items-center gap-3 px-1">
 						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-400 text-white text-xs font-bold">
 							{user?.name?.[0]?.toUpperCase() ?? 'U'}
@@ -149,19 +165,39 @@ export function AppLayout() {
 							<p className="truncate text-xs font-medium text-white">
 								{user?.name ?? 'Demo Admin'}
 							</p>
-							<p className="text-[10px] text-slate-500">Administrator</p>
+							<p className="truncate text-[10px] text-slate-500">
+								{isDemoMode ? 'Demo session' : (user?.email ?? 'Administrator')}
+							</p>
 						</div>
 					</div>
-					<button
-						onClick={() => dispatch(logoutThunk())}
-						className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
-					>
-						<LogOut
-							className="size-3.5"
-							aria-hidden
-						/>
-						Sign out
-					</button>
+
+					{/* Exit Demo / Sign out */}
+					{isDemoMode ? (
+						<button
+							onClick={async () => {
+								await dispatch(logoutThunk())
+								navigate('/login')
+							}}
+							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-amber-400/80 transition-colors hover:bg-amber-500/10 hover:text-amber-300"
+						>
+							<LogOut
+								className="size-3.5"
+								aria-hidden
+							/>
+							Exit Demo
+						</button>
+					) : (
+						<button
+							onClick={() => dispatch(logoutThunk())}
+							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+						>
+							<LogOut
+								className="size-3.5"
+								aria-hidden
+							/>
+							Sign out
+						</button>
+					)}
 				</div>
 			</aside>
 

@@ -1,31 +1,51 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
+import {
+	Column,
+	CreateDateColumn,
+	Entity,
+	Index,
+	JoinColumn,
+	ManyToOne,
+	PrimaryGeneratedColumn,
+	UpdateDateColumn
+} from 'typeorm'
+import { University } from './University'
 import { User } from './User'
 
 @Entity('schedules')
 export class Schedule {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string
+	@PrimaryGeneratedColumn('uuid')
+	id!: string
 
-  @Column()
-  name!: string
+	@Column({ type: 'varchar' })
+	name!: string
 
-  @Column({ name: 'user_id' })
-  userId!: string
+	@Column({ type: 'varchar', name: 'user_id' })
+	userId!: string
 
-  @ManyToOne(() => User, u => u.schedules, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user!: User
+	@ManyToOne(() => User, u => u.schedules, { onDelete: 'CASCADE' })
+	@JoinColumn({ name: 'user_id' })
+	user!: User
 
-  @Column({ type: 'jsonb', default: '{}' })
-  state!: object // ScheduleState
+	@Column({ type: 'varchar', name: 'university_id', nullable: true })
+	universityId!: string | null
 
-  @Column({ type: 'jsonb', default: '{}' })
-  stats!: object // ScheduleStats
+	@ManyToOne(() => University, university => university.schedules, {
+		onDelete: 'CASCADE',
+		nullable: true
+	})
+	@JoinColumn({ name: 'university_id' })
+	university!: University | null
 
-  @CreateDateColumn({ name: 'created_at' })
-  @Index()
-  createdAt!: Date
+	@Column({ type: 'jsonb', default: '{}' })
+	state!: object // ScheduleState
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt!: Date
+	@Column({ type: 'jsonb', default: '{}' })
+	stats!: object // ScheduleStats
+
+	@CreateDateColumn({ name: 'created_at' })
+	@Index()
+	createdAt!: Date
+
+	@UpdateDateColumn({ name: 'updated_at' })
+	updatedAt!: Date
 }
