@@ -34,18 +34,17 @@ backend are included to show how it would connect to a real server.
 
 ## Tech stack
 
-| Area          | Choice                                                        |
-| ------------- | ------------------------------------------------------------- |
-| Language      | TypeScript (strict)                                           |
-| UI            | React 19, Tailwind CSS v4, Radix UI primitives (shadcn-style) |
-| State         | Zustand (entity, schedule, edit-history, visualization, auth) |
-| Routing       | React Router v6 with lazy, code-split routes                  |
-| Build         | Vite 5                                                        |
-| Icons / fonts | lucide-react, Inter                                           |
-| Testing       | Vitest + fast-check (property tests), Playwright (E2E)        |
-| Backend\*     | Express, Prisma, PostgreSQL, JWT (optional — see below)       |
+| Area          | Choice                                                                       |
+| ------------- | ---------------------------------------------------------------------------- |
+| Language      | TypeScript (strict)                                                          |
+| UI            | React 19, Tailwind CSS v4, Radix UI primitives (shadcn-style)                |
+| State         | Redux Toolkit (auth, entities, schedule, edit-history, visualization, toast) |
+| Routing       | React Router v6 with lazy, code-split routes                                 |
+| Build         | Vite 5                                                                       |
+| Icons / fonts | lucide-react, Inter                                                          |
+| Backend\*     | Express, Prisma, PostgreSQL, JWT (optional — see below)                      |
 
-\* The frontend runs standalone with in-memory stores and mock auth. The backend
+\* The frontend runs standalone with in-memory state and mock auth. The backend
 is provided as a reference implementation of the same contracts.
 
 ## Getting started
@@ -62,14 +61,11 @@ faculties) is seeded automatically on first load.
 
 ### Scripts
 
-| Script                  | Description                         |
-| ----------------------- | ----------------------------------- |
-| `npm run dev`           | Start the Vite dev server           |
-| `npm run build`         | Type-check and build for production |
-| `npm run preview`       | Preview the production build        |
-| `npm test`              | Run unit + property tests (Vitest)  |
-| `npm run test:coverage` | Run tests with coverage             |
-| `npm run test:e2e`      | Run end-to-end tests (Playwright)   |
+| Script            | Description                         |
+| ----------------- | ----------------------------------- |
+| `npm run dev`     | Start the Vite dev server           |
+| `npm run build`   | Type-check and build for production |
+| `npm run preview` | Preview the production build        |
 
 ## Architecture
 
@@ -83,7 +79,7 @@ src/
 │  ├─ lists/        Searchable / filterable entity lists
 │  ├─ timetable/    Timetable grid + multi-view viewer
 │  └─ visualization/Algorithm playback UI
-├─ stores/          Zustand stores (single source of truth per domain)
+├─ store/           Redux Toolkit slices (single source of truth per domain)
 ├─ lib/
 │  ├─ algorithm/    Scheduling solver (generator-based, testable)
 │  ├─ validation/   Input & constraint checks
@@ -107,29 +103,16 @@ satisfaction problem and solves it with backtracking:
 - If a class cannot be placed it is reported as an unresolved constraint rather
   than failing the whole run, producing a usable partial schedule.
 
-The core is pure and framework-agnostic, which makes it straightforward to test
-with property-based tests (fast-check) asserting invariants like "no two classes
-ever share a room/lecturer/faculty in the same slot".
-
-## Testing
-
-- **Unit & property tests** (`tests/`) cover the algorithm, stores, constraint
-  checks and edit history — including property-based tests that assert
-  scheduling invariants across randomised inputs.
-- **End-to-end tests** (`tests/e2e/`) drive the real app in Chromium: login,
-  auth redirects, navigation, entity CRUD and schedule generation.
-
-```bash
-npm test           # 61 unit/property tests
-npm run test:e2e   # 8 end-to-end tests
-```
+The core is pure and framework-agnostic, which keeps it easy to reason about: it
+enforces invariants like "no two classes ever share a room/lecturer/faculty in
+the same slot".
 
 ## Authentication & the backend
 
-For the demo, auth is mocked in `src/stores/authStore.ts` against a single demo
-account, with the session flag kept in `sessionStorage`. The store exposes the
+For the demo, auth is mocked in `src/store/authSlice.ts` against a single demo
+account, with the session flag kept in `sessionStorage`. The slice exposes the
 same async shape (`login` / `logout` / `checkAuth`) a real integration uses, so
-switching to the server means swapping those method bodies for calls to
+switching to the server means swapping those thunk bodies for calls to
 `src/lib/api/apiClient.ts`.
 
 The `server/` directory contains a reference Express + Prisma backend with JWT

@@ -5,9 +5,10 @@
  * with colour-coded pills, a student count badge, sortable/searchable
  * controls and smooth hover animations.
  */
+import { useAppSelector } from '@/store/hooks'
+import { selectAllFaculties } from '@/store/entitySlice'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useEntityStore } from '@/stores/entityStore'
 import type { Faculty, FacultyId } from '@/types'
 import {
 	BookOpen,
@@ -102,7 +103,7 @@ interface FacultyListProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
-	const { faculties } = useEntityStore()
+	const faculties = useAppSelector(selectAllFaculties)
 	const [search, setSearch] = useState('')
 	const [sort, setSort] = useState<SortKey>('name')
 

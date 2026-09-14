@@ -4,7 +4,22 @@
  */
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useVisualizationStore } from '@/stores/visualizationStore'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import {
+	pause,
+	play,
+	resetVisualization,
+	selectVizCurrentIndex,
+	selectVizIsLoading,
+	selectVizPlaybackSpeed,
+	selectVizPlaybackState,
+	selectVizResult,
+	selectVizSteps,
+	startVisualization,
+	stepBackward,
+	stepForward,
+	updateSpeed
+} from '@/store/visualizationSlice'
 import type { ScheduleInput } from '@/types'
 import {
 	BrainCircuit,
@@ -42,21 +57,13 @@ export function VisualizationPlayer({
 	input,
 	className
 }: VisualizationPlayerProps) {
-	const {
-		steps,
-		currentStepIndex,
-		playbackState,
-		playbackSpeed,
-		isLoading,
-		result,
-		startVisualization,
-		play,
-		pause,
-		stepForward,
-		stepBackward,
-		setSpeed,
-		reset
-	} = useVisualizationStore()
+	const dispatch = useAppDispatch()
+	const steps = useAppSelector(selectVizSteps)
+	const currentStepIndex = useAppSelector(selectVizCurrentIndex)
+	const playbackState = useAppSelector(selectVizPlaybackState)
+	const playbackSpeed = useAppSelector(selectVizPlaybackSpeed)
+	const isLoading = useAppSelector(selectVizIsLoading)
+	const result = useAppSelector(selectVizResult)
 
 	const currentStep = currentStepIndex >= 0 ? steps[currentStepIndex] : null
 	const progress =
@@ -73,9 +80,9 @@ export function VisualizationPlayer({
 
 	const handleStart = () => {
 		if (!input) return
-		startVisualization(input)
+		dispatch(startVisualization(input))
 		// Short delay so the store is hydrated before playback starts
-		setTimeout(() => play(), 120)
+		// play auto-starts inside startVisualization thunk
 	}
 
 	return (
@@ -100,7 +107,7 @@ export function VisualizationPlayer({
 				</div>
 				{playbackState !== 'idle' && (
 					<button
-						onClick={reset}
+						onClick={() => dispatch(resetVisualization())}
 						className="flex items-center gap-1 text-xs text-gray-500 transition-colors hover:text-gray-800"
 						aria-label="Reset visualization"
 					>
@@ -183,7 +190,7 @@ export function VisualizationPlayer({
 						<Button
 							size="sm"
 							variant="outline"
-							onClick={stepBackward}
+							onClick={() => dispatch(stepBackward())}
 							disabled={currentStepIndex <= 0}
 							aria-label="Step backward"
 							className="size-8 p-0"
@@ -197,7 +204,7 @@ export function VisualizationPlayer({
 						{playbackState === 'playing' ? (
 							<Button
 								size="sm"
-								onClick={pause}
+								onClick={() => dispatch(pause())}
 								aria-label="Pause"
 								className="gap-1.5"
 							>
@@ -210,7 +217,7 @@ export function VisualizationPlayer({
 						) : (
 							<Button
 								size="sm"
-								onClick={play}
+								onClick={() => dispatch(play())}
 								disabled={playbackState === 'complete'}
 								aria-label="Play"
 								className="gap-1.5"
@@ -226,7 +233,7 @@ export function VisualizationPlayer({
 						<Button
 							size="sm"
 							variant="outline"
-							onClick={stepForward}
+							onClick={() => dispatch(stepForward())}
 							disabled={currentStepIndex >= steps.length - 1}
 							aria-label="Step forward"
 							className="size-8 p-0"
@@ -247,7 +254,7 @@ export function VisualizationPlayer({
 						{SPEEDS.map(s => (
 							<button
 								key={s}
-								onClick={() => setSpeed(s)}
+								onClick={() => dispatch(updateSpeed(s))}
 								className={cn(
 									'rounded border px-2 py-0.5 text-[11px] font-medium transition-colors',
 									playbackSpeed === s

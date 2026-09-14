@@ -15,7 +15,6 @@ export default defineConfig({
 			'@': resolve(__dirname, './src'),
 			'@components': resolve(__dirname, './src/components'),
 			'@pages': resolve(__dirname, './src/pages'),
-			'@stores': resolve(__dirname, './src/stores'),
 			'@lib': resolve(__dirname, './src/lib'),
 			'@types': resolve(__dirname, './src/types'),
 			'@hooks': resolve(__dirname, './src/hooks'),
@@ -32,7 +31,7 @@ export default defineConfig({
 				manualChunks: {
 					vendor: ['react', 'react-dom'],
 					router: ['react-router-dom'],
-					state: ['zustand']
+					redux: ['@reduxjs/toolkit', 'react-redux']
 				}
 			}
 		},

@@ -1,20 +1,30 @@
 /**
- * useSeedData — populates the entity store with demo data on first mount.
- *
- * Runs once per session. If the store already has data (e.g. the user added
- * their own), it does nothing.
+ * useSeedData — loads demo data into Redux on first mount.
  */
-import { useEffect } from "react"
-import { useEntityStore } from "@/stores/entityStore"
-import { seedFaculties, seedLecturers, seedRooms } from "@/lib/seedData"
+import { seedFaculties, seedLecturers, seedRooms } from '@/lib/seedData'
+import {
+	addFaculty,
+	addLecturer,
+	addRoom,
+	selectAllFaculties,
+	selectAllLecturers,
+	selectAllRooms
+} from '@/store/entitySlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useEffect } from 'react'
 
 export function useSeedData(): void {
-  useEffect(() => {
-    const { lecturers, rooms, faculties, addLecturer, addRoom, addFaculty } =
-      useEntityStore.getState()
+	const dispatch = useAppDispatch()
+	const lecturers = useAppSelector(selectAllLecturers)
+	const rooms = useAppSelector(selectAllRooms)
+	const faculties = useAppSelector(selectAllFaculties)
 
-    if (lecturers.length === 0) seedLecturers.forEach(addLecturer)
-    if (rooms.length === 0) seedRooms.forEach(addRoom)
-    if (faculties.length === 0) seedFaculties.forEach(addFaculty)
-  }, [])
+	useEffect(() => {
+		if (lecturers.length === 0)
+			seedLecturers.forEach(l => dispatch(addLecturer(l)))
+		if (rooms.length === 0) seedRooms.forEach(r => dispatch(addRoom(r)))
+		if (faculties.length === 0)
+			seedFaculties.forEach(f => dispatch(addFaculty(f)))
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 }

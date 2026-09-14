@@ -6,7 +6,8 @@
  */
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useEntityStore } from '@/stores/entityStore'
+import { useAppSelector } from '@/store/hooks'
+import { selectAllLecturers } from '@/store/entitySlice'
 import type { Lecturer, LecturerId } from '@/types'
 import { Pencil, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -114,7 +115,7 @@ export function LecturerList({
 	onDelete,
 	className
 }: LecturerListProps) {
-	const { lecturers } = useEntityStore()
+	const lecturers = useAppSelector(selectAllLecturers)
 	const [search, setSearch] = useState('')
 	const [filterSpecialty, setFilterSpecialty] = useState<string | null>(null)
 

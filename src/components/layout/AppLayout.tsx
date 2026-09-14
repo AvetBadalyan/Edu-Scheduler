@@ -6,7 +6,8 @@
 import { SkipLink } from '@/components/accessibility/SkipLink'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/authStore'
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { selectUser, logoutThunk } from "@/store/authSlice"
 import {
 	BrainCircuit,
 	CalendarDays,
@@ -48,8 +49,9 @@ function PageFallback() {
 export function AppLayout() {
 	const [mobileOpen, setMobileOpen] = useState(false)
 	const location = useLocation()
-	const user = useAuthStore(s => s.user)
-	const logout = useAuthStore(s => s.logout)
+	const dispatch = useAppDispatch()
+	const user = useAppSelector(selectUser)
+	
 
 	useEffect(() => {
 		setMobileOpen(false)
@@ -151,7 +153,7 @@ export function AppLayout() {
 						</div>
 					</div>
 					<button
-						onClick={() => logout()}
+						onClick={() => dispatch(logoutThunk())}
 						className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
 					>
 						<LogOut

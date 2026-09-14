@@ -5,7 +5,8 @@
  * Requirements: 4.7
  */
 import { cn } from '@/lib/utils'
-import { useVisualizationStore } from '@/stores/visualizationStore'
+import { useAppSelector } from '@/store/hooks'
+import { selectVizDecisionLog, selectVizCurrentIndex } from '@/store/visualizationSlice'
 import type { AlgorithmStep } from '@/types'
 import { useEffect, useRef } from 'react'
 
@@ -26,7 +27,8 @@ const TYPE_ICONS: Record<AlgorithmStep['type'], string> = {
 }
 
 export function DecisionLog({ className }: { className?: string }) {
-	const { decisionLog, currentStepIndex } = useVisualizationStore()
+	const decisionLog = useAppSelector(selectVizDecisionLog)
+	const currentStepIndex = useAppSelector(selectVizCurrentIndex)
 	const currentRef = useRef<HTMLLIElement | null>(null)
 
 	// Auto-scroll to current step

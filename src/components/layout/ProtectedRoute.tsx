@@ -1,20 +1,12 @@
-/**
- * ProtectedRoute — guards authenticated sections of the app.
- *
- * Redirects unauthenticated users to the login page, preserving the
- * originally requested location so they can be returned to it after login.
- */
-import { Navigate, Outlet, useLocation } from "react-router-dom"
-import { useAuthStore } from "@/stores/authStore"
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useAppSelector } from '@/store/hooks'
+import { selectIsAuthenticated } from '@/store/authSlice'
 
 export function ProtectedRoute() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const location = useLocation()
-
-  if (!isAuthenticated) {
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  const location        = useLocation()
+  if (!isAuthenticated)
     return <Navigate to="/login" replace state={{ from: location }} />
-  }
-
   return <Outlet />
 }
 

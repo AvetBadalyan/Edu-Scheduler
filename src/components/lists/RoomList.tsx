@@ -5,9 +5,10 @@
  * a circular capacity indicator, an animated utilisation bar and
  * a colour-coded status pill. Hover lifts the card with a coloured glow.
  */
+import { useAppSelector } from '@/store/hooks'
+import { selectAllRooms } from '@/store/entitySlice'
+import { selectScheduleRooms } from '@/store/scheduleSlice'
 import { cn } from '@/lib/utils'
-import { useEntityStore } from '@/stores/entityStore'
-import { useScheduleStore } from '@/stores/scheduleStore'
 import type { Room, RoomId } from '@/types'
 import { Pencil, Trash2, Users } from 'lucide-react'
 import { useMemo } from 'react'
@@ -61,7 +62,7 @@ function getTier(capacity: number) {
 
 function calcUtil(
 	room: Room,
-	scheduleRooms: ReturnType<typeof useScheduleStore.getState>['rooms']
+	scheduleRooms: Record<string, { timetable: Record<number, Record<number, unknown>> }>
 ): number {
 	const t = scheduleRooms[room.id]?.timetable
 	if (!t) return 0
@@ -95,8 +96,8 @@ interface RoomListProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
-	const { rooms } = useEntityStore()
-	const scheduleRooms = useScheduleStore(s => s.rooms)
+	const rooms = useAppSelector(selectAllRooms)
+	const scheduleRooms = useAppSelector(selectScheduleRooms)
 
 	const grouped = useMemo(() => {
 		const map = new Map<string, { tier: (typeof TIERS)[0]; rooms: Room[] }>()

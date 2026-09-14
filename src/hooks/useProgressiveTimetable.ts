@@ -1,18 +1,19 @@
 /**
- * useProgressiveTimetable
- *
- * Derives the schedule state at the current visualization step by replaying
- * every "assign" and "backtrack" event seen so far.
- *
- * This is what makes the grid animate during visualization: cells appear and
- * disappear in real time as the algorithm places and removes assignments.
- *
- * Returns a ScheduleState (same shape as scheduleStore) built only from steps
- * up to and including `currentStepIndex`.
+ * useProgressiveTimetable — rebuilds the timetable step-by-step during
+ * visualization playback, making the grid animate in real time.
  */
-import { useMemo } from 'react'
-import { useVisualizationStore } from '@/stores/visualizationStore'
-import { useEntityStore } from '@/stores/entityStore'
+import { emptyTimetable } from '@/lib/timetable'
+import {
+	selectAllFaculties,
+	selectAllLecturers,
+	selectAllRooms
+} from '@/store/entitySlice'
+import { useAppSelector } from '@/store/hooks'
+import {
+	selectVizCurrentIndex,
+	selectVizPlaybackState,
+	selectVizSteps
+} from '@/store/visualizationSlice'
 import type {
 	ClassAssignment,
 	DayOfWeek,
@@ -21,18 +22,9 @@ import type {
 	LecturerWithTimetable,
 	RoomWithTimetable,
 	ScheduleState,
-	Timetable,
+	Timetable
 } from '@/types'
-
-function emptyTimetable(): Timetable {
-	return {
-		1: { 1: null, 2: null, 3: null, 4: null },
-		2: { 1: null, 2: null, 3: null, 4: null },
-		3: { 1: null, 2: null, 3: null, 4: null },
-		4: { 1: null, 2: null, 3: null, 4: null },
-		5: { 1: null, 2: null, 3: null, 4: null },
-	}
-}
+import { useMemo } from 'react'
 
 function cloneTimetable(t: Timetable): Timetable {
 	return {
@@ -40,31 +32,22 @@ function cloneTimetable(t: Timetable): Timetable {
 		2: { ...t[2] },
 		3: { ...t[3] },
 		4: { ...t[4] },
-		5: { ...t[5] },
+		5: { ...t[5] }
 	}
 }
 
-/**
- * Builds a ScheduleState by replaying assign/backtrack steps up to `upTo`.
- * All assignments start from an empty timetable so the grid builds up live.
- */
 export function useProgressiveTimetable(): ScheduleState | null {
-	const steps = useVisualizationStore(s => s.steps)
-	const currentStepIndex = useVisualizationStore(s => s.currentStepIndex)
-	const playbackState = useVisualizationStore(s => s.playbackState)
-	const { lecturers, rooms, faculties } = useEntityStore()
+	const steps = useAppSelector(selectVizSteps)
+	const currentStepIndex = useAppSelector(selectVizCurrentIndex)
+	const playbackState = useAppSelector(selectVizPlaybackState)
+	const lecturers = useAppSelector(selectAllLecturers)
+	const rooms = useAppSelector(selectAllRooms)
+	const faculties = useAppSelector(selectAllFaculties)
 
 	return useMemo(() => {
-		// Only active while visualization is running
-		if (
-			playbackState === 'idle' ||
-			steps.length === 0 ||
-			currentStepIndex < 0
-		) {
+		if (playbackState === 'idle' || steps.length === 0 || currentStepIndex < 0)
 			return null
-		}
 
-		// Initialise empty timetables for every entity
 		const roomState: Record<string, RoomWithTimetable> = {}
 		rooms.forEach(r => {
 			roomState[r.id] = { ...r, timetable: emptyTimetable() }
@@ -82,26 +65,22 @@ export function useProgressiveTimetable(): ScheduleState | null {
 				timetable: emptyTimetable(),
 				remainingHours: Object.fromEntries(
 					f.syllabus.map(e => [e.subject, e.requiredHours])
-				),
+				)
 			}
 		})
 
-		// Replay steps up to currentStepIndex
 		for (let i = 0; i <= currentStepIndex; i++) {
 			const step = steps[i]
 			if (!step) continue
 
 			if (step.type === 'assign') {
-				// The step carries currentLecturer, currentRoom, currentFaculty,
-				// currentSubject, currentSlot — enough to reconstruct the assignment.
 				const {
 					currentLecturer,
 					currentRoom,
 					currentFaculty,
 					currentSubject,
-					currentSlot,
+					currentSlot
 				} = step
-
 				if (
 					!currentLecturer ||
 					!currentRoom ||
@@ -111,49 +90,41 @@ export function useProgressiveTimetable(): ScheduleState | null {
 				)
 					continue
 
-				const { day, hour } = currentSlot
-				const d = day as DayOfWeek
-				const h = hour as HourSlot
-
+				const d = currentSlot.day as DayOfWeek
+				const h = currentSlot.hour as HourSlot
 				const assignment: ClassAssignment = {
 					facultyId: currentFaculty,
 					lecturerId: currentLecturer,
 					roomId: currentRoom,
 					subject: currentSubject,
 					timeSlot: { day: d, hour: h },
-					isManual: false,
+					isManual: false
 				}
 
 				if (lecturerState[currentLecturer]) {
 					lecturerState[currentLecturer] = {
 						...lecturerState[currentLecturer],
-						timetable: cloneTimetable(lecturerState[currentLecturer].timetable),
+						timetable: cloneTimetable(lecturerState[currentLecturer].timetable)
 					}
 					lecturerState[currentLecturer].timetable[d][h] = assignment
 				}
 				if (roomState[currentRoom]) {
 					roomState[currentRoom] = {
 						...roomState[currentRoom],
-						timetable: cloneTimetable(roomState[currentRoom].timetable),
+						timetable: cloneTimetable(roomState[currentRoom].timetable)
 					}
 					roomState[currentRoom].timetable[d][h] = assignment
 				}
 				if (facultyState[currentFaculty]) {
 					facultyState[currentFaculty] = {
 						...facultyState[currentFaculty],
-						timetable: cloneTimetable(facultyState[currentFaculty].timetable),
+						timetable: cloneTimetable(facultyState[currentFaculty].timetable)
 					}
 					facultyState[currentFaculty].timetable[d][h] = assignment
 				}
 			} else if (step.type === 'backtrack') {
-				// The description says which assignment was undone.
-				// The step carries currentFaculty and currentSubject, but NOT the
-				// exact slot. We must find it by searching the current state for an
-				// assignment with that faculty + subject and remove the most recent one.
 				const { currentFaculty, currentSubject } = step
 				if (!currentFaculty || !currentSubject) continue
-
-				// Find the assignment to remove
 				const fac = facultyState[currentFaculty]
 				if (!fac) continue
 
@@ -164,7 +135,11 @@ export function useProgressiveTimetable(): ScheduleState | null {
 				outer: for (const d of [5, 4, 3, 2, 1] as DayOfWeek[]) {
 					for (const h of [4, 3, 2, 1] as HourSlot[]) {
 						const a = fac.timetable[d][h]
-						if (a && a.subject === currentSubject && a.facultyId === currentFaculty) {
+						if (
+							a &&
+							a.subject === currentSubject &&
+							a.facultyId === currentFaculty
+						) {
 							foundDay = d
 							foundHour = h
 							foundAssignment = a
@@ -175,24 +150,23 @@ export function useProgressiveTimetable(): ScheduleState | null {
 
 				if (foundDay && foundHour && foundAssignment) {
 					const { lecturerId, roomId } = foundAssignment
-
 					if (lecturerState[lecturerId]) {
 						lecturerState[lecturerId] = {
 							...lecturerState[lecturerId],
-							timetable: cloneTimetable(lecturerState[lecturerId].timetable),
+							timetable: cloneTimetable(lecturerState[lecturerId].timetable)
 						}
 						lecturerState[lecturerId].timetable[foundDay][foundHour] = null
 					}
 					if (roomState[roomId]) {
 						roomState[roomId] = {
 							...roomState[roomId],
-							timetable: cloneTimetable(roomState[roomId].timetable),
+							timetable: cloneTimetable(roomState[roomId].timetable)
 						}
 						roomState[roomId].timetable[foundDay][foundHour] = null
 					}
 					facultyState[currentFaculty] = {
 						...facultyState[currentFaculty],
-						timetable: cloneTimetable(facultyState[currentFaculty].timetable),
+						timetable: cloneTimetable(facultyState[currentFaculty].timetable)
 					}
 					facultyState[currentFaculty].timetable[foundDay][foundHour] = null
 				}
@@ -202,7 +176,7 @@ export function useProgressiveTimetable(): ScheduleState | null {
 		return {
 			rooms: roomState,
 			lecturers: lecturerState,
-			faculties: facultyState,
+			faculties: facultyState
 		}
 	}, [steps, currentStepIndex, playbackState, lecturers, rooms, faculties])
 }

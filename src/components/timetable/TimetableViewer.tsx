@@ -8,8 +8,9 @@
  * Clicking a pill manually pins the view on that entity.
  */
 import { cn } from '@/lib/utils'
-import { useScheduleStore } from '@/stores/scheduleStore'
-import { useVisualizationStore } from '@/stores/visualizationStore'
+import { useAppSelector } from '@/store/hooks'
+import { selectScheduleRooms, selectScheduleLecturers, selectScheduleFaculties } from '@/store/scheduleSlice'
+import { selectVizHighlightedElements, selectVizPlaybackState, selectVizCurrentStep } from '@/store/visualizationSlice'
 import type {
 	ClassAssignment,
 	ScheduleState,
@@ -41,20 +42,18 @@ export function TimetableViewer({
 	// null = auto-follow; a string = user has pinned this entity
 	const [pinnedEntityId, setPinnedEntityId] = useState<string | null>(null)
 
-	const storeLecturers = useScheduleStore(s => s.lecturers)
-	const storeRooms = useScheduleStore(s => s.rooms)
-	const storeFaculties = useScheduleStore(s => s.faculties)
+	const storeLecturers = useAppSelector(selectScheduleLecturers)
+	const storeRooms = useAppSelector(selectScheduleRooms)
+	const storeFaculties = useAppSelector(selectScheduleFaculties)
 
 	const srcLecturers = overrideState?.lecturers ?? storeLecturers
 	const srcRooms = overrideState?.rooms ?? storeRooms
 	const srcFaculties = overrideState?.faculties ?? storeFaculties
 
 	// Visualization state
-	const highlightedElements = useVisualizationStore(s => s.highlightedElements)
-	const steps = useVisualizationStore(s => s.steps)
-	const currentStepIndex = useVisualizationStore(s => s.currentStepIndex)
-	const playbackState = useVisualizationStore(s => s.playbackState)
-	const currentStep = currentStepIndex >= 0 ? steps[currentStepIndex] : null
+	const highlightedElements = useAppSelector(selectVizHighlightedElements)
+	const playbackState = useAppSelector(selectVizPlaybackState)
+	const currentStep = useAppSelector(selectVizCurrentStep)
 
 	const isVizActive =
 		overrideState !== undefined &&

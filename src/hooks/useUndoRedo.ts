@@ -1,88 +1,74 @@
 /**
- * useUndoRedo hook — connects EditHistoryStore to ScheduleStore for keyboard
- * shortcuts (Ctrl+Z / Ctrl+Y) and programmatic undo/redo of manual edits.
- *
- * Requirements: 12.4 (undo/redo stack with ≥50 actions)
+ * useUndoRedo — Ctrl+Z / Ctrl+Y keyboard shortcuts + programmatic undo/redo.
  */
-import { useEffect, useCallback } from "react"
-import { useEditHistoryStore } from "@/stores/editHistoryStore"
-import { useScheduleStore } from "@/stores/scheduleStore"
-
-/**
- * Applies a redo (re-assigns the moved/assigned class).
- */
-function applyRedo(
-  edit: ReturnType<typeof useEditHistoryStore.getState>["history"][0],
-  assignClass: ReturnType<typeof useScheduleStore.getState>["assignClass"]
-) {
-  if (edit.after) {
-    assignClass(edit.after)
-  }
-}
-
-/**
- * Reverses an edit (moves back / unassigns).
- */
-function applyUndo(
-  edit: ReturnType<typeof useEditHistoryStore.getState>["history"][0],
-  assignClass: ReturnType<typeof useScheduleStore.getState>["assignClass"],
-  unassignClass: ReturnType<typeof useScheduleStore.getState>["unassignClass"]
-) {
-  // Unassign the "after" state
-  if (edit.after) {
-    unassignClass({
-      ...edit.after.timeSlot,
-      entityType: "room",
-      entityId: edit.after.roomId,
-    })
-  }
-  // Re-assign the "before" state if it existed
-  if (edit.before) {
-    assignClass(edit.before)
-  }
-}
+import {
+	redo,
+	selectCanRedo,
+	selectCanUndo,
+	selectCurrentEdit,
+	selectNextEdit,
+	undo
+} from '@/store/editHistorySlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { assignClass, unassignClass } from '@/store/scheduleSlice'
+import { useCallback, useEffect } from 'react'
 
 export function useUndoRedo(enableKeyboardShortcuts = true) {
-  const { undo, redo, canUndo, canRedo } = useEditHistoryStore()
-  const { assignClass, unassignClass } = useScheduleStore()
+	const dispatch = useAppDispatch()
+	const canUndo = useAppSelector(selectCanUndo)
+	const canRedo = useAppSelector(selectCanRedo)
 
-  const handleUndo = useCallback(() => {
-    if (!canUndo()) return
-    const edit = undo()
-    if (edit) applyUndo(edit, assignClass, unassignClass)
-  }, [canUndo, undo, assignClass, unassignClass])
+	// We read these lazily inside callbacks to avoid stale closures
+	const handleUndo = useCallback(() => {
+		if (!canUndo) return
+		// 1. Get the edit at currentIndex before decrementing
+		// We dispatch undo first, then read the now-previous state
+		// Actually: read currentEdit BEFORE dispatching undo
+		dispatch((_, getState) => {
+			const edit = selectCurrentEdit(getState())
+			dispatch(undo())
+			if (edit?.after) {
+				dispatch(
+					unassignClass({
+						...edit.after.timeSlot,
+						entityType: 'room',
+						entityId: edit.after.roomId
+					})
+				)
+			}
+			if (edit?.before) {
+				dispatch(assignClass(edit.before))
+			}
+		})
+	}, [canUndo, dispatch])
 
-  const handleRedo = useCallback(() => {
-    if (!canRedo()) return
-    const edit = redo()
-    if (edit) applyRedo(edit, assignClass)
-  }, [canRedo, redo, assignClass])
+	const handleRedo = useCallback(() => {
+		if (!canRedo) return
+		dispatch((_, getState) => {
+			const edit = selectNextEdit(getState())
+			dispatch(redo())
+			if (edit?.after) {
+				dispatch(assignClass(edit.after))
+			}
+		})
+	}, [canRedo, dispatch])
 
-  // Keyboard shortcuts: Ctrl+Z (undo), Ctrl+Y / Ctrl+Shift+Z (redo)
-  useEffect(() => {
-    if (!enableKeyboardShortcuts) return
+	useEffect(() => {
+		if (!enableKeyboardShortcuts) return
+		const handler = (e: KeyboardEvent) => {
+			const ctrl = e.ctrlKey || e.metaKey
+			if (!ctrl) return
+			if (e.key === 'z' && !e.shiftKey) {
+				e.preventDefault()
+				handleUndo()
+			} else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+				e.preventDefault()
+				handleRedo()
+			}
+		}
+		window.addEventListener('keydown', handler)
+		return () => window.removeEventListener('keydown', handler)
+	}, [handleUndo, handleRedo, enableKeyboardShortcuts])
 
-    const handler = (e: KeyboardEvent) => {
-      const ctrl = e.ctrlKey || e.metaKey
-      if (!ctrl) return
-
-      if (e.key === "z" && !e.shiftKey) {
-        e.preventDefault()
-        handleUndo()
-      } else if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
-        e.preventDefault()
-        handleRedo()
-      }
-    }
-
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [handleUndo, handleRedo, enableKeyboardShortcuts])
-
-  return {
-    undo: handleUndo,
-    redo: handleRedo,
-    canUndo: canUndo(),
-    canRedo: canRedo(),
-  }
+	return { undo: handleUndo, redo: handleRedo, canUndo, canRedo }
 }

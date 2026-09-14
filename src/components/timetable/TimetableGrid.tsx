@@ -6,7 +6,8 @@
  * visualization store so the grid lights up during step playback.
  */
 import { cn } from '@/lib/utils'
-import { useScheduleStore } from '@/stores/scheduleStore'
+import { useAppSelector } from '@/store/hooks'
+import { selectScheduleRooms, selectScheduleLecturers, selectScheduleFaculties } from '@/store/scheduleSlice'
 import type {
 	ClassAssignment,
 	DayOfWeek,
@@ -354,9 +355,9 @@ export function TimetableGrid({
 	className
 }: TimetableGridProps) {
 	// Pull entity name maps so cells can display names, not IDs
-	const storeLecturers = useScheduleStore(s => s.lecturers)
-	const storeRooms = useScheduleStore(s => s.rooms)
-	const storeFaculties = useScheduleStore(s => s.faculties)
+	const storeLecturers = useAppSelector(selectScheduleLecturers)
+	const storeRooms = useAppSelector(selectScheduleRooms)
+	const storeFaculties = useAppSelector(selectScheduleFaculties)
 
 	function resolveLecturerName(id: string) {
 		const l = storeLecturers[id]
