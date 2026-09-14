@@ -1,83 +1,153 @@
-# CUSTOM STUDY MANAGEMENT
-# CREATE YOUR OWN CLASS SCHEDULE
+# Education Manager
 
-![login](./src//assets/readme%20screenshots/login.jpg)
-![home](./src//assets/readme%20screenshots/home.jpg)
-![footer](./src//assets/readme%20screenshots/footer.jpg)
-![create](./src//assets/readme%20screenshots/create.jpg)
-![faculties](./src//assets/readme%20screenshots/faculties.jpg)
-![single-faculty](./src//assets/readme%20screenshots/single-faculty.jpg)
-![lecturers](./src//assets/readme%20screenshots/lectures.jpg)
-![single-lecture](./src//assets/readme%20screenshots/single-lecture.jpg)
-![Room](./src//assets/readme%20screenshots/Room.jpg)
+A university timetable-management single-page app. Define lecturers, rooms and
+faculties, then generate a **conflict-free weekly schedule** with a
+constraint-satisfaction solver — and watch the algorithm make its decisions step
+by step. Schedules can be fine-tuned by dragging classes around the grid, with
+full undo/redo.
 
-# Getting Started with Create React App
+The project is built to run entirely in the browser (no backend required) so it
+can be explored instantly, while a typed API client and an Express + Prisma
+backend are included to show how it would connect to a real server.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> **Demo login** — the form is pre-filled, just click **Sign in**:
+> `demo@education.app` / `demo1234`
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Highlights
 
-### `npm start`
+- **Constraint-satisfaction scheduler** with backtracking — places every
+  required class into a valid `day × hour` slot while respecting room capacity,
+  lecturer specialties, and no double-booking of rooms, lecturers or faculties.
+- **Algorithm visualization** — replay the solver step by step (evaluate →
+  assign → conflict → backtrack) with play/pause, speed control and a live
+  decision log.
+- **Manual editing** — drag-and-drop classes between slots with conflict
+  prevention and keyboard-accessible **undo/redo** (`Ctrl+Z` / `Ctrl+Y`).
+- **Full CRUD** for lecturers, rooms and faculties with client-side validation,
+  search, filtering and toast notifications.
+- **Accessibility first** — semantic landmarks, skip link, focus-trapped
+  dialogs, ARIA live regions, keyboard support and `prefers-reduced-motion`.
+- **Responsive** — sidebar navigation on desktop collapses to a drawer on
+  mobile; layouts adapt from 320px upward.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Area          | Choice                                                        |
+| ------------- | ------------------------------------------------------------- |
+| Language      | TypeScript (strict)                                           |
+| UI            | React 19, Tailwind CSS v4, Radix UI primitives (shadcn-style) |
+| State         | Zustand (entity, schedule, edit-history, visualization, auth) |
+| Routing       | React Router v6 with lazy, code-split routes                  |
+| Build         | Vite 5                                                        |
+| Icons / fonts | lucide-react, Inter                                           |
+| Testing       | Vitest + fast-check (property tests), Playwright (E2E)        |
+| Backend\*     | Express, Prisma, PostgreSQL, JWT (optional — see below)       |
 
-### `npm test`
+\* The frontend runs standalone with in-memory stores and mock auth. The backend
+is provided as a reference implementation of the same contracts.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Getting started
 
-### `npm run build`
+Requires Node.js 20+.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm install
+npm run dev        # http://localhost:3000
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Then sign in with the demo credentials above. Demo data (lecturers, rooms and
+faculties) is seeded automatically on first load.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Scripts
 
-### `npm run eject`
+| Script                  | Description                         |
+| ----------------------- | ----------------------------------- |
+| `npm run dev`           | Start the Vite dev server           |
+| `npm run build`         | Type-check and build for production |
+| `npm run preview`       | Preview the production build        |
+| `npm test`              | Run unit + property tests (Vitest)  |
+| `npm run test:coverage` | Run tests with coverage             |
+| `npm run test:e2e`      | Run end-to-end tests (Playwright)   |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Architecture
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+├─ pages/           Route-level screens (lazy-loaded, code-split)
+├─ components/
+│  ├─ layout/       App shell, protected routes, page header
+│  ├─ ui/           Reusable primitives (button, input, dialog, toast…)
+│  ├─ forms/        Entity create/edit forms with validation
+│  ├─ lists/        Searchable / filterable entity lists
+│  ├─ timetable/    Timetable grid + multi-view viewer
+│  └─ visualization/Algorithm playback UI
+├─ stores/          Zustand stores (single source of truth per domain)
+├─ lib/
+│  ├─ algorithm/    Scheduling solver (generator-based, testable)
+│  ├─ validation/   Input & constraint checks
+│  └─ api/          Typed API client + secure token storage
+├─ hooks/           Reusable hooks (drag-drop, undo-redo, toasts, seeding)
+└─ types/           Central domain type definitions
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### The scheduler
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+`src/lib/algorithm/schedulingAlgorithm.ts` models timetabling as a constraint
+satisfaction problem and solves it with backtracking:
 
-## Learn More
+- Assignments are ordered **most-constrained-first** (subjects with fewer
+  qualified lecturers go first) to reduce backtracking.
+- Rooms are tried **smallest-capacity-first** to minimise wasted space; slots
+  are chosen to **spread classes evenly** across the week.
+- The solver is a **generator**, so the exact same logic powers both the instant
+  "Generate" action and the step-by-step visualization — the UI just consumes
+  the yielded steps.
+- If a class cannot be placed it is reported as an unresolved constraint rather
+  than failing the whole run, producing a usable partial schedule.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The core is pure and framework-agnostic, which makes it straightforward to test
+with property-based tests (fast-check) asserting invariants like "no two classes
+ever share a room/lecturer/faculty in the same slot".
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Testing
 
-### Code Splitting
+- **Unit & property tests** (`tests/`) cover the algorithm, stores, constraint
+  checks and edit history — including property-based tests that assert
+  scheduling invariants across randomised inputs.
+- **End-to-end tests** (`tests/e2e/`) drive the real app in Chromium: login,
+  auth redirects, navigation, entity CRUD and schedule generation.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+npm test           # 61 unit/property tests
+npm run test:e2e   # 8 end-to-end tests
+```
 
-### Analyzing the Bundle Size
+## Authentication & the backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+For the demo, auth is mocked in `src/stores/authStore.ts` against a single demo
+account, with the session flag kept in `sessionStorage`. The store exposes the
+same async shape (`login` / `logout` / `checkAuth`) a real integration uses, so
+switching to the server means swapping those method bodies for calls to
+`src/lib/api/apiClient.ts`.
 
-### Making a Progressive Web App
+The `server/` directory contains a reference Express + Prisma backend with JWT
+auth (short-lived in-memory access token + httpOnly refresh cookie). To run it:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+cd server
+cp .env.example .env      # set DATABASE_URL and JWT secrets
+npm install
+npm run prisma:migrate
+npm run dev               # http://localhost:4000
+```
 
-### Advanced Configuration
+Point the frontend at it with `VITE_API_URL=http://localhost:4000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Security notes
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+`npm audit` advisories were triaged rather than blindly auto-fixed: the
+applicable React Router advisory was patched, while the remaining items are
+dev-tooling only or SSR-specific and do not affect this client-only build, so no
+breaking major upgrades were forced.

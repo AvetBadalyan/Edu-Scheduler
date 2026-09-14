@@ -1,0 +1,5 @@
+export { User }     from './User'
+export { Lecturer } from './Lecturer'
+export { Room }     from './Room'
+export { Faculty }  from './Faculty'
+export { Schedule } from './Schedule'
