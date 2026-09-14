@@ -7,76 +7,106 @@ export const schedulesRouter = Router()
 schedulesRouter.use(requireAuth)
 
 schedulesRouter.get('/', async (req: AuthRequest, res, next) => {
-  try {
-    const universityId = req.query.universityId as string | undefined
-    const repo = AppDataSource.getRepository(Schedule)
-    const schedules = universityId
-      ? await repo.find({ where: { userId: req.userId!, universityId }, order: { updatedAt: 'DESC' } })
-      : await repo.find({ where: { userId: req.userId! }, order: { updatedAt: 'DESC' } })
-    res.json(schedules)
-  } catch (err) { next(err) }
+	try {
+		const universityId = req.query.universityId as string | undefined
+		const repo = AppDataSource.getRepository(Schedule)
+		const schedules = universityId
+			? await repo.find({
+					where: { userId: req.userId!, universityId },
+					order: { updatedAt: 'DESC' },
+				})
+			: await repo.find({ where: { userId: req.userId! }, order: { updatedAt: 'DESC' } })
+		res.json(schedules)
+	} catch (err) {
+		next(err)
+	}
 })
 
 schedulesRouter.get('/latest', async (req: AuthRequest, res, next) => {
-  try {
-    const universityId = req.query.universityId as string | undefined
-    const repo = AppDataSource.getRepository(Schedule)
-    const schedule = universityId
-      ? await repo.findOne({ where: { userId: req.userId!, universityId }, order: { updatedAt: 'DESC' } })
-      : await repo.findOne({ where: { userId: req.userId! }, order: { updatedAt: 'DESC' } })
-    if (!schedule) return res.status(404).json({ code: 'NOT_FOUND', message: 'No schedules found.' })
-    res.json(schedule)
-  } catch (err) { next(err) }
+	try {
+		const universityId = req.query.universityId as string | undefined
+		const repo = AppDataSource.getRepository(Schedule)
+		const schedule = universityId
+			? await repo.findOne({
+					where: { userId: req.userId!, universityId },
+					order: { updatedAt: 'DESC' },
+				})
+			: await repo.findOne({ where: { userId: req.userId! }, order: { updatedAt: 'DESC' } })
+		if (!schedule)
+			return res.status(404).json({ code: 'NOT_FOUND', message: 'No schedules found.' })
+		res.json(schedule)
+	} catch (err) {
+		next(err)
+	}
 })
 
 schedulesRouter.get('/:id', async (req: AuthRequest, res, next) => {
-  try {
-    const schedule = await AppDataSource.getRepository(Schedule).findOneBy({ id: req.params.id })
-    if (!schedule) return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
-    if (schedule.userId !== req.userId) return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-    res.json(schedule)
-  } catch (err) { next(err) }
+	try {
+		const schedule = await AppDataSource.getRepository(Schedule).findOneBy({ id: req.params.id })
+		if (!schedule)
+			return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
+		if (schedule.userId !== req.userId)
+			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
+		res.json(schedule)
+	} catch (err) {
+		next(err)
+	}
 })
 
 schedulesRouter.post('/', async (req: AuthRequest, res, next) => {
-  try {
-    const { name, state, stats, universityId } = req.body as {
-      name: string; state: object; stats?: object; universityId?: string
-    }
-    if (!name?.trim())
-      return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Schedule name is required.' })
+	try {
+		const { name, state, stats, universityId } = req.body as {
+			name: string
+			state: object
+			stats?: object
+			universityId?: string
+		}
+		if (!name?.trim())
+			return res
+				.status(400)
+				.json({ code: 'VALIDATION_ERROR', message: 'Schedule name is required.' })
 
-    const repo = AppDataSource.getRepository(Schedule)
-    const schedule = repo.create({
-      name,
-      userId: req.userId!,
-      universityId: universityId ?? null,
-      state: state ?? {},
-      stats: stats ?? {},
-    })
-    await repo.save(schedule)
-    res.status(201).json(schedule)
-  } catch (err) { next(err) }
+		const repo = AppDataSource.getRepository(Schedule)
+		const schedule = repo.create({
+			name,
+			userId: req.userId!,
+			universityId: universityId ?? null,
+			state: state ?? {},
+			stats: stats ?? {},
+		})
+		await repo.save(schedule)
+		res.status(201).json(schedule)
+	} catch (err) {
+		next(err)
+	}
 })
 
 schedulesRouter.patch('/:id', async (req: AuthRequest, res, next) => {
-  try {
-    const repo = AppDataSource.getRepository(Schedule)
-    const schedule = await repo.findOneBy({ id: req.params.id })
-    if (!schedule) return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
-    if (schedule.userId !== req.userId) return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-    repo.merge(schedule, req.body)
-    await repo.save(schedule)
-    res.json(schedule)
-  } catch (err) { next(err) }
+	try {
+		const repo = AppDataSource.getRepository(Schedule)
+		const schedule = await repo.findOneBy({ id: req.params.id })
+		if (!schedule)
+			return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
+		if (schedule.userId !== req.userId)
+			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
+		repo.merge(schedule, req.body)
+		await repo.save(schedule)
+		res.json(schedule)
+	} catch (err) {
+		next(err)
+	}
 })
 
 schedulesRouter.delete('/:id', async (req: AuthRequest, res, next) => {
-  try {
-    const schedule = await AppDataSource.getRepository(Schedule).findOneBy({ id: req.params.id })
-    if (!schedule) return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
-    if (schedule.userId !== req.userId) return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-    await AppDataSource.getRepository(Schedule).delete(req.params.id)
-    res.status(204).send()
-  } catch (err) { next(err) }
+	try {
+		const schedule = await AppDataSource.getRepository(Schedule).findOneBy({ id: req.params.id })
+		if (!schedule)
+			return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
+		if (schedule.userId !== req.userId)
+			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
+		await AppDataSource.getRepository(Schedule).delete(req.params.id)
+		res.status(204).send()
+	} catch (err) {
+		next(err)
+	}
 })

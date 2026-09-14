@@ -8,11 +8,11 @@ import { AppDataSource } from '../data-source'
 let connectionPromise: Promise<DataSource> | undefined
 
 export async function connectToDatabase(): Promise<void> {
-  if (!connectionPromise) {
-    connectionPromise = AppDataSource.initialize()
-    connectionPromise.catch(() => {
-      connectionPromise = undefined
-    })
-  }
-  await connectionPromise
+	if (!connectionPromise) {
+		connectionPromise = AppDataSource.initialize()
+		connectionPromise.catch(() => {
+			connectionPromise = undefined
+		})
+	}
+	await connectionPromise
 }

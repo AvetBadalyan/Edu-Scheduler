@@ -27,32 +27,40 @@ export const store = configureStore({
 		schedule: scheduleReducer,
 		editHistory: editHistoryReducer,
 		visualization: visualizationReducer,
-		toast: toastReducer
+		toast: toastReducer,
 	},
 	middleware: getDefaultMiddleware =>
 		getDefaultMiddleware({
-			// Dates (createdAt, updatedAt) are non-serializable but we accept that
-			// for the demo. When the backend is wired in they become ISO strings.
+			// Entities carry Date fields (createdAt/updatedAt). In demo mode these
+			// are real Date objects; in authenticated mode the API returns ISO
+			// strings. We accept Dates in state rather than migrating every model
+			// to strings, so the serializable-check ignores the slice state paths
+			// and action sub-paths that legitimately hold them.
 			serializableCheck: {
 				ignoredPaths: [
 					'app.currentUniversity',
+					'auth.user',
 					'entities.lecturers.entities',
 					'entities.rooms.entities',
 					'entities.faculties.entities',
-					'auth.user'
+					'schedule.rooms',
+					'schedule.lecturers',
+					'schedule.faculties',
+					'editHistory.edits',
 				],
-				ignoredActions: [
-					'entities/addLecturer',
-					'entities/updateLecturer',
-					'entities/addRoom',
-					'entities/updateRoom',
-					'entities/addFaculty',
-					'entities/updateFaculty',
-					'auth/login/fulfilled',
-					'editHistory/pushEdit'
-				]
-			}
-		})
+				// loadSchedule/setCurrentUniversity/entity actions carry Date fields
+				// nested in their payloads; ignore those action sub-paths.
+				ignoredActionPaths: [
+					'payload.createdAt',
+					'payload.updatedAt',
+					'payload.state',
+					'payload.rooms',
+					'payload.lecturers',
+					'payload.faculties',
+					'meta.arg',
+				],
+			},
+		}),
 })
 
 export type RootState = ReturnType<typeof store.getState>

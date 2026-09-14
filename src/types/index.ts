@@ -251,40 +251,18 @@ export interface LoginCredentials {
 	password: string
 }
 
-export interface AuthResponse {
-	user: User
-	accessToken: string
-	refreshToken: string
-}
-
 export interface LoginResult {
 	success: boolean
+	// Note: 'account_locked' and 'session_expired' document intended future error states
 	error?: 'invalid_credentials' | 'account_locked' | 'session_expired'
 }
 
 // ─── API models ───────────────────────────────────────────────────────────────
 
-export interface PaginatedResponse<T> {
-	data: T[]
-	total: number
-	page: number
-	pageSize: number
-	hasMore: boolean
-}
-
 export interface ApiError {
 	code: string
 	message: string
 	details?: Record<string, unknown>
-}
-
-export interface ListParams {
-	page?: number
-	pageSize?: number
-	sortBy?: string
-	sortOrder?: 'asc' | 'desc'
-	search?: string
-	filters?: Record<string, unknown>
 }
 
 // ─── UI / Visualization models ────────────────────────────────────────────────
@@ -314,10 +292,7 @@ export interface UtilizationStats {
 
 // ─── CRUD input types ─────────────────────────────────────────────────────────
 
-export type CreateLecturerInput = Omit<
-	Lecturer,
-	'id' | 'createdAt' | 'updatedAt'
->
+export type CreateLecturerInput = Omit<Lecturer, 'id' | 'createdAt' | 'updatedAt'>
 export type UpdateLecturerInput = Partial<CreateLecturerInput>
 
 export type CreateRoomInput = Omit<Room, 'id' | 'createdAt' | 'updatedAt'>
@@ -343,10 +318,4 @@ export interface ScheduleSummary {
 	updatedAt: Date
 	isComplete: boolean
 	stats: ScheduleStats
-}
-
-export interface RegisterData {
-	email: string
-	password: string
-	name: string
 }

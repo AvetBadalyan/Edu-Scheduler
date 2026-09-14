@@ -5,10 +5,10 @@
  * a circular capacity indicator, an animated utilisation bar and
  * a colour-coded status pill. Hover lifts the card with a coloured glow.
  */
-import { useAppSelector } from '@/store/hooks'
-import { selectAllRooms } from '@/store/entitySlice'
-import { selectScheduleRooms } from '@/store/scheduleSlice'
 import { cn } from '@/lib/utils'
+import { selectAllRooms } from '@/store/entitySlice'
+import { useAppSelector } from '@/store/hooks'
+import { selectScheduleRooms } from '@/store/scheduleSlice'
 import type { Room, RoomId } from '@/types'
 import { Pencil, Trash2, Users } from 'lucide-react'
 import { useMemo } from 'react'
@@ -23,7 +23,7 @@ const TIERS = [
 		icon: '🪑',
 		gradient: 'from-sky-500 to-blue-600',
 		ring: 'ring-sky-400/40',
-		glow: 'hover:shadow-sky-400/25'
+		glow: 'hover:shadow-sky-400/25',
 	},
 	{
 		label: 'Medium',
@@ -32,7 +32,7 @@ const TIERS = [
 		icon: '🏫',
 		gradient: 'from-violet-500 to-purple-600',
 		ring: 'ring-violet-400/40',
-		glow: 'hover:shadow-violet-400/25'
+		glow: 'hover:shadow-violet-400/25',
 	},
 	{
 		label: 'Large',
@@ -41,7 +41,7 @@ const TIERS = [
 		icon: '🎓',
 		gradient: 'from-emerald-500 to-teal-600',
 		ring: 'ring-emerald-400/40',
-		glow: 'hover:shadow-emerald-400/25'
+		glow: 'hover:shadow-emerald-400/25',
 	},
 	{
 		label: 'Auditorium',
@@ -50,8 +50,8 @@ const TIERS = [
 		icon: '🏟️',
 		gradient: 'from-amber-500 to-orange-600',
 		ring: 'ring-amber-400/40',
-		glow: 'hover:shadow-amber-400/25'
-	}
+		glow: 'hover:shadow-amber-400/25',
+	},
 ]
 
 function getTier(capacity: number) {
@@ -73,14 +73,12 @@ function calcUtil(
 }
 
 function utilColor(pct: number) {
-	if (pct >= 75)
-		return { bar: 'bg-rose-500', text: 'text-rose-700', bg: 'bg-rose-50' }
-	if (pct >= 40)
-		return { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' }
+	if (pct >= 75) return { bar: 'bg-rose-500', text: 'text-rose-700', bg: 'bg-rose-50' }
+	if (pct >= 40) return { bar: 'bg-amber-500', text: 'text-amber-700', bg: 'bg-amber-50' }
 	return {
 		bar: 'bg-emerald-500',
 		text: 'text-emerald-700',
-		bg: 'bg-emerald-50'
+		bg: 'bg-emerald-50',
 	}
 }
 
@@ -111,9 +109,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 
 	const overall = useMemo(() => {
 		if (!rooms.length) return 0
-		return Math.round(
-			rooms.reduce((s, r) => s + calcUtil(r, scheduleRooms), 0) / rooms.length
-		)
+		return Math.round(rooms.reduce((s, r) => s + calcUtil(r, scheduleRooms), 0) / rooms.length)
 	}, [rooms, scheduleRooms])
 
 	if (rooms.length === 0) {
@@ -123,9 +119,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 					🚪
 				</div>
 				<p className="text-base font-semibold text-gray-800">No rooms yet</p>
-				<p className="text-sm text-gray-500">
-					Click "+ Add Room" to register your first classroom.
-				</p>
+				<p className="text-sm text-gray-500">Click "Add Room" to register your first classroom.</p>
 			</div>
 		)
 	}
@@ -178,12 +172,10 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 							{tier.icon}
 						</span>
 						<div>
-							<h2 className="text-base font-bold text-gray-900">
-								{tier.label} Rooms
-							</h2>
+							<h2 className="text-base font-bold text-gray-900">{tier.label} Rooms</h2>
 							<p className="text-xs text-gray-500">
-								{tier.min}–{tier.max === Infinity ? '∞' : tier.max} seats ·{' '}
-								{tierRooms.length} room{tierRooms.length !== 1 ? 's' : ''}
+								{tier.min}–{tier.max === Infinity ? '∞' : tier.max} seats · {tierRooms.length} room
+								{tierRooms.length !== 1 ? 's' : ''}
 							</p>
 						</div>
 					</div>
@@ -191,7 +183,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 					<div
 						className="grid gap-4"
 						style={{
-							gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
+							gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
 						}}
 					>
 						{tierRooms.map((room, i) => (
@@ -223,14 +215,7 @@ interface RoomCardProps {
 	onDelete?: (id: RoomId) => void
 }
 
-function RoomCard({
-	room,
-	tier,
-	utilisation,
-	index,
-	onEdit,
-	onDelete
-}: RoomCardProps) {
+function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCardProps) {
 	const uc = utilColor(utilisation)
 	const delay = `${(index % 6) * 60}ms`
 
@@ -275,13 +260,8 @@ function RoomCard({
 				{/* Capacity row */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-						<Users
-							className="size-4 text-gray-400"
-							aria-hidden
-						/>
-						<span className="text-lg font-black text-gray-900">
-							{room.capacity}
-						</span>
+						<Users className="size-4 text-gray-400" aria-hidden />
+						<span className="text-lg font-black text-gray-900">{room.capacity}</span>
 						<span className="text-xs text-gray-500">seats</span>
 					</div>
 					<span
@@ -304,10 +284,7 @@ function RoomCard({
 					</div>
 					<div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
 						<div
-							className={cn(
-								'h-1.5 rounded-full transition-all duration-700',
-								uc.bar
-							)}
+							className={cn('h-1.5 rounded-full transition-all duration-700', uc.bar)}
 							style={{ width: `${utilisation}%` }}
 						/>
 					</div>
@@ -321,10 +298,7 @@ function RoomCard({
 							className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
 							aria-label={`Edit room ${room.number}`}
 						>
-							<Pencil
-								className="size-3"
-								aria-hidden
-							/>
+							<Pencil className="size-3" aria-hidden />
 							Edit
 						</button>
 					)}
@@ -334,10 +308,7 @@ function RoomCard({
 							className="flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-400 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
 							aria-label={`Delete room ${room.number}`}
 						>
-							<Trash2
-								className="size-3.5"
-								aria-hidden
-							/>
+							<Trash2 className="size-3.5" aria-hidden />
 						</button>
 					)}
 				</div>

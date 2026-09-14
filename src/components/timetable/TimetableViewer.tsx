@@ -9,14 +9,17 @@
  */
 import { cn } from '@/lib/utils'
 import { useAppSelector } from '@/store/hooks'
-import { selectScheduleRooms, selectScheduleLecturers, selectScheduleFaculties } from '@/store/scheduleSlice'
-import { selectVizHighlightedElements, selectVizPlaybackState, selectVizCurrentStep } from '@/store/visualizationSlice'
-import type {
-	ClassAssignment,
-	ScheduleState,
-	TimeSlot,
-	TimeSlotRef
-} from '@/types'
+import {
+	selectScheduleRooms,
+	selectScheduleLecturers,
+	selectScheduleFaculties,
+} from '@/store/scheduleSlice'
+import {
+	selectVizHighlightedElements,
+	selectVizPlaybackState,
+	selectVizCurrentStep,
+} from '@/store/visualizationSlice'
+import type { ClassAssignment, ScheduleState, TimeSlot, TimeSlotRef } from '@/types'
 import { useState } from 'react'
 import { TimetableGrid } from './TimetableGrid'
 
@@ -36,7 +39,7 @@ export function TimetableViewer({
 	onSlotDrop,
 	isEditable = false,
 	className,
-	overrideState
+	overrideState,
 }: TimetableViewerProps) {
 	const [viewMode, setViewMode] = useState<ViewMode>('lecturer')
 	// null = auto-follow; a string = user has pinned this entity
@@ -56,8 +59,7 @@ export function TimetableViewer({
 	const currentStep = useAppSelector(selectVizCurrentStep)
 
 	const isVizActive =
-		overrideState !== undefined &&
-		(playbackState === 'playing' || playbackState === 'paused')
+		overrideState !== undefined && (playbackState === 'playing' || playbackState === 'paused')
 
 	// Auto-follow: derive active entity from current step when unpinned
 	const autoEntityId: string | null = (() => {
@@ -83,24 +85,23 @@ export function TimetableViewer({
 			case 'lecturer':
 				return Object.values(storeLecturers).map(l => ({
 					id: l.id,
-					label: `${l.name} ${l.surname}`
+					label: `${l.name} ${l.surname}`,
 				}))
 			case 'room':
 				return Object.values(storeRooms).map(r => ({
 					id: r.id,
-					label: `Room ${r.number}`
+					label: `Room ${r.number}`,
 				}))
 			case 'faculty':
 				return Object.values(storeFaculties).map(f => ({
 					id: f.id,
-					label: f.name
+					label: f.name,
 				}))
 		}
 	})()
 
 	// Which entity is visually selected — auto or pinned or default first
-	const activeEntityId =
-		autoEntityId ?? pinnedEntityId ?? entities[0]?.id ?? null
+	const activeEntityId = autoEntityId ?? pinnedEntityId ?? entities[0]?.id ?? null
 
 	const timetable = (() => {
 		if (!activeEntityId) return null
@@ -179,11 +180,7 @@ export function TimetableViewer({
 
 			{/* Entity pill selector */}
 			{entities.length > 0 ? (
-				<div
-					className="flex flex-wrap gap-2"
-					role="group"
-					aria-label={`Select ${viewMode}`}
-				>
+				<div className="flex flex-wrap gap-2" role="group" aria-label={`Select ${viewMode}`}>
 					{entities.map(entity => {
 						const isActive = activeEntityId === entity.id
 						const isAutoActive = !pinnedEntityId && entity.id === autoEntityId
@@ -193,20 +190,14 @@ export function TimetableViewer({
 								onClick={() => handlePinEntity(entity.id)}
 								className={cn(
 									'rounded-full border px-3 py-1 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-									isActive &&
-										!isAutoActive &&
-										'border-blue-500 bg-blue-50 text-blue-700 shadow-sm',
+									isActive && !isAutoActive && 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm',
 									isAutoActive &&
 										'border-blue-500 bg-blue-700 text-white shadow-sm ring-2 ring-blue-300',
 									!isActive &&
 										'border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600'
 								)}
 								aria-pressed={isActive}
-								title={
-									isAutoActive
-										? 'Currently being worked on by the algorithm'
-										: undefined
-								}
+								title={isAutoActive ? 'Currently being worked on by the algorithm' : undefined}
 							>
 								{entity.label}
 							</button>

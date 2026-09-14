@@ -14,77 +14,74 @@ import { useMemo, useState } from 'react'
 
 // ─── Tech-brand colours per specialty ────────────────────────────────────────
 
-const TECH_COLORS: Record<
-	string,
-	{ bg: string; text: string; glow: string; dot: string }
-> = {
+const TECH_COLORS: Record<string, { bg: string; text: string; glow: string; dot: string }> = {
 	JavaScript: {
 		bg: 'bg-yellow-400/15',
 		text: 'text-yellow-700',
 		glow: 'shadow-yellow-400/30',
-		dot: 'bg-yellow-400'
+		dot: 'bg-yellow-400',
 	},
 	TypeScript: {
 		bg: 'bg-blue-500/15',
 		text: 'text-blue-700',
 		glow: 'shadow-blue-500/30',
-		dot: 'bg-blue-500'
+		dot: 'bg-blue-500',
 	},
 	ReactJS: {
 		bg: 'bg-cyan-400/15',
 		text: 'text-cyan-700',
 		glow: 'shadow-cyan-400/30',
-		dot: 'bg-cyan-400'
+		dot: 'bg-cyan-400',
 	},
 	NodeJS: {
 		bg: 'bg-green-500/15',
 		text: 'text-green-700',
 		glow: 'shadow-green-500/30',
-		dot: 'bg-green-500'
+		dot: 'bg-green-500',
 	},
 	Java: {
 		bg: 'bg-orange-500/15',
 		text: 'text-orange-700',
 		glow: 'shadow-orange-500/30',
-		dot: 'bg-orange-500'
+		dot: 'bg-orange-500',
 	},
 	Python: {
 		bg: 'bg-sky-500/15',
 		text: 'text-sky-700',
 		glow: 'shadow-sky-500/30',
-		dot: 'bg-sky-500'
+		dot: 'bg-sky-500',
 	},
 	CSS: {
 		bg: 'bg-violet-500/15',
 		text: 'text-violet-700',
 		glow: 'shadow-violet-500/30',
-		dot: 'bg-violet-500'
+		dot: 'bg-violet-500',
 	},
 	HTML: {
 		bg: 'bg-rose-500/15',
 		text: 'text-rose-700',
 		glow: 'shadow-rose-500/30',
-		dot: 'bg-rose-500'
+		dot: 'bg-rose-500',
 	},
 	'UI/UX': {
 		bg: 'bg-fuchsia-500/15',
 		text: 'text-fuchsia-700',
 		glow: 'shadow-fuchsia-500/30',
-		dot: 'bg-fuchsia-500'
+		dot: 'bg-fuchsia-500',
 	},
 	'Project Management': {
 		bg: 'bg-teal-500/15',
 		text: 'text-teal-700',
 		glow: 'shadow-teal-500/30',
-		dot: 'bg-teal-500'
-	}
+		dot: 'bg-teal-500',
+	},
 }
 
 const DEFAULT_TECH = {
 	bg: 'bg-slate-400/15',
 	text: 'text-slate-700',
 	glow: 'shadow-slate-400/30',
-	dot: 'bg-slate-400'
+	dot: 'bg-slate-400',
 }
 
 // Primary specialty → card accent gradient
@@ -98,7 +95,7 @@ const ACCENT_GRADIENTS: Record<string, string> = {
 	CSS: 'from-violet-500 to-purple-600',
 	HTML: 'from-rose-500 to-orange-600',
 	'UI/UX': 'from-fuchsia-500 to-pink-600',
-	'Project Management': 'from-teal-500 to-cyan-600'
+	'Project Management': 'from-teal-500 to-cyan-600',
 }
 
 const DEFAULT_GRADIENT = 'from-slate-500 to-slate-600'
@@ -110,11 +107,7 @@ interface LecturerListProps {
 	className?: string
 }
 
-export function LecturerList({
-	onEdit,
-	onDelete,
-	className
-}: LecturerListProps) {
+export function LecturerList({ onEdit, onDelete, className }: LecturerListProps) {
 	const lecturers = useAppSelector(selectAllLecturers)
 	const [search, setSearch] = useState('')
 	const [filterSpecialty, setFilterSpecialty] = useState<string | null>(null)
@@ -135,8 +128,7 @@ export function LecturerList({
 					l.specialties.some(s => s.toLowerCase().includes(q))
 			)
 		}
-		if (filterSpecialty)
-			r = r.filter(l => l.specialties.includes(filterSpecialty))
+		if (filterSpecialty) r = r.filter(l => l.specialties.includes(filterSpecialty))
 		return r
 	}, [lecturers, search, filterSpecialty])
 
@@ -157,11 +149,7 @@ export function LecturerList({
 
 			{/* ── Filter chips ─────────────────────────────────────────────── */}
 			{allSpecialties.length > 0 && (
-				<div
-					className="flex flex-wrap gap-2"
-					role="group"
-					aria-label="Filter by specialty"
-				>
+				<div className="flex flex-wrap gap-2" role="group" aria-label="Filter by specialty">
 					<SpecialtyChip
 						label="All"
 						active={filterSpecialty === null}
@@ -169,7 +157,7 @@ export function LecturerList({
 						colors={{
 							bg: 'bg-slate-100',
 							text: 'text-slate-700',
-							dot: 'bg-slate-400'
+							dot: 'bg-slate-400',
 						}}
 					/>
 					{allSpecialties.map(s => (
@@ -177,9 +165,7 @@ export function LecturerList({
 							key={s}
 							label={s}
 							active={filterSpecialty === s}
-							onClick={() =>
-								setFilterSpecialty(s === filterSpecialty ? null : s)
-							}
+							onClick={() => setFilterSpecialty(s === filterSpecialty ? null : s)}
 							colors={TECH_COLORS[s] ?? DEFAULT_TECH}
 						/>
 					))}
@@ -187,17 +173,10 @@ export function LecturerList({
 			)}
 
 			{/* ── Count ────────────────────────────────────────────────────── */}
-			<p
-				className="text-sm font-medium text-gray-500"
-				aria-live="polite"
-			>
-				<span className="text-2xl font-bold text-gray-900 mr-1.5">
-					{filtered.length}
-				</span>
+			<p className="text-sm font-medium text-gray-500" aria-live="polite">
+				<span className="text-2xl font-bold text-gray-900 mr-1.5">{filtered.length}</span>
 				lecturer{filtered.length !== 1 ? 's' : ''}
-				{filterSpecialty && (
-					<span className="text-indigo-600 ml-1.5">· {filterSpecialty}</span>
-				)}
+				{filterSpecialty && <span className="text-indigo-600 ml-1.5">· {filterSpecialty}</span>}
 			</p>
 
 			{/* ── Grid ─────────────────────────────────────────────────────── */}
@@ -207,7 +186,7 @@ export function LecturerList({
 				<div
 					className="grid gap-5"
 					style={{
-						gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'
+						gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
 					}}
 					role="list"
 					aria-label="Lecturers"
@@ -233,7 +212,7 @@ function SpecialtyChip({
 	label,
 	active,
 	onClick,
-	colors
+	colors,
 }: {
 	label: string
 	active: boolean
@@ -267,12 +246,7 @@ interface LecturerCardProps {
 	onDelete?: (id: LecturerId) => void
 }
 
-function LecturerCard({
-	lecturer,
-	index,
-	onEdit,
-	onDelete
-}: LecturerCardProps) {
+function LecturerCard({ lecturer, index, onEdit, onDelete }: LecturerCardProps) {
 	const primary = lecturer.specialties[0] ?? ''
 	const accent = ACCENT_GRADIENTS[primary] ?? DEFAULT_GRADIENT
 	const tech = TECH_COLORS[primary] ?? DEFAULT_TECH
@@ -326,10 +300,7 @@ function LecturerCard({
 							className="flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-gray-800 shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
 							aria-label={`Edit ${lecturer.name} ${lecturer.surname}`}
 						>
-							<Pencil
-								className="size-3"
-								aria-hidden
-							/>
+							<Pencil className="size-3" aria-hidden />
 							Edit
 						</button>
 					)}
@@ -339,10 +310,7 @@ function LecturerCard({
 							className="flex items-center gap-1.5 rounded-full bg-red-500/90 px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
 							aria-label={`Delete ${lecturer.name} ${lecturer.surname}`}
 						>
-							<Trash2
-								className="size-3"
-								aria-hidden
-							/>
+							<Trash2 className="size-3" aria-hidden />
 							Remove
 						</button>
 					)}
@@ -370,10 +338,7 @@ function LecturerCard({
 									c.text
 								)}
 							>
-								<span
-									className={cn('size-1.5 rounded-full', c.dot)}
-									aria-hidden
-								/>
+								<span className={cn('size-1.5 rounded-full', c.dot)} aria-hidden />
 								{s}
 							</span>
 						)

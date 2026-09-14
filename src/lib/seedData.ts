@@ -12,7 +12,7 @@ import type {
 	CreateLecturerInput,
 	CreateRoomInput,
 	Student,
-	University
+	University,
 } from '@/types'
 
 import Anna from '@/assets/lecturers/Anna.jpg'
@@ -34,7 +34,7 @@ export const DEMO_UNIVERSITY: University = {
 	id: 'demo-university-aca',
 	name: 'Armenian Code Academy',
 	ownerId: 'demo-user',
-	createdAt: new Date('2024-01-01')
+	createdAt: new Date('2024-01-01'),
 }
 
 // ─── Lecturers ────────────────────────────────────────────────────────────────
@@ -45,85 +45,85 @@ export const seedLecturers: CreateLecturerInput[] = [
 		surname: 'Gagyan',
 		specialties: ['Java'],
 		imageUrl: Gago,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Avet',
 		surname: 'Badalyan',
 		specialties: ['UI/UX'],
 		imageUrl: Avet,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Eduard',
 		surname: 'Harutyunyan',
 		specialties: ['ReactJS', 'JavaScript'],
 		imageUrl: Eduard,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Norayr',
 		surname: 'Hayrikyan',
 		specialties: ['Project Management'],
 		imageUrl: Norayr,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Elen',
 		surname: 'Ghazaryan',
 		specialties: ['JavaScript'],
 		imageUrl: Elen,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Edgar',
 		surname: 'Khudoyan',
 		specialties: ['NodeJS'],
 		imageUrl: Edgar,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Rafayel',
 		surname: 'Afrikyan',
 		specialties: ['CSS', 'HTML'],
 		imageUrl: Rafayel,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Hovhannes',
 		surname: 'Kocharyan',
 		specialties: ['ReactJS'],
 		imageUrl: Hovhannes,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Sona',
 		surname: 'Shahgeldyan',
 		specialties: ['NodeJS'],
 		imageUrl: Sona,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Elmira',
 		surname: 'Avagyan',
 		specialties: ['JavaScript'],
 		imageUrl: Elmira,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Vrezh',
 		surname: 'Oganesyan',
 		specialties: ['HTML'],
 		imageUrl: Vrezh,
-		availability: emptyTimetable()
+		availability: emptyTimetable(),
 	},
 	{
 		name: 'Anna',
 		surname: 'Minasyan',
 		specialties: ['Python'],
 		imageUrl: Anna,
-		availability: emptyTimetable()
-	}
+		availability: emptyTimetable(),
+	},
 ]
 
 // ─── Rooms ────────────────────────────────────────────────────────────────────
@@ -136,12 +136,12 @@ const roomBlueprints: Array<{ number: string; capacity: number }> = [
 	{ number: '301', capacity: 30 },
 	{ number: '302', capacity: 30 },
 	{ number: '401', capacity: 40 },
-	{ number: '501', capacity: 50 }
+	{ number: '501', capacity: 50 },
 ]
 
 export const seedRooms: CreateRoomInput[] = roomBlueprints.map(room => ({
 	...room,
-	availability: emptyTimetable()
+	availability: emptyTimetable(),
 }))
 
 // ─── Faculties ────────────────────────────────────────────────────────────────
@@ -150,7 +150,7 @@ function makeStudents(count: number, prefix: string): Student[] {
 	return Array.from({ length: count }, (_, i) => ({
 		id: `${prefix}-student-${i + 1}`,
 		name: `Student`,
-		surname: `${i + 1}`
+		surname: `${i + 1}`,
 	}))
 }
 
@@ -161,9 +161,9 @@ export const seedFaculties: CreateFacultyInput[] = [
 			{ subject: 'JavaScript', requiredHours: 5 },
 			{ subject: 'HTML', requiredHours: 3 },
 			{ subject: 'CSS', requiredHours: 3 },
-			{ subject: 'ReactJS', requiredHours: 2 }
+			{ subject: 'ReactJS', requiredHours: 2 },
 		],
-		students: makeStudents(20, 'fe')
+		students: makeStudents(20, 'fe'),
 	},
 	{
 		name: 'Backend Bootcamp',
@@ -171,9 +171,9 @@ export const seedFaculties: CreateFacultyInput[] = [
 			{ subject: 'Java', requiredHours: 5 },
 			{ subject: 'NodeJS', requiredHours: 5 },
 			{ subject: 'Python', requiredHours: 3 },
-			{ subject: 'Project Management', requiredHours: 2 }
+			{ subject: 'Project Management', requiredHours: 2 },
 		],
-		students: makeStudents(17, 'be')
+		students: makeStudents(17, 'be'),
 	},
 	{
 		name: 'UI/UX Bootcamp',
@@ -181,17 +181,17 @@ export const seedFaculties: CreateFacultyInput[] = [
 			{ subject: 'UI/UX', requiredHours: 5 },
 			{ subject: 'HTML', requiredHours: 5 },
 			{ subject: 'CSS', requiredHours: 5 },
-			{ subject: 'Project Management', requiredHours: 2 }
+			{ subject: 'Project Management', requiredHours: 2 },
 		],
-		students: makeStudents(29, 'ux')
+		students: makeStudents(29, 'ux'),
 	},
 	{
 		name: 'Machine Learning',
 		syllabus: [
 			{ subject: 'Python', requiredHours: 5 },
 			{ subject: 'Java', requiredHours: 3 },
-			{ subject: 'Project Management', requiredHours: 2 }
+			{ subject: 'Project Management', requiredHours: 2 },
 		],
-		students: makeStudents(24, 'ml')
-	}
+		students: makeStudents(24, 'ml'),
+	},
 ]

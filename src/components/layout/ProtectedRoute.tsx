@@ -16,8 +16,8 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 export function ProtectedRoute() {
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
-	const location        = useLocation()
-	const dispatch        = useAppDispatch()
+	const location = useLocation()
+	const dispatch = useAppDispatch()
 	const [checking, setChecking] = useState(!isAuthenticated)
 
 	useEffect(() => {
@@ -29,31 +29,36 @@ export function ProtectedRoute() {
 		}
 
 		// Try to restore a Supabase session from storage on first load
-		supabase.auth.getSession().then(({ data }) => {
-			if (data.session?.user) {
-				const sbUser = data.session.user
-				const user: User = {
-					id:        sbUser.id,
-					email:     sbUser.email ?? '',
-					name:      (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
-					createdAt: new Date(sbUser.created_at),
+		supabase.auth
+			.getSession()
+			.then(({ data }) => {
+				if (data.session?.user) {
+					const sbUser = data.session.user
+					const user: User = {
+						id: sbUser.id,
+						email: sbUser.email ?? '',
+						name: (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
+						createdAt: new Date(sbUser.created_at),
+					}
+					dispatch(setSessionUser(user))
 				}
-				dispatch(setSessionUser(user))
-			}
-		}).finally(() => setChecking(false))
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+			})
+			.finally(() => setChecking(false))
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	if (checking) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<div className="size-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" aria-label="Checking session…" />
+				<div
+					className="size-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600"
+					aria-label="Checking session…"
+				/>
 			</div>
 		)
 	}
 
-	if (!isAuthenticated)
-		return <Navigate to="/login" replace state={{ from: location }} />
+	if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location }} />
 
 	return <Outlet />
 }

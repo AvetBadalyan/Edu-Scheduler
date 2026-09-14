@@ -35,7 +35,7 @@ import type {
 	ScheduleResult,
 	ScheduleState,
 	UnresolvedConstraint,
-	ValidationResult
+	ValidationResult,
 } from '@/types'
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ const HOURS: HourSlot[] = [1, 2, 3, 4]
 const DEFAULT_OPTIONS: BacktrackingOptions = {
 	maxBacktracks: 10000,
 	preferEvenDistribution: true,
-	minimizeRoomWaste: true
+	minimizeRoomWaste: true,
 }
 
 // ─── Internal mutable state ───────────────────────────────────────────────────
@@ -76,7 +76,7 @@ function initState(input: ScheduleInput): MutableState {
 		state.faculties[faculty.id] = {
 			...faculty,
 			timetable: emptyTimetable(),
-			remainingHours
+			remainingHours,
 		}
 	}
 
@@ -92,8 +92,7 @@ function initState(input: ScheduleInput): MutableState {
 function buildAssignmentQueue(
 	input: ScheduleInput
 ): Array<{ facultyId: FacultyId; subject: string; count: number }> {
-	const queue: Array<{ facultyId: FacultyId; subject: string; count: number }> =
-		[]
+	const queue: Array<{ facultyId: FacultyId; subject: string; count: number }> = []
 
 	for (const faculty of input.faculties) {
 		for (const entry of faculty.syllabus) {
@@ -104,7 +103,7 @@ function buildAssignmentQueue(
 				queue.push({
 					facultyId: faculty.id,
 					subject: entry.subject,
-					count: lecturerCount
+					count: lecturerCount,
 				})
 			}
 		}
@@ -128,9 +127,7 @@ function sortedTimeSlots(
 	const faculty = state.faculties[facultyId]
 
 	for (const day of DAYS) {
-		const dayUsage = HOURS.filter(
-			h => faculty.timetable[day][h] !== null
-		).length
+		const dayUsage = HOURS.filter(h => faculty.timetable[day][h] !== null).length
 		for (const hour of HOURS) {
 			slots.push({ day, hour, dayUsage })
 		}
@@ -183,7 +180,7 @@ export function* generateSchedule(
 		stepNumber: ++stepNumber,
 		type,
 		description,
-		...extra
+		...extra,
 	})
 
 	// ── 1. Validate input ────────────────────────────────────────────────────
@@ -200,8 +197,8 @@ export function* generateSchedule(
 			unresolvedConstraints: validation.errors.map(e => ({
 				type: e.code,
 				description: e.message,
-				affectedEntities: []
-			}))
+				affectedEntities: [],
+			})),
 		}
 	}
 
@@ -210,10 +207,7 @@ export function* generateSchedule(
 	const state = initState(input)
 	const queue = buildAssignmentQueue(input)
 
-	yield step(
-		'evaluate',
-		`Starting schedule generation for ${queue.length} class assignments.`
-	)
+	yield step('evaluate', `Starting schedule generation for ${queue.length} class assignments.`)
 
 	// ── 3. Assignment loop with backtracking ─────────────────────────────────
 
@@ -225,21 +219,15 @@ export function* generateSchedule(
 		const faculty = state.faculties[facultyId]
 
 		// Find qualified lecturers
-		const qualifiedLecturers = input.lecturers.filter(l =>
-			l.specialties.includes(subject)
-		)
+		const qualifiedLecturers = input.lecturers.filter(l => l.specialties.includes(subject))
 
 		const eligibleRooms = sortedRooms(input, faculty.students.length, options)
 		const timeSlots = sortedTimeSlots(state, facultyId, options)
 
-		yield step(
-			'evaluate',
-			`Looking for slot to assign "${subject}" for "${faculty.name}".`,
-			{
-				currentFaculty: facultyId,
-				currentSubject: subject
-			}
-		)
+		yield step('evaluate', `Looking for slot to assign "${subject}" for "${faculty.name}".`, {
+			currentFaculty: facultyId,
+			currentSubject: subject,
+		})
 
 		let assigned = false
 
@@ -261,7 +249,7 @@ export function* generateSchedule(
 						roomId: room.id,
 						subject,
 						timeSlot: { day, hour },
-						isManual: false
+						isManual: false,
 					}
 
 					state.rooms[room.id].timetable[day][hour] = candidate
@@ -278,7 +266,7 @@ export function* generateSchedule(
 							currentSubject: subject,
 							currentLecturer: lecturer.id,
 							currentRoom: room.id,
-							currentSlot: { day, hour }
+							currentSlot: { day, hour },
 						}
 					)
 
@@ -291,15 +279,12 @@ export function* generateSchedule(
 
 		if (!assigned) {
 			// Backtrack
-			if (
-				backtracks >= options.maxBacktracks ||
-				assignmentHistory.length === 0
-			) {
+			if (backtracks >= options.maxBacktracks || assignmentHistory.length === 0) {
 				// Cannot backtrack further — record unresolved constraint
 				unresolvedConstraints.push({
 					type: 'NO_VALID_SLOT',
 					description: `Could not schedule "${subject}" for faculty "${faculty.name}". No valid time slot found.`,
-					affectedEntities: [facultyId, subject]
+					affectedEntities: [facultyId, subject],
 				})
 
 				yield step(
@@ -307,7 +292,7 @@ export function* generateSchedule(
 					`No valid slot for "${subject}" (faculty "${faculty.name}"). Recording as unresolved and continuing.`,
 					{
 						currentFaculty: facultyId,
-						currentSubject: subject
+						currentSubject: subject,
 					}
 				)
 
@@ -318,7 +303,7 @@ export function* generateSchedule(
 				const {
 					roomId,
 					lecturerId,
-					timeSlot: { day, hour }
+					timeSlot: { day, hour },
 				} = lastAssignment
 				state.rooms[roomId].timetable[day][hour] = null
 				state.lecturers[lecturerId].timetable[day][hour] = null
@@ -332,7 +317,7 @@ export function* generateSchedule(
 					`Backtracking (${backtracks}/${options.maxBacktracks}). Undoing last assignment of "${lastAssignment.subject}".`,
 					{
 						currentFaculty: lastAssignment.facultyId,
-						currentSubject: lastAssignment.subject
+						currentSubject: lastAssignment.subject,
 					}
 				)
 			}
@@ -356,7 +341,7 @@ export function* generateSchedule(
 		schedule: state as ScheduleState,
 		totalSteps: stepNumber,
 		backtracks,
-		unresolvedConstraints
+		unresolvedConstraints,
 	}
 }
 

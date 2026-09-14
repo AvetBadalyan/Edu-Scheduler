@@ -20,7 +20,7 @@ function emptyTimetable() {
 		2: { 1: null, 2: null, 3: null, 4: null },
 		3: { 1: null, 2: null, 3: null, 4: null },
 		4: { 1: null, 2: null, 3: null, 4: null },
-		5: { 1: null, 2: null, 3: null, 4: null }
+		5: { 1: null, 2: null, 3: null, 4: null },
 	} as CreateRoomInput['availability']
 }
 
@@ -30,10 +30,8 @@ const ERROR = 'flex items-center gap-1 text-xs text-red-600'
 // Capacity tier hint
 function capacityTier(n: number) {
 	if (n <= 20) return { label: 'Small room', color: 'text-sky-700 bg-sky-50' }
-	if (n <= 40)
-		return { label: 'Medium room', color: 'text-violet-700 bg-violet-50' }
-	if (n <= 100)
-		return { label: 'Large room', color: 'text-emerald-700 bg-emerald-50' }
+	if (n <= 40) return { label: 'Medium room', color: 'text-violet-700 bg-violet-50' }
+	if (n <= 100) return { label: 'Large room', color: 'text-emerald-700 bg-emerald-50' }
 	return { label: 'Auditorium', color: 'text-amber-700 bg-amber-50' }
 }
 
@@ -42,12 +40,10 @@ export function RoomForm({
 	initialData,
 	onSubmit,
 	onCancel,
-	isLoading = false
+	isLoading = false,
 }: RoomFormProps) {
 	const [number, setNumber] = useState(initialData?.number ?? '')
-	const [capacity, setCapacity] = useState(
-		initialData?.capacity?.toString() ?? ''
-	)
+	const [capacity, setCapacity] = useState(initialData?.capacity?.toString() ?? '')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
 	const cap = parseInt(capacity, 10)
@@ -56,8 +52,7 @@ export function RoomForm({
 	const validate = () => {
 		const e: Record<string, string> = {}
 		if (!number.trim()) e.number = 'Room number is required.'
-		if (isNaN(cap) || cap < 1 || cap > 500)
-			e.capacity = 'Capacity must be between 1 and 500.'
+		if (isNaN(cap) || cap < 1 || cap > 500) e.capacity = 'Capacity must be between 1 and 500.'
 		setErrors(e)
 		return !Object.keys(e).length
 	}
@@ -68,16 +63,12 @@ export function RoomForm({
 		await onSubmit({
 			number: number.trim(),
 			capacity: cap,
-			availability: emptyTimetable()
+			availability: emptyTimetable(),
 		})
 	}
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="flex flex-col gap-5"
-			noValidate
-		>
+		<form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
 			{/* Header */}
 			<div className="flex items-center gap-3">
 				<div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md">
@@ -112,10 +103,7 @@ export function RoomForm({
 					/>
 				</div>
 				{errors.number && (
-					<p
-						className={ERROR}
-						role="alert"
-					>
+					<p className={ERROR} role="alert">
 						<AlertCircle className="size-3" />
 						{errors.number}
 					</p>
@@ -146,21 +134,13 @@ export function RoomForm({
 						/>
 					</div>
 					{tier && (
-						<span
-							className={cn(
-								'shrink-0 rounded-xl px-3 py-2 text-xs font-bold',
-								tier.color
-							)}
-						>
+						<span className={cn('shrink-0 rounded-xl px-3 py-2 text-xs font-bold', tier.color)}>
 							{tier.label}
 						</span>
 					)}
 				</div>
 				{errors.capacity && (
-					<p
-						className={ERROR}
-						role="alert"
-					>
+					<p className={ERROR} role="alert">
 						<AlertCircle className="size-3" />
 						{errors.capacity}
 					</p>
@@ -170,23 +150,11 @@ export function RoomForm({
 			<div className="h-px bg-gray-100" />
 
 			<div className="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={onCancel}
-					disabled={isLoading}
-				>
+				<Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
 					Cancel
 				</Button>
-				<Button
-					type="submit"
-					disabled={isLoading}
-				>
-					{isLoading
-						? 'Saving…'
-						: mode === 'create'
-							? 'Add Room'
-							: 'Save Changes'}
+				<Button type="submit" disabled={isLoading}>
+					{isLoading ? 'Saving…' : mode === 'create' ? 'Add Room' : 'Save Changes'}
 				</Button>
 			</div>
 		</form>

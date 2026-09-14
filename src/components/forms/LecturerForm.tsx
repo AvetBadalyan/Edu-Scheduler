@@ -22,13 +22,11 @@ export function LecturerForm({
 	initialData,
 	onSubmit,
 	onCancel,
-	isLoading = false
+	isLoading = false,
 }: LecturerFormProps) {
 	const [name, setName] = useState(initialData?.name ?? '')
 	const [surname, setSurname] = useState(initialData?.surname ?? '')
-	const [specialtiesInput, setSpecialties] = useState(
-		initialData?.specialties?.join(', ') ?? ''
-	)
+	const [specialtiesInput, setSpecialties] = useState(initialData?.specialties?.join(', ') ?? '')
 	const [imageUrl, setImageUrl] = useState(initialData?.imageUrl ?? '')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -63,17 +61,13 @@ export function LecturerForm({
 				2: { 1: null, 2: null, 3: null, 4: null },
 				3: { 1: null, 2: null, 3: null, 4: null },
 				4: { 1: null, 2: null, 3: null, 4: null },
-				5: { 1: null, 2: null, 3: null, 4: null }
-			} as CreateLecturerInput['availability']
+				5: { 1: null, 2: null, 3: null, 4: null },
+			} as CreateLecturerInput['availability'],
 		})
 	}
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="flex flex-col gap-5"
-			noValidate
-		>
+		<form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
 			{/* Header */}
 			<div className="flex items-center gap-3">
 				<div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md">
@@ -102,20 +96,14 @@ export function LecturerForm({
 							id="lf-name"
 							value={name}
 							onChange={e => setName(e.target.value)}
-							className={cn(
-								'pl-9',
-								errors.name && 'border-red-400 focus-visible:ring-red-400'
-							)}
+							className={cn('pl-9', errors.name && 'border-red-400 focus-visible:ring-red-400')}
 							placeholder="Elen"
 							autoFocus
 							aria-invalid={!!errors.name}
 						/>
 					</div>
 					{errors.name && (
-						<p
-							className={ERROR}
-							role="alert"
-						>
+						<p className={ERROR} role="alert">
 							<AlertCircle className="size-3" />
 							{errors.name}
 						</p>
@@ -135,19 +123,13 @@ export function LecturerForm({
 							id="lf-surname"
 							value={surname}
 							onChange={e => setSurname(e.target.value)}
-							className={cn(
-								'pl-9',
-								errors.surname && 'border-red-400 focus-visible:ring-red-400'
-							)}
+							className={cn('pl-9', errors.surname && 'border-red-400 focus-visible:ring-red-400')}
 							placeholder="Ghazaryan"
 							aria-invalid={!!errors.surname}
 						/>
 					</div>
 					{errors.surname && (
-						<p
-							className={ERROR}
-							role="alert"
-						>
+						<p className={ERROR} role="alert">
 							<AlertCircle className="size-3" />
 							{errors.surname}
 						</p>
@@ -162,9 +144,7 @@ export function LecturerForm({
 					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
 				>
 					Specialties{' '}
-					<span className="normal-case font-normal text-gray-400">
-						(comma-separated)
-					</span>
+					<span className="normal-case font-normal text-gray-400">(comma-separated)</span>
 				</Label>
 				<div className="relative">
 					<Tag className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
@@ -181,10 +161,7 @@ export function LecturerForm({
 					/>
 				</div>
 				{errors.specialties && (
-					<p
-						className={ERROR}
-						role="alert"
-					>
+					<p className={ERROR} role="alert">
 						<AlertCircle className="size-3" />
 						{errors.specialties}
 					</p>
@@ -197,10 +174,7 @@ export function LecturerForm({
 					htmlFor="lf-img"
 					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
 				>
-					Photo URL{' '}
-					<span className="normal-case font-normal text-gray-400">
-						(optional)
-					</span>
+					Photo URL <span className="normal-case font-normal text-gray-400">(optional)</span>
 				</Label>
 				<div className="relative">
 					<Image className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
@@ -220,23 +194,11 @@ export function LecturerForm({
 
 			{/* Actions */}
 			<div className="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={onCancel}
-					disabled={isLoading}
-				>
+				<Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
 					Cancel
 				</Button>
-				<Button
-					type="submit"
-					disabled={isLoading}
-				>
-					{isLoading
-						? 'Saving…'
-						: mode === 'create'
-							? 'Add Lecturer'
-							: 'Save Changes'}
+				<Button type="submit" disabled={isLoading}>
+					{isLoading ? 'Saving…' : mode === 'create' ? 'Add Lecturer' : 'Save Changes'}
 				</Button>
 			</div>
 		</form>

@@ -34,11 +34,7 @@ export default toastSlice.reducer
 
 // ─── Thunk — add with auto-dismiss ───────────────────────────────────────────
 
-export function addToast(
-	message: string,
-	variant: ToastVariant = 'info',
-	duration = 4000
-) {
+export function addToast(message: string, variant: ToastVariant = 'info', duration = 4000) {
 	return (dispatch: AppDispatch) => {
 		const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
 		dispatch(toastSlice.actions._addToast({ id, message, variant }))

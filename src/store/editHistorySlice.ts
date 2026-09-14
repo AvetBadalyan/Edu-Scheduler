@@ -52,15 +52,11 @@ export default editHistorySlice.reducer
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
 export const selectCurrentEdit = (s: RootState): ScheduleEdit | null =>
-	s.editHistory.currentIndex >= 0
-		? s.editHistory.history[s.editHistory.currentIndex]
-		: null
+	s.editHistory.currentIndex >= 0 ? s.editHistory.history[s.editHistory.currentIndex] : null
 
 export const selectNextEdit = (s: RootState): ScheduleEdit | null => {
 	const next = s.editHistory.currentIndex + 1
-	return next < s.editHistory.history.length
-		? s.editHistory.history[next]
-		: null
+	return next < s.editHistory.history.length ? s.editHistory.history[next] : null
 }
 
 export const selectCanUndo = (s: RootState) => s.editHistory.currentIndex >= 0

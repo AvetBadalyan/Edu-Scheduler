@@ -18,17 +18,10 @@ import {
 	startVisualization,
 	stepBackward,
 	stepForward,
-	updateSpeed
+	updateSpeed,
 } from '@/store/visualizationSlice'
 import type { ScheduleInput } from '@/types'
-import {
-	BrainCircuit,
-	ChevronLeft,
-	ChevronRight,
-	Pause,
-	Play,
-	RotateCcw
-} from 'lucide-react'
+import { BrainCircuit, ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from 'lucide-react'
 
 interface VisualizationPlayerProps {
 	input: ScheduleInput | null
@@ -42,7 +35,7 @@ const STEP_COLORS = {
 	assign: 'bg-green-50 border-green-200 text-green-800',
 	conflict: 'bg-red-50 border-red-200 text-red-800',
 	backtrack: 'bg-amber-50 border-amber-200 text-amber-800',
-	complete: 'bg-blue-50 border-blue-200 text-blue-800'
+	complete: 'bg-blue-50 border-blue-200 text-blue-800',
 } as const
 
 const STEP_ICONS = {
@@ -50,13 +43,10 @@ const STEP_ICONS = {
 	assign: '✓',
 	conflict: '✕',
 	backtrack: '↩',
-	complete: '🎉'
+	complete: '🎉',
 } as const
 
-export function VisualizationPlayer({
-	input,
-	className
-}: VisualizationPlayerProps) {
+export function VisualizationPlayer({ input, className }: VisualizationPlayerProps) {
 	const dispatch = useAppDispatch()
 	const steps = useAppSelector(selectVizSteps)
 	const currentStepIndex = useAppSelector(selectVizCurrentIndex)
@@ -66,14 +56,12 @@ export function VisualizationPlayer({
 	const result = useAppSelector(selectVizResult)
 
 	const currentStep = currentStepIndex >= 0 ? steps[currentStepIndex] : null
-	const progress =
-		steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0
+	const progress = steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0
 
 	const assignmentsMade = result
 		? Object.values(result.schedule.faculties).reduce((n, f) => {
 				for (const d of [1, 2, 3, 4, 5] as const)
-					for (const h of [1, 2, 3, 4] as const)
-						if (f.timetable[d][h] !== null) n++
+					for (const h of [1, 2, 3, 4] as const) if (f.timetable[d][h] !== null) n++
 				return n
 			}, 0)
 		: 0
@@ -96,14 +84,9 @@ export function VisualizationPlayer({
 			<div className="flex items-center justify-between gap-3">
 				<div className="flex items-center gap-2.5">
 					<div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
-						<BrainCircuit
-							className="size-4"
-							aria-hidden
-						/>
+						<BrainCircuit className="size-4" aria-hidden />
 					</div>
-					<h3 className="text-sm font-bold text-gray-900">
-						Algorithm Visualization
-					</h3>
+					<h3 className="text-sm font-bold text-gray-900">Algorithm Visualization</h3>
 				</div>
 				{playbackState !== 'idle' && (
 					<button
@@ -111,10 +94,7 @@ export function VisualizationPlayer({
 						className="flex items-center gap-1 text-xs text-gray-500 transition-colors hover:text-gray-800"
 						aria-label="Reset visualization"
 					>
-						<RotateCcw
-							className="size-3"
-							aria-hidden
-						/>
+						<RotateCcw className="size-3" aria-hidden />
 						Reset
 					</button>
 				)}
@@ -128,10 +108,7 @@ export function VisualizationPlayer({
 					data-testid="play-visualization"
 					className="w-full gap-2"
 				>
-					<Play
-						className="size-4"
-						aria-hidden
-					/>
+					<Play className="size-4" aria-hidden />
 					{isLoading ? 'Preparing…' : 'Start Visualization'}
 				</Button>
 			)}
@@ -195,10 +172,7 @@ export function VisualizationPlayer({
 							aria-label="Step backward"
 							className="size-8 p-0"
 						>
-							<ChevronLeft
-								className="size-4"
-								aria-hidden
-							/>
+							<ChevronLeft className="size-4" aria-hidden />
 						</Button>
 
 						{playbackState === 'playing' ? (
@@ -208,10 +182,7 @@ export function VisualizationPlayer({
 								aria-label="Pause"
 								className="gap-1.5"
 							>
-								<Pause
-									className="size-3.5"
-									aria-hidden
-								/>
+								<Pause className="size-3.5" aria-hidden />
 								Pause
 							</Button>
 						) : (
@@ -222,10 +193,7 @@ export function VisualizationPlayer({
 								aria-label="Play"
 								className="gap-1.5"
 							>
-								<Play
-									className="size-3.5"
-									aria-hidden
-								/>
+								<Play className="size-3.5" aria-hidden />
 								Play
 							</Button>
 						)}
@@ -238,19 +206,12 @@ export function VisualizationPlayer({
 							aria-label="Step forward"
 							className="size-8 p-0"
 						>
-							<ChevronRight
-								className="size-4"
-								aria-hidden
-							/>
+							<ChevronRight className="size-4" aria-hidden />
 						</Button>
 					</div>
 
 					{/* Speed */}
-					<div
-						className="flex gap-1"
-						role="group"
-						aria-label="Playback speed"
-					>
+					<div className="flex gap-1" role="group" aria-label="Playback speed">
 						{SPEEDS.map(s => (
 							<button
 								key={s}
@@ -279,8 +240,7 @@ export function VisualizationPlayer({
 				>
 					<p className="font-semibold">Schedule complete!</p>
 					<p className="mt-0.5 text-green-700">
-						{assignmentsMade} classes assigned · {result.backtracks} backtracks
-						·{' '}
+						{assignmentsMade} classes assigned · {result.backtracks} backtracks ·{' '}
 						{result.unresolvedConstraints.length === 0
 							? 'All constraints satisfied ✓'
 							: `${result.unresolvedConstraints.length} unresolved`}

@@ -7,7 +7,7 @@ import {
 	dismissAll,
 	dismissToast,
 	selectToasts,
-	type ToastVariant
+	type ToastVariant,
 } from '@/store/toastSlice'
 
 export type { ToastVariant }
@@ -18,16 +18,13 @@ export function useToast() {
 
 	return {
 		toasts,
-		toast: (
-			message: string,
-			variant: ToastVariant = 'info',
-			duration?: number
-		) => dispatch(addToast(message, variant, duration)),
+		toast: (message: string, variant: ToastVariant = 'info', duration?: number) =>
+			dispatch(addToast(message, variant, duration)),
 		success: (message: string) => dispatch(addToast(message, 'success')),
 		error: (message: string) => dispatch(addToast(message, 'error')),
 		warning: (message: string) => dispatch(addToast(message, 'warning')),
 		info: (message: string) => dispatch(addToast(message, 'info')),
 		dismiss: (id: string) => dispatch(dismissToast(id)),
-		dismissAll: () => dispatch(dismissAll())
+		dismissAll: () => dispatch(dismissAll()),
 	}
 }

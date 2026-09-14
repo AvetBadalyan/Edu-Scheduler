@@ -7,14 +7,18 @@
  */
 import { cn } from '@/lib/utils'
 import { useAppSelector } from '@/store/hooks'
-import { selectScheduleRooms, selectScheduleLecturers, selectScheduleFaculties } from '@/store/scheduleSlice'
+import {
+	selectScheduleRooms,
+	selectScheduleLecturers,
+	selectScheduleFaculties,
+} from '@/store/scheduleSlice'
 import type {
 	ClassAssignment,
 	DayOfWeek,
 	HourSlot,
 	TimeSlot,
 	TimeSlotRef,
-	Timetable
+	Timetable,
 } from '@/types'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -41,20 +45,20 @@ const DAY_NAMES: Record<DayOfWeek, string> = {
 	2: 'Tue',
 	3: 'Wed',
 	4: 'Thu',
-	5: 'Fri'
+	5: 'Fri',
 }
 const DAY_FULL: Record<DayOfWeek, string> = {
 	1: 'Monday',
 	2: 'Tuesday',
 	3: 'Wednesday',
 	4: 'Thursday',
-	5: 'Friday'
+	5: 'Friday',
 }
 const HOUR_LABELS: Record<HourSlot, string> = {
 	1: '09:00',
 	2: '11:00',
 	3: '13:00',
-	4: '15:00'
+	4: '15:00',
 }
 
 // Deterministic per-subject colour — hash keeps colours stable across renders
@@ -68,7 +72,7 @@ const PALETTE = [
 	'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-900',
 	'bg-teal-100 border-teal-300 text-teal-900',
 	'bg-orange-100 border-orange-300 text-orange-900',
-	'bg-sky-100 border-sky-300 text-sky-900'
+	'bg-sky-100 border-sky-300 text-sky-900',
 ]
 
 function hashSubject(subject: string): number {
@@ -98,7 +102,7 @@ function AssignmentTooltip({
 	lecturerName,
 	roomLabel,
 	facultyName,
-	anchorRect
+	anchorRect,
 }: TooltipProps) {
 	// Position the tooltip above the cell, centred horizontally
 	const left = anchorRect.left + anchorRect.width / 2
@@ -112,33 +116,19 @@ function AssignmentTooltip({
 				left,
 				top,
 				transform: 'translate(-50%, -100%)',
-				zIndex: 9999
+				zIndex: 9999,
 			}}
 			className="pointer-events-none w-56 animate-fade-in"
 		>
 			{/* Card */}
 			<div className="rounded-xl bg-gray-900 px-3.5 py-3 shadow-2xl ring-1 ring-white/10">
 				{/* Subject */}
-				<p className="mb-2 text-sm font-bold text-white">
-					{assignment.subject}
-				</p>
+				<p className="mb-2 text-sm font-bold text-white">{assignment.subject}</p>
 
 				<div className="flex flex-col gap-1">
-					<Row
-						icon="👩‍🏫"
-						label="Lecturer"
-						value={lecturerName}
-					/>
-					<Row
-						icon="🚪"
-						label="Room"
-						value={roomLabel}
-					/>
-					<Row
-						icon="🎓"
-						label="Group"
-						value={facultyName}
-					/>
+					<Row icon="👩‍🏫" label="Lecturer" value={lecturerName} />
+					<Row icon="🚪" label="Room" value={roomLabel} />
+					<Row icon="🎓" label="Group" value={facultyName} />
 				</div>
 
 				{assignment.isManual && (
@@ -154,7 +144,7 @@ function AssignmentTooltip({
 				style={{
 					borderLeft: '6px solid transparent',
 					borderRight: '6px solid transparent',
-					borderTop: '6px solid #111827' // gray-900
+					borderTop: '6px solid #111827', // gray-900
 				}}
 			/>
 		</div>,
@@ -162,15 +152,7 @@ function AssignmentTooltip({
 	)
 }
 
-function Row({
-	icon,
-	label,
-	value
-}: {
-	icon: string
-	label: string
-	value: string
-}) {
+function Row({ icon, label, value }: { icon: string; label: string; value: string }) {
 	return (
 		<p className="flex items-baseline gap-1.5 text-xs">
 			<span aria-hidden>{icon}</span>
@@ -211,7 +193,7 @@ function TimetableCell({
 	roomLabel,
 	facultyName,
 	onSlotClick,
-	onSlotDrop
+	onSlotDrop,
 }: CellProps) {
 	const [showTooltip, setShowTooltip] = React.useState(false)
 	const [anchorRect, setAnchorRect] = React.useState<DOMRect | null>(null)
@@ -234,10 +216,7 @@ function TimetableCell({
 
 	const handleDragStart = (e: React.DragEvent) => {
 		if (!isEditable || !assignment) return
-		e.dataTransfer.setData(
-			'text/plain',
-			JSON.stringify({ ...slot, entityType, entityId })
-		)
+		e.dataTransfer.setData('text/plain', JSON.stringify({ ...slot, entityType, entityId }))
 		e.dataTransfer.effectAllowed = 'move'
 	}
 
@@ -269,9 +248,7 @@ function TimetableCell({
 		// Conflict
 		isConflict && 'bg-red-100 border-red-400 text-red-900',
 		// Highlighted by visualizer
-		isHighlighted &&
-			!isConflict &&
-			'ring-2 ring-inset ring-blue-500 brightness-95',
+		isHighlighted && !isConflict && 'ring-2 ring-inset ring-blue-500 brightness-95',
 		// Active slot being evaluated
 		isActive && 'ring-2 ring-inset ring-yellow-400 animate-pulse',
 		// Editable states
@@ -305,17 +282,13 @@ function TimetableCell({
 			{assignment !== null ? (
 				<>
 					{/* Subject */}
-					<span className="block truncate font-semibold leading-snug">
-						{assignment.subject}
-					</span>
+					<span className="block truncate font-semibold leading-snug">{assignment.subject}</span>
 					{/* Lecturer name (resolved, not raw ID) */}
 					<span className="block truncate text-[11px] opacity-70 leading-snug mt-0.5">
 						{lecturerName}
 					</span>
 					{/* Room */}
-					<span className="block truncate text-[10px] opacity-50 leading-snug">
-						{roomLabel}
-					</span>
+					<span className="block truncate text-[10px] opacity-50 leading-snug">{roomLabel}</span>
 					{/* Manual badge */}
 					{assignment.isManual && (
 						<span className="absolute right-1 top-0.5 rounded bg-amber-400 px-1 py-px text-[9px] font-bold text-amber-900">
@@ -352,7 +325,7 @@ export function TimetableGrid({
 	conflictSlots = [],
 	activeSlot,
 	isEditable = false,
-	className
+	className,
 }: TimetableGridProps) {
 	// Pull entity name maps so cells can display names, not IDs
 	const storeLecturers = useAppSelector(selectScheduleLecturers)
@@ -393,10 +366,7 @@ export function TimetableGrid({
 			{/* Min-width so the grid doesn't collapse on small screens */}
 			<div className="min-w-[600px]">
 				{/* Header row */}
-				<div
-					className="grid border-b"
-					style={{ gridTemplateColumns: '5rem repeat(5, 1fr)' }}
-				>
+				<div className="grid border-b" style={{ gridTemplateColumns: '5rem repeat(5, 1fr)' }}>
 					<div className="flex h-10 items-center justify-center border-r bg-gray-50 text-[11px] font-medium text-gray-500 uppercase tracking-wide">
 						Hour
 					</div>
@@ -439,15 +409,9 @@ export function TimetableGrid({
 									slot={{ day, hour }}
 									entityId={entityId}
 									entityType={viewMode}
-									lecturerName={
-										assignment ? resolveLecturerName(assignment.lecturerId) : ''
-									}
-									roomLabel={
-										assignment ? resolveRoomLabel(assignment.roomId) : ''
-									}
-									facultyName={
-										assignment ? resolveFacultyName(assignment.facultyId) : ''
-									}
+									lecturerName={assignment ? resolveLecturerName(assignment.lecturerId) : ''}
+									roomLabel={assignment ? resolveRoomLabel(assignment.roomId) : ''}
+									facultyName={assignment ? resolveFacultyName(assignment.facultyId) : ''}
 									onSlotClick={onSlotClick}
 									onSlotDrop={onSlotDrop}
 								/>

@@ -1,33 +1,36 @@
 {
-	"name": "education-management-server",
-	"version": "1.0.0",
-	"private": true,
-	"type": "commonjs",
-	"scripts": {
-		"dev": "ts-node --require reflect-metadata src/server.ts",
-		"build": "tsc -p tsconfig.json",
-		"start": "node dist/server.js",
-		"dev:watch": "ts-node-dev --require reflect-metadata --respawn src/server.ts"
-	},
-	"dependencies": {
-		"@supabase/supabase-js": "^2.116.0",
-		"bcryptjs": "^2.4.3",
-		"cors": "^2.8.5",
-		"dotenv": "^16.3.1",
-		"express": "^4.18.2",
-		"jsonwebtoken": "^9.0.0",
-		"pg": "^8.11.3",
-		"reflect-metadata": "^0.2.1",
-		"typeorm": "^0.3.20"
-	},
-	"devDependencies": {
-		"@types/bcryptjs": "^2.4.6",
-		"@types/cors": "^2.8.17",
-		"@types/express": "^4.17.21",
-		"@types/jsonwebtoken": "^9.0.5",
-		"@types/node": "^20.10.6",
-		"ts-node": "^10.9.2",
-		"tsx": "^4.6.2",
-		"typescript": "^5.3.3"
-	}
+  "name": "education-management-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "ts-node --require reflect-metadata src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev:watch": "ts-node-dev --require reflect-metadata --respawn src/server.ts",
+    "format": "prettier --write \"src/**/*.ts\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.2.1",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.6",
+    "prettier": "^3.9.6",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  }
 }

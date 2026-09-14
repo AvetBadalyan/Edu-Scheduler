@@ -11,24 +11,50 @@ import {
 	selectAuthError,
 	selectAuthLoading,
 	selectIsAuthenticated,
-	signUpThunk
+	signUpThunk,
 } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { CalendarDays, Eye, EyeOff } from 'lucide-react'
+import { BrainCircuit, Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-interface LocationState { from?: { pathname: string } }
+interface LocationState {
+	from?: { pathname: string }
+}
 type Tab = 'signin' | 'signup'
+
+/**
+ * Validates a password against the rule shown in the hint:
+ * 8+ chars, at least one uppercase, one lowercase, and one number.
+ * Returns an error message, or null when the password is valid.
+ */
+function validatePassword(password: string): string | null {
+	if (password.length < 8) return 'Password must be at least 8 characters.'
+	if (!/[a-z]/.test(password)) return 'Add at least one lowercase letter.'
+	if (!/[A-Z]/.test(password)) return 'Add at least one uppercase letter.'
+	if (!/[0-9]/.test(password)) return 'Add at least one number.'
+	return null
+}
 
 /** Password input with show/hide toggle */
 function PasswordInput({
-	id, value, onChange, autoComplete, 'aria-invalid': ariaInvalid,
-	'aria-describedby': ariaDescribedBy, placeholder, required,
+	id,
+	value,
+	onChange,
+	autoComplete,
+	'aria-invalid': ariaInvalid,
+	'aria-describedby': ariaDescribedBy,
+	placeholder,
+	required,
 }: {
-	id: string; value: string; onChange: (v: string) => void
-	autoComplete?: string; 'aria-invalid'?: boolean
-	'aria-describedby'?: string; placeholder?: string; required?: boolean
+	id: string
+	value: string
+	onChange: (v: string) => void
+	autoComplete?: string
+	'aria-invalid'?: boolean
+	'aria-describedby'?: string
+	placeholder?: string
+	required?: boolean
 }) {
 	const [show, setShow] = useState(false)
 	return (
@@ -59,18 +85,19 @@ function PasswordInput({
 }
 
 export default function LoginPage() {
-	const dispatch        = useAppDispatch()
-	const navigate        = useNavigate()
-	const location        = useLocation()
+	const dispatch = useAppDispatch()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
-	const isLoading       = useAppSelector(selectAuthLoading)
-	const error           = useAppSelector(selectAuthError)
+	const isLoading = useAppSelector(selectAuthLoading)
+	const error = useAppSelector(selectAuthError)
 
-	const [tab,      setTab]      = useState<Tab>('signin')
-	const [email,    setEmail]    = useState<string>(DEMO_CREDENTIALS.email)
+	const [tab, setTab] = useState<Tab>('signin')
+	const [email, setEmail] = useState<string>(DEMO_CREDENTIALS.email)
 	const [password, setPassword] = useState<string>(DEMO_CREDENTIALS.password)
-	const [name,     setName]     = useState('')
-	const [confirm,  setConfirm]  = useState('')
+	const [name, setName] = useState('')
+	const [confirm, setConfirm] = useState('')
+	const [pwError, setPwError] = useState<string | null>(null)
 
 	const redirectTo = (location.state as LocationState)?.from?.pathname ?? '/dashboard'
 
@@ -80,40 +107,65 @@ export default function LoginPage() {
 
 	const switchTab = (t: Tab) => {
 		dispatch(clearError())
+		setPwError(null)
 		setTab(t)
-		if (t === 'signin') { setEmail(DEMO_CREDENTIALS.email); setPassword(DEMO_CREDENTIALS.password) }
-		else { setEmail(''); setPassword('') }
+		if (t === 'signin') {
+			setEmail(DEMO_CREDENTIALS.email)
+			setPassword(DEMO_CREDENTIALS.password)
+		} else {
+			setEmail('')
+			setPassword('')
+		}
 	}
 
 	const handleSignIn = (e: React.FormEvent) => {
-		e.preventDefault(); dispatch(clearError()); dispatch(loginThunk({ email, password }))
+		e.preventDefault()
+		dispatch(clearError())
+		dispatch(loginThunk({ email, password }))
 	}
 
 	const handleSignUp = (e: React.FormEvent) => {
-		e.preventDefault(); dispatch(clearError())
+		e.preventDefault()
+		dispatch(clearError())
 		if (password !== confirm) return
+		const weakness = validatePassword(password)
+		if (weakness) {
+			setPwError(weakness)
+			return
+		}
+		setPwError(null)
 		dispatch(signUpThunk({ email, password, name }))
 	}
 
 	const passwordMismatch = tab === 'signup' && confirm.length > 0 && password !== confirm
 
 	return (
-		<main id="main-content" className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 px-4 py-10">
+		<main
+			id="main-content"
+			className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 px-4 py-10"
+		>
 			<div className="w-full max-w-sm rounded-xl border bg-card p-8 shadow-sm">
 				{/* Brand */}
 				<div className="mb-6 flex flex-col items-center text-center">
 					<span className="mb-3 flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-						<CalendarDays className="size-6" aria-hidden />
+						<BrainCircuit className="size-6" aria-hidden />
 					</span>
-					<h1 className="text-xl font-bold">Education Manager</h1>
-					<p className="mt-1 text-sm text-muted-foreground">Build and manage class schedules</p>
+					<h1 className="text-xl font-bold">EduScheduler</h1>
+					<p className="mt-1 text-sm text-muted-foreground">
+						Generate conflict-free university timetables
+					</p>
 				</div>
 
 				{/* Tabs */}
 				<div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="tablist">
 					{(['signin', 'signup'] as Tab[]).map(t => (
-						<button key={t} role="tab" aria-selected={tab === t} onClick={() => switchTab(t)}
-							className={`rounded-md py-1.5 text-sm font-medium transition-colors ${tab === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+						<button
+							key={t}
+							role="tab"
+							aria-selected={tab === t}
+							onClick={() => switchTab(t)}
+							className={`rounded-md py-1.5 text-sm font-medium transition-colors ${tab === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+						>
 							{t === 'signin' ? 'Sign in' : 'Sign up'}
 						</button>
 					))}
@@ -124,16 +176,33 @@ export default function LoginPage() {
 					<form onSubmit={handleSignIn} className="flex flex-col gap-4" noValidate>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="email">Email</Label>
-							<Input id="email" type="email" autoComplete="username" value={email}
-								onChange={e => setEmail(e.target.value)} aria-invalid={!!error} required />
+							<Input
+								id="email"
+								type="email"
+								autoComplete="username"
+								value={email}
+								onChange={e => setEmail(e.target.value)}
+								aria-invalid={!!error}
+								required
+							/>
 						</div>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="password">Password</Label>
-							<PasswordInput id="password" value={password} onChange={setPassword}
-								autoComplete="current-password" aria-invalid={!!error}
-								aria-describedby={error ? 'auth-error' : undefined} required />
+							<PasswordInput
+								id="password"
+								value={password}
+								onChange={setPassword}
+								autoComplete="current-password"
+								aria-invalid={!!error}
+								aria-describedby={error ? 'auth-error' : undefined}
+								required
+							/>
 						</div>
-						{error && <p id="auth-error" className="text-sm text-destructive" role="alert">{error}</p>}
+						{error && (
+							<p id="auth-error" className="text-sm text-destructive" role="alert">
+								{error}
+							</p>
+						)}
 						<Button type="submit" disabled={isLoading} className="mt-1 w-full">
 							{isLoading ? 'Signing in…' : 'Sign in'}
 						</Button>
@@ -145,33 +214,73 @@ export default function LoginPage() {
 					<form onSubmit={handleSignUp} className="flex flex-col gap-4" noValidate>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="su-name">Full name</Label>
-							<Input id="su-name" type="text" autoComplete="name" value={name}
-								onChange={e => setName(e.target.value)} required />
+							<Input
+								id="su-name"
+								type="text"
+								autoComplete="name"
+								value={name}
+								onChange={e => setName(e.target.value)}
+								required
+							/>
 						</div>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="su-email">Email</Label>
-							<Input id="su-email" type="email" autoComplete="username" value={email}
-								onChange={e => setEmail(e.target.value)} aria-invalid={!!error} required />
+							<Input
+								id="su-email"
+								type="email"
+								autoComplete="username"
+								value={email}
+								onChange={e => setEmail(e.target.value)}
+								aria-invalid={!!error}
+								required
+							/>
 						</div>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="su-password">Password</Label>
-							<PasswordInput id="su-password" value={password} onChange={setPassword}
-								autoComplete="new-password" aria-invalid={!!error}
-								aria-describedby="pw-hint" required />
-							<p id="pw-hint" className="text-xs text-muted-foreground">
-								8+ characters, uppercase, lowercase, and a number
-							</p>
+							<PasswordInput
+								id="su-password"
+								value={password}
+								onChange={v => {
+									setPassword(v)
+									if (pwError) setPwError(null)
+								}}
+								autoComplete="new-password"
+								aria-invalid={!!error || !!pwError}
+								aria-describedby={pwError ? 'pw-error' : 'pw-hint'}
+								required
+							/>
+							{pwError ? (
+								<p id="pw-error" className="text-xs text-destructive" role="alert">
+									{pwError}
+								</p>
+							) : (
+								<p id="pw-hint" className="text-xs text-muted-foreground">
+									8+ characters, uppercase, lowercase, and a number
+								</p>
+							)}
 						</div>
 						<div className="flex flex-col gap-1">
 							<Label htmlFor="su-confirm">Confirm password</Label>
-							<PasswordInput id="su-confirm" value={confirm} onChange={setConfirm}
-								autoComplete="new-password" aria-invalid={passwordMismatch}
-								aria-describedby={passwordMismatch ? 'pw-mismatch' : undefined} required />
+							<PasswordInput
+								id="su-confirm"
+								value={confirm}
+								onChange={setConfirm}
+								autoComplete="new-password"
+								aria-invalid={passwordMismatch}
+								aria-describedby={passwordMismatch ? 'pw-mismatch' : undefined}
+								required
+							/>
 							{passwordMismatch && (
-								<p id="pw-mismatch" className="text-xs text-destructive" role="alert">Passwords don't match</p>
+								<p id="pw-mismatch" className="text-xs text-destructive" role="alert">
+									Passwords don't match
+								</p>
 							)}
 						</div>
-						{error && <p id="auth-error" className="text-sm text-destructive" role="alert">{error}</p>}
+						{error && (
+							<p id="auth-error" className="text-sm text-destructive" role="alert">
+								{error}
+							</p>
+						)}
 						<Button type="submit" disabled={isLoading || passwordMismatch} className="mt-1 w-full">
 							{isLoading ? 'Creating account…' : 'Create account'}
 						</Button>

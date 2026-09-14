@@ -5,7 +5,7 @@ import {
 	JoinColumn,
 	ManyToOne,
 	PrimaryGeneratedColumn,
-	UpdateDateColumn
+	UpdateDateColumn,
 } from 'typeorm'
 import { University } from './University'
 
@@ -19,7 +19,7 @@ export class Lecturer {
 
 	@ManyToOne(() => University, university => university.lecturers, {
 		onDelete: 'CASCADE',
-		nullable: true
+		nullable: true,
 	})
 	@JoinColumn({ name: 'university_id' })
 	university!: University | null
@@ -30,7 +30,7 @@ export class Lecturer {
 	@Column({ type: 'varchar' })
 	surname!: string
 
-	@Column('simple-array')
+	@Column({ type: 'jsonb', default: '[]' })
 	specialties!: string[]
 
 	@Column({ type: 'varchar', name: 'image_url', nullable: true })

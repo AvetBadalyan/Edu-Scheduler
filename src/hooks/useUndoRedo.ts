@@ -7,7 +7,7 @@ import {
 	selectCanUndo,
 	selectCurrentEdit,
 	selectNextEdit,
-	undo
+	undo,
 } from '@/store/editHistorySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { assignClass, unassignClass } from '@/store/scheduleSlice'
@@ -32,7 +32,7 @@ export function useUndoRedo(enableKeyboardShortcuts = true) {
 					unassignClass({
 						...edit.after.timeSlot,
 						entityType: 'room',
-						entityId: edit.after.roomId
+						entityId: edit.after.roomId,
 					})
 				)
 			}

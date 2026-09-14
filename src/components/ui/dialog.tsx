@@ -50,9 +50,7 @@ const DialogContent = React.forwardRef<
 
 			{/* Content */}
 			<div className="p-6">
-				<DialogPrimitive.Title className="sr-only">
-					{title}
-				</DialogPrimitive.Title>
+				<DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
 				{children}
 			</div>
 

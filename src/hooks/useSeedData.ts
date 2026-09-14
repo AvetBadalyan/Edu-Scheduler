@@ -8,12 +8,7 @@
  * handles data loading from the API and calls setLecturers/setRooms/setFaculties
  * which replaces any previously loaded seed data.
  */
-import {
-	DEMO_UNIVERSITY,
-	seedFaculties,
-	seedLecturers,
-	seedRooms
-} from '@/lib/seedData'
+import { DEMO_UNIVERSITY, seedFaculties, seedLecturers, seedRooms } from '@/lib/seedData'
 import { setCurrentUniversity } from '@/store/appSlice'
 import { selectIsDemoMode, selectIsAuthenticated } from '@/store/authSlice'
 import {
@@ -28,10 +23,10 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useEffect, useRef } from 'react'
 
 export function useSeedData(): void {
-	const dispatch       = useAppDispatch()
-	const isDemoMode     = useAppSelector(selectIsDemoMode)
+	const dispatch = useAppDispatch()
+	const isDemoMode = useAppSelector(selectIsDemoMode)
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
-	const seededRef      = useRef(false)
+	const seededRef = useRef(false)
 
 	useEffect(() => {
 		if (isDemoMode) {
@@ -54,6 +49,6 @@ export function useSeedData(): void {
 				dispatch(setCurrentUniversity(null))
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isDemoMode, isAuthenticated])
 }

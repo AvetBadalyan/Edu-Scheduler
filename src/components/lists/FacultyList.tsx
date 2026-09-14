@@ -10,14 +10,7 @@ import { selectAllFaculties } from '@/store/entitySlice'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { Faculty, FacultyId } from '@/types'
-import {
-	BookOpen,
-	GraduationCap,
-	Pencil,
-	Search,
-	Trash2,
-	Users
-} from 'lucide-react'
+import { BookOpen, GraduationCap, Pencil, Search, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 // ─── Per-faculty gradient palette (cycles through 6) ─────────────────────────
@@ -27,38 +20,38 @@ const CARD_PALETTES = [
 		gradient: 'from-indigo-500 to-violet-600',
 		light: 'bg-indigo-50',
 		text: 'text-indigo-700',
-		ring: 'hover:ring-indigo-200'
+		ring: 'hover:ring-indigo-200',
 	},
 	{
 		gradient: 'from-emerald-500 to-teal-600',
 		light: 'bg-emerald-50',
 		text: 'text-emerald-700',
-		ring: 'hover:ring-emerald-200'
+		ring: 'hover:ring-emerald-200',
 	},
 	{
 		gradient: 'from-amber-500 to-orange-600',
 		light: 'bg-amber-50',
 		text: 'text-amber-700',
-		ring: 'hover:ring-amber-200'
+		ring: 'hover:ring-amber-200',
 	},
 	{
 		gradient: 'from-rose-500 to-pink-600',
 		light: 'bg-rose-50',
 		text: 'text-rose-700',
-		ring: 'hover:ring-rose-200'
+		ring: 'hover:ring-rose-200',
 	},
 	{
 		gradient: 'from-sky-500 to-blue-600',
 		light: 'bg-sky-50',
 		text: 'text-sky-700',
-		ring: 'hover:ring-sky-200'
+		ring: 'hover:ring-sky-200',
 	},
 	{
 		gradient: 'from-fuchsia-500 to-purple-600',
 		light: 'bg-fuchsia-50',
 		text: 'text-fuchsia-700',
-		ring: 'hover:ring-fuchsia-200'
-	}
+		ring: 'hover:ring-fuchsia-200',
+	},
 ]
 
 // Subject → colour mapping so the same subject always gets the same colour
@@ -73,7 +66,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 	HTML: 'bg-rose-100 text-rose-800 border-rose-200',
 	'UI/UX': 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
 	'Project Management': 'bg-teal-100 text-teal-800 border-teal-200',
-	Node: 'bg-green-100 text-green-800 border-green-200'
+	Node: 'bg-green-100 text-green-800 border-green-200',
 }
 const DEFAULT_SUBJECT = 'bg-slate-100 text-slate-700 border-slate-200'
 
@@ -88,7 +81,7 @@ type SortKey = 'name' | 'students' | 'subjects'
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 	{ key: 'name', label: 'A – Z' },
 	{ key: 'students', label: 'Students' },
-	{ key: 'subjects', label: 'Subjects' }
+	{ key: 'subjects', label: 'Subjects' },
 ]
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -133,9 +126,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 				<div className="flex size-16 items-center justify-center rounded-2xl bg-gray-100 text-3xl">
 					🎓
 				</div>
-				<p className="text-base font-semibold text-gray-800">
-					No faculties yet
-				</p>
+				<p className="text-base font-semibold text-gray-800">No faculties yet</p>
 				<p className="text-sm text-gray-500 max-w-xs">
 					Click "+ Add Faculty" to create your first bootcamp or course.
 				</p>
@@ -152,25 +143,22 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 						icon: GraduationCap,
 						label: 'Faculties',
 						value: faculties.length,
-						color: 'from-indigo-500 to-violet-600'
+						color: 'from-indigo-500 to-violet-600',
 					},
 					{
 						icon: Users,
 						label: 'Total Students',
 						value: totalStudents,
-						color: 'from-emerald-500 to-teal-600'
+						color: 'from-emerald-500 to-teal-600',
 					},
 					{
 						icon: BookOpen,
 						label: 'Avg. Subjects',
 						value: faculties.length
-							? Math.round(
-									faculties.reduce((s, f) => s + f.syllabus.length, 0) /
-										faculties.length
-								)
+							? Math.round(faculties.reduce((s, f) => s + f.syllabus.length, 0) / faculties.length)
 							: 0,
-						color: 'from-amber-500 to-orange-600'
-					}
+						color: 'from-amber-500 to-orange-600',
+					},
 				].map(({ icon: Icon, label, value, color }) => (
 					<div
 						key={label}
@@ -179,10 +167,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 							color
 						)}
 					>
-						<Icon
-							className="size-5 opacity-80"
-							aria-hidden
-						/>
+						<Icon className="size-5 opacity-80" aria-hidden />
 						<p className="text-2xl font-black tabular-nums">{value}</p>
 						<p className="text-xs font-semibold opacity-80">{label}</p>
 					</div>
@@ -202,11 +187,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 						className="pl-10 bg-white shadow-sm"
 					/>
 				</div>
-				<div
-					className="flex items-center gap-1.5"
-					role="group"
-					aria-label="Sort by"
-				>
+				<div className="flex items-center gap-1.5" role="group" aria-label="Sort by">
 					<span className="text-xs font-medium text-gray-500 mr-1">Sort:</span>
 					{SORT_OPTIONS.map(o => (
 						<button
@@ -227,31 +208,22 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 			</div>
 
 			{/* ── Count ──────────────────────────────────────────────────────── */}
-			<p
-				className="text-sm font-medium text-gray-500"
-				aria-live="polite"
-			>
-				<span className="text-2xl font-bold text-gray-900 mr-1.5">
-					{filtered.length}
-				</span>
+			<p className="text-sm font-medium text-gray-500" aria-live="polite">
+				<span className="text-2xl font-bold text-gray-900 mr-1.5">{filtered.length}</span>
 				{filtered.length === 1 ? 'faculty' : 'faculties'}
 			</p>
 
 			{/* ── Cards grid ─────────────────────────────────────────────────── */}
 			{filtered.length === 0 ? (
 				<div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-					<p className="text-base font-semibold text-gray-700">
-						No results for "{search}"
-					</p>
-					<p className="text-sm text-gray-500">
-						Try a different faculty name or subject.
-					</p>
+					<p className="text-base font-semibold text-gray-700">No results for "{search}"</p>
+					<p className="text-sm text-gray-500">Try a different faculty name or subject.</p>
 				</div>
 			) : (
 				<div
 					className="grid gap-5"
 					style={{
-						gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))'
+						gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
 					}}
 					role="list"
 					aria-label="Faculties"
@@ -282,13 +254,7 @@ interface FacultyCardProps {
 	onDelete?: (id: FacultyId) => void
 }
 
-function FacultyCard({
-	faculty,
-	palette,
-	index,
-	onEdit,
-	onDelete
-}: FacultyCardProps) {
+function FacultyCard({ faculty, palette, index, onEdit, onDelete }: FacultyCardProps) {
 	const delay = `${(index % 6) * 60}ms`
 	const totalHours = faculty.syllabus.reduce((s, e) => s + e.requiredHours, 0)
 
@@ -319,10 +285,7 @@ function FacultyCard({
 
 				{/* Student badge — top right */}
 				<div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
-					<Users
-						className="size-3"
-						aria-hidden
-					/>
+					<Users className="size-3" aria-hidden />
 					{faculty.students.length}
 				</div>
 			</div>
@@ -332,21 +295,15 @@ function FacultyCard({
 				{/* Stats row */}
 				<div className="flex gap-4 text-center">
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
-						<p className={cn('text-xl font-black', palette.text)}>
-							{faculty.syllabus.length}
-						</p>
+						<p className={cn('text-xl font-black', palette.text)}>{faculty.syllabus.length}</p>
 						<p className="text-[10px] font-semibold text-gray-500">Subjects</p>
 					</div>
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
-						<p className={cn('text-xl font-black', palette.text)}>
-							{totalHours}
-						</p>
+						<p className={cn('text-xl font-black', palette.text)}>{totalHours}</p>
 						<p className="text-[10px] font-semibold text-gray-500">Total hrs</p>
 					</div>
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
-						<p className={cn('text-xl font-black', palette.text)}>
-							{faculty.students.length}
-						</p>
+						<p className={cn('text-xl font-black', palette.text)}>{faculty.students.length}</p>
 						<p className="text-[10px] font-semibold text-gray-500">Students</p>
 					</div>
 				</div>
@@ -375,10 +332,7 @@ function FacultyCard({
 							className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
 							aria-label={`Edit ${faculty.name}`}
 						>
-							<Pencil
-								className="size-3"
-								aria-hidden
-							/>
+							<Pencil className="size-3" aria-hidden />
 							Edit
 						</button>
 					)}
@@ -388,10 +342,7 @@ function FacultyCard({
 							className="flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-400 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
 							aria-label={`Delete ${faculty.name}`}
 						>
-							<Trash2
-								className="size-3.5"
-								aria-hidden
-							/>
+							<Trash2 className="size-3.5" aria-hidden />
 						</button>
 					)}
 				</div>

@@ -1,14 +1,14 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		react({
-			include: '**/*.{jsx,js,tsx,ts}'
-		})
+			include: '**/*.{jsx,js,tsx,ts}',
+		}),
 	],
 	resolve: {
 		alias: {
@@ -18,9 +18,15 @@ export default defineConfig({
 			'@lib': resolve(__dirname, './src/lib'),
 			'@types': resolve(__dirname, './src/types'),
 			'@hooks': resolve(__dirname, './src/hooks'),
-			'@utils': resolve(__dirname, './src/utils'),
-			'@assets': resolve(__dirname, './src/assets')
-		}
+			'@assets': resolve(__dirname, './src/assets'),
+		},
+	},
+	// Vitest config — test config lives here to avoid CLI path-with-spaces issues
+	test: {
+		globals: true,
+		environment: 'node',
+		include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+		coverage: { provider: 'v8', reporter: ['text', 'html'] },
 	},
 	build: {
 		sourcemap: true,
@@ -31,17 +37,17 @@ export default defineConfig({
 				manualChunks: {
 					vendor: ['react', 'react-dom'],
 					router: ['react-router-dom'],
-					redux: ['@reduxjs/toolkit', 'react-redux']
-				}
-			}
+					redux: ['@reduxjs/toolkit', 'react-redux'],
+				},
+			},
 		},
-		minify: 'esbuild'
+		minify: 'esbuild',
 	},
 	esbuild: {
-		drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
+		drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
 	},
 	server: {
 		port: 3000,
-		open: false
-	}
+		open: false,
+	},
 })

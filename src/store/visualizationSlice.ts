@@ -13,13 +13,9 @@ import type {
 	HighlightedElement,
 	PlaybackState,
 	ScheduleInput,
-	ScheduleResult
+	ScheduleResult,
 } from '@/types'
-import {
-	createAsyncThunk,
-	createSlice,
-	type PayloadAction
-} from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { AppDispatch, RootState } from './index'
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -43,7 +39,7 @@ const initialState: VisualizationState = {
 	highlightedElements: [],
 	decisionLog: [],
 	result: null,
-	isLoading: false
+	isLoading: false,
 }
 
 // ─── Interval management (outside Redux — non-serializable) ───────────────────
@@ -65,37 +61,21 @@ function extractHighlights(step: AlgorithmStep): HighlightedElement[] {
 		els.push({
 			type: 'lecturer',
 			id: step.currentLecturer,
-			style:
-				step.type === 'conflict'
-					? 'conflict'
-					: step.type === 'assign'
-						? 'success'
-						: 'active'
+			style: step.type === 'conflict' ? 'conflict' : step.type === 'assign' ? 'success' : 'active',
 		})
 	if (step.currentRoom)
 		els.push({
 			type: 'room',
 			id: step.currentRoom,
-			style:
-				step.type === 'conflict'
-					? 'conflict'
-					: step.type === 'assign'
-						? 'success'
-						: 'active'
+			style: step.type === 'conflict' ? 'conflict' : step.type === 'assign' ? 'success' : 'active',
 		})
-	if (step.currentFaculty)
-		els.push({ type: 'faculty', id: step.currentFaculty, style: 'active' })
+	if (step.currentFaculty) els.push({ type: 'faculty', id: step.currentFaculty, style: 'active' })
 	if (step.currentSlot)
 		els.push({
 			type: 'slot',
 			id: `${step.currentSlot.day}-${step.currentSlot.hour}`,
 			slot: step.currentSlot,
-			style:
-				step.type === 'conflict'
-					? 'conflict'
-					: step.type === 'assign'
-						? 'success'
-						: 'active'
+			style: step.type === 'conflict' ? 'conflict' : step.type === 'assign' ? 'success' : 'active',
 		})
 	return els
 }
@@ -106,14 +86,11 @@ const visualizationSlice = createSlice({
 	name: 'visualization',
 	initialState,
 	reducers: {
-		_setSteps(
-			state,
-			action: PayloadAction<{ steps: AlgorithmStep[]; result: ScheduleResult }>
-		) {
+		_setSteps(state, action: PayloadAction<{ steps: AlgorithmStep[]; result: ScheduleResult }>) {
 			const log: DecisionLogEntry[] = action.payload.steps.map(s => ({
 				stepNumber: s.stepNumber,
 				description: s.description,
-				type: s.type
+				type: s.type,
 			}))
 			state.steps = action.payload.steps
 			state.result = action.payload.result
@@ -144,8 +121,7 @@ const visualizationSlice = createSlice({
 			const next = state.currentStepIndex + 1
 			state.currentStepIndex = next
 			state.highlightedElements = extractHighlights(state.steps[next])
-			state.playbackState =
-				next === state.steps.length - 1 ? 'complete' : 'paused'
+			state.playbackState = next === state.steps.length - 1 ? 'complete' : 'paused'
 		},
 
 		stepBackward(state) {
@@ -180,8 +156,8 @@ const visualizationSlice = createSlice({
 
 		setPlaybackState(state, action: PayloadAction<PlaybackState>) {
 			state.playbackState = action.payload
-		}
-	}
+		},
+	},
 })
 
 export const {
@@ -194,7 +170,7 @@ export const {
 	_setSteps,
 	_tick,
 	setLoading,
-	setPlaybackState
+	setPlaybackState,
 } = visualizationSlice.actions
 
 export default visualizationSlice.reducer
@@ -222,8 +198,7 @@ export function play() {
 		if (playbackState === 'complete' || steps.length === 0) return
 
 		// If at the end, restart from beginning
-		const startIdx =
-			currentStepIndex === steps.length - 1 ? -1 : currentStepIndex
+		const startIdx = currentStepIndex === steps.length - 1 ? -1 : currentStepIndex
 		if (startIdx !== currentStepIndex) {
 			dispatch(visualizationSlice.actions._tick()) // harmless if already reset
 		}
@@ -265,16 +240,11 @@ export function updateSpeed(speed: number) {
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
 export const selectVizSteps = (s: RootState) => s.visualization.steps
-export const selectVizCurrentIndex = (s: RootState) =>
-	s.visualization.currentStepIndex
-export const selectVizPlaybackState = (s: RootState) =>
-	s.visualization.playbackState
-export const selectVizPlaybackSpeed = (s: RootState) =>
-	s.visualization.playbackSpeed
-export const selectVizHighlightedElements = (s: RootState) =>
-	s.visualization.highlightedElements
-export const selectVizDecisionLog = (s: RootState) =>
-	s.visualization.decisionLog
+export const selectVizCurrentIndex = (s: RootState) => s.visualization.currentStepIndex
+export const selectVizPlaybackState = (s: RootState) => s.visualization.playbackState
+export const selectVizPlaybackSpeed = (s: RootState) => s.visualization.playbackSpeed
+export const selectVizHighlightedElements = (s: RootState) => s.visualization.highlightedElements
+export const selectVizDecisionLog = (s: RootState) => s.visualization.decisionLog
 export const selectVizResult = (s: RootState) => s.visualization.result
 export const selectVizIsLoading = (s: RootState) => s.visualization.isLoading
 export const selectVizCurrentStep = (s: RootState) =>

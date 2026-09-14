@@ -8,17 +8,17 @@
  */
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 if (!supabaseUrl || !supabaseAnon) {
-  console.warn(
-    '[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is not set. ' +
-    'Authenticated mode will not work. Demo mode is unaffected.'
-  )
+	console.warn(
+		'[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is not set. ' +
+			'Authenticated mode will not work. Demo mode is unaffected.'
+	)
 }
 
 export const supabase = createClient(
-  supabaseUrl  || 'https://placeholder.supabase.co',
-  supabaseAnon || 'placeholder-anon-key',
+	supabaseUrl || 'https://placeholder.supabase.co',
+	supabaseAnon || 'placeholder-anon-key'
 )

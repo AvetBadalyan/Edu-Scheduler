@@ -5,7 +5,7 @@
  * (free) or a ClassAssignment object. assignClass, unassignClass and
  * moveClass keep all three timetables consistent atomically.
  */
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { schedulesApi } from '@/lib/api/schedules'
 import { allTimeSlots, emptyTimetable } from '@/lib/timetable'
 import type {
 	ClassAssignment,
@@ -17,16 +17,17 @@ import type {
 	RoomId,
 	RoomWithTimetable,
 	ScheduleState,
-	Timetable,
 	TimeSlotRef,
+	Timetable,
 	UtilizationStats,
 } from '@/types'
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from './index'
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
 interface ScheduleSliceState {
-	rooms:     Record<RoomId, RoomWithTimetable>
+	rooms: Record<RoomId, RoomWithTimetable>
 	lecturers: Record<LecturerId, LecturerWithTimetable>
 	faculties: Record<FacultyId, FacultyWithTimetable>
 }
@@ -48,7 +49,11 @@ function clearTimetables<T extends { timetable: Timetable }>(
 
 const scheduleSlice = createSlice({
 	name: 'schedule',
-	initialState: { rooms: {}, lecturers: {}, faculties: {} } as ScheduleSliceState,
+	initialState: {
+		rooms: {},
+		lecturers: {},
+		faculties: {},
+	} as ScheduleSliceState,
 	reducers: {
 		/**
 		 * Assign a class to a slot. Writes to all three timetables atomically.
@@ -57,12 +62,14 @@ const scheduleSlice = createSlice({
 		 * Since RTK requires reducers to be synchronous we do the guard check
 		 * in the action creator below instead.
 		 */
-		_assignClass(
-			state,
-			action: PayloadAction<ClassAssignment>
-		) {
+		_assignClass(state, action: PayloadAction<ClassAssignment>) {
 			const a = action.payload
-			const { facultyId, lecturerId, roomId, timeSlot: { day, hour } } = a
+			const {
+				facultyId,
+				lecturerId,
+				roomId,
+				timeSlot: { day, hour },
+			} = a
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			;(state.rooms[roomId].timetable as any)[day][hour] = a
 			;(state.lecturers[lecturerId].timetable as any)[day][hour] = a
@@ -71,24 +78,32 @@ const scheduleSlice = createSlice({
 
 		_unassignSlot(
 			state,
-			action: PayloadAction<{ roomId: RoomId; lecturerId: LecturerId; facultyId: FacultyId; day: number; hour: number }>
+			action: PayloadAction<{
+				roomId: RoomId
+				lecturerId: LecturerId
+				facultyId: FacultyId
+				day: number
+				hour: number
+			}>
 		) {
 			const { roomId, lecturerId, facultyId, day, hour } = action.payload
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			if (state.rooms[roomId])     (state.rooms[roomId].timetable as any)[day][hour] = null
-			if (state.lecturers[lecturerId]) (state.lecturers[lecturerId].timetable as any)[day][hour] = null
-			if (state.faculties[facultyId])  (state.faculties[facultyId].timetable as any)[day][hour] = null
+			if (state.rooms[roomId]) (state.rooms[roomId].timetable as any)[day][hour] = null
+			if (state.lecturers[lecturerId])
+				(state.lecturers[lecturerId].timetable as any)[day][hour] = null
+			if (state.faculties[facultyId])
+				(state.faculties[facultyId].timetable as any)[day][hour] = null
 		},
 
 		resetSchedule(state) {
-			state.rooms     = clearTimetables(state.rooms)     as typeof state.rooms
+			state.rooms = clearTimetables(state.rooms) as typeof state.rooms
 			state.lecturers = clearTimetables(state.lecturers) as typeof state.lecturers
 			state.faculties = clearTimetables(state.faculties) as typeof state.faculties
 		},
 
 		loadSchedule(_state, action: PayloadAction<ScheduleState>) {
 			return {
-				rooms:     action.payload.rooms     as ScheduleSliceState['rooms'],
+				rooms: action.payload.rooms as ScheduleSliceState['rooms'],
 				lecturers: action.payload.lecturers as ScheduleSliceState['lecturers'],
 				faculties: action.payload.faculties as ScheduleSliceState['faculties'],
 			}
@@ -96,9 +111,63 @@ const scheduleSlice = createSlice({
 	},
 })
 
-export const { resetSchedule, loadSchedule, _assignClass, _unassignSlot } =
-	scheduleSlice.actions
+export const { resetSchedule, loadSchedule, _assignClass, _unassignSlot } = scheduleSlice.actions
 export default scheduleSlice.reducer
+
+// ─── Persistence thunks (authenticated mode) ──────────────────────────────────
+// In demo mode these are no-ops — the schedule lives only in memory.
+// In authenticated mode the current timetable is saved to / loaded from the API.
+
+import { selectCurrentUniversity } from './appSlice'
+import { selectIsDemoMode } from './authSlice'
+
+/**
+ * Persists the current schedule for the active university.
+ * Reuses the university's existing schedule row (one per university) when present.
+ */
+export const saveScheduleThunk = createAsyncThunk<void, void, { state: RootState }>(
+	'schedule/save',
+	async (_arg, { getState }) => {
+		const s = getState()
+		const university = selectCurrentUniversity(s)
+		if (selectIsDemoMode(s) || !university) return // demo mode: nothing to persist
+
+		const state: ScheduleState = {
+			rooms: s.schedule.rooms,
+			lecturers: s.schedule.lecturers,
+			faculties: s.schedule.faculties,
+		}
+
+		// One schedule per university: update the latest if it exists, else create.
+		const existing = await schedulesApi.latest(university.id).catch(() => null)
+
+		if (existing) {
+			await schedulesApi.update(existing.id, { state })
+		} else {
+			await schedulesApi.create({
+				name: `${university.name} timetable`,
+				state,
+				universityId: university.id,
+			})
+		}
+	}
+)
+
+/** Loads the most recent saved schedule for the active university into Redux. */
+export const loadLatestScheduleThunk = createAsyncThunk<boolean, void, { state: RootState }>(
+	'schedule/loadLatest',
+	async (_arg, { dispatch, getState }) => {
+		const s = getState()
+		const university = selectCurrentUniversity(s)
+		if (selectIsDemoMode(s) || !university) return false
+
+		const existing = await schedulesApi.latest(university.id).catch(() => null)
+		if (!existing) return false
+
+		dispatch(loadSchedule(existing.state))
+		return true
+	}
+)
 
 // ─── Thunk-style action creators with validation ──────────────────────────────
 // These are plain functions (not RTK thunks) that can return a result.
@@ -106,8 +175,14 @@ export default scheduleSlice.reducer
 
 import type { AppDispatch } from './index'
 
-export interface AssignmentResult { success: boolean; error?: string }
-export interface MoveResult       { success: boolean; error?: string }
+export interface AssignmentResult {
+	success: boolean
+	error?: string
+}
+export interface MoveResult {
+	success: boolean
+	error?: string
+}
 
 /** Validates constraints then dispatches _assignClass. */
 export function assignClass(
@@ -115,18 +190,29 @@ export function assignClass(
 ): (dispatch: AppDispatch, getState: () => RootState) => AssignmentResult {
 	return (dispatch, getState) => {
 		const { rooms, lecturers, faculties } = getState().schedule
-		const { facultyId, lecturerId, roomId, timeSlot: { day, hour } } = assignment
+		const {
+			facultyId,
+			lecturerId,
+			roomId,
+			timeSlot: { day, hour },
+		} = assignment
 
-		if (!rooms[roomId])     return { success: false, error: 'Room not found' }
+		if (!rooms[roomId]) return { success: false, error: 'Room not found' }
 		if (!lecturers[lecturerId]) return { success: false, error: 'Lecturer not found' }
-		if (!faculties[facultyId])  return { success: false, error: 'Faculty not found' }
+		if (!faculties[facultyId]) return { success: false, error: 'Faculty not found' }
 
 		if (rooms[roomId].timetable[day][hour] !== null)
 			return { success: false, error: 'Room is already booked at this time' }
 		if (lecturers[lecturerId].timetable[day][hour] !== null)
-			return { success: false, error: 'Lecturer is already booked at this time' }
+			return {
+				success: false,
+				error: 'Lecturer is already booked at this time',
+			}
 		if (faculties[facultyId].timetable[day][hour] !== null)
-			return { success: false, error: 'Faculty already has a class at this time' }
+			return {
+				success: false,
+				error: 'Faculty already has a class at this time',
+			}
 
 		dispatch(_assignClass(assignment))
 		return { success: true }
@@ -142,19 +228,21 @@ export function unassignClass(
 		const { day, hour, entityType, entityId } = slotRef
 
 		let assignment: ClassAssignment | null = null
-		if (entityType === 'room')     assignment = rooms[entityId]?.timetable[day][hour]     ?? null
+		if (entityType === 'room') assignment = rooms[entityId]?.timetable[day][hour] ?? null
 		if (entityType === 'lecturer') assignment = lecturers[entityId]?.timetable[day][hour] ?? null
-		if (entityType === 'faculty')  assignment = faculties[entityId]?.timetable[day][hour]  ?? null
+		if (entityType === 'faculty') assignment = faculties[entityId]?.timetable[day][hour] ?? null
 
 		if (!assignment) return
 
-		dispatch(_unassignSlot({
-			roomId:     assignment.roomId,
-			lecturerId: assignment.lecturerId,
-			facultyId:  assignment.facultyId,
-			day,
-			hour,
-		}))
+		dispatch(
+			_unassignSlot({
+				roomId: assignment.roomId,
+				lecturerId: assignment.lecturerId,
+				facultyId: assignment.facultyId,
+				day,
+				hour,
+			})
+		)
 	}
 }
 
@@ -168,14 +256,16 @@ export function moveClass(
 		const { day: fDay, hour: fHour, entityType, entityId } = from
 
 		let assignment: ClassAssignment | null = null
-		if (entityType === 'room')     assignment = rooms[entityId]?.timetable[fDay][fHour]     ?? null
+		if (entityType === 'room') assignment = rooms[entityId]?.timetable[fDay][fHour] ?? null
 		if (entityType === 'lecturer') assignment = lecturers[entityId]?.timetable[fDay][fHour] ?? null
-		if (entityType === 'faculty')  assignment = faculties[entityId]?.timetable[fDay][fHour]  ?? null
+		if (entityType === 'faculty') assignment = faculties[entityId]?.timetable[fDay][fHour] ?? null
 
 		if (!assignment) return { success: false, error: 'No assignment at source slot' }
 
 		dispatch(unassignClass(from))
-		const result = dispatch(assignClass({ ...assignment, timeSlot: { day: to.day, hour: to.hour } }))
+		const result = dispatch(
+			assignClass({ ...assignment, timeSlot: { day: to.day, hour: to.hour } })
+		)
 		if (!result.success) {
 			// Rollback
 			dispatch(_assignClass(assignment))
@@ -186,36 +276,45 @@ export function moveClass(
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
-export const selectScheduleRooms     = (s: RootState) => s.schedule.rooms
+export const selectScheduleRooms = (s: RootState) => s.schedule.rooms
 export const selectScheduleLecturers = (s: RootState) => s.schedule.lecturers
 export const selectScheduleFaculties = (s: RootState) => s.schedule.faculties
-export const selectHasSchedule       = (s: RootState) =>
-	Object.keys(s.schedule.lecturers).length > 0
+export const selectHasSchedule = (s: RootState) => Object.keys(s.schedule.lecturers).length > 0
 
-export const selectRoomTimetable = (roomId: RoomId) =>
-	(s: RootState) => s.schedule.rooms[roomId]?.timetable ?? null
+export const selectRoomTimetable = (roomId: RoomId) => (s: RootState) =>
+	s.schedule.rooms[roomId]?.timetable ?? null
 
-export const selectLecturerTimetable = (lecturerId: LecturerId) =>
-	(s: RootState) => s.schedule.lecturers[lecturerId]?.timetable ?? null
+export const selectLecturerTimetable = (lecturerId: LecturerId) => (s: RootState) =>
+	s.schedule.lecturers[lecturerId]?.timetable ?? null
 
-export const selectFacultyTimetable = (facultyId: FacultyId) =>
-	(s: RootState) => s.schedule.faculties[facultyId]?.timetable ?? null
+export const selectFacultyTimetable = (facultyId: FacultyId) => (s: RootState) =>
+	s.schedule.faculties[facultyId]?.timetable ?? null
 
 export function selectConflicts(state: RootState): Conflict[] {
 	const { rooms, lecturers, faculties } = state.schedule
 	const conflicts: Conflict[] = []
 
 	for (const { day, hour } of allTimeSlots()) {
-		const roomIds     = Object.values(rooms).map(r => r.timetable[day][hour]?.roomId).filter(Boolean) as RoomId[]
-		const lecturerIds = Object.values(lecturers).map(l => l.timetable[day][hour]?.lecturerId).filter(Boolean) as LecturerId[]
-		const facultyIds  = Object.values(faculties).map(f => f.timetable[day][hour]?.facultyId).filter(Boolean) as FacultyId[]
+		const roomIds = Object.values(rooms)
+			.map(r => r.timetable[day][hour]?.roomId)
+			.filter(Boolean) as RoomId[]
+		const lecturerIds = Object.values(lecturers)
+			.map(l => l.timetable[day][hour]?.lecturerId)
+			.filter(Boolean) as LecturerId[]
+		const facultyIds = Object.values(faculties)
+			.map(f => f.timetable[day][hour]?.facultyId)
+			.filter(Boolean) as FacultyId[]
 
 		const check = (type: 'room' | 'lecturer' | 'faculty', ids: string[]) => {
 			const counts = new Map<string, number>()
 			ids.forEach(id => counts.set(id, (counts.get(id) ?? 0) + 1))
 			counts.forEach((count, id) => {
 				if (count > 1)
-					conflicts.push({ type: 'double_booking', slots: [{ day, hour, entityType: type, entityId: id }], description: `${type} ${id} double-booked day ${day} hour ${hour}` })
+					conflicts.push({
+						type: 'double_booking',
+						slots: [{ day, hour, entityType: type, entityId: id }],
+						description: `${type} ${id} double-booked day ${day} hour ${hour}`,
+					})
 			})
 		}
 		check('room', roomIds)
@@ -235,7 +334,11 @@ export function selectUtilizationStats(state: RootState): UtilizationStats {
 
 	for (const [id, room] of Object.entries(rooms)) {
 		let used = 0
-		for (const { day, hour } of slots) if (room.timetable[day][hour] !== null) { usedSlots++; used++ }
+		for (const { day, hour } of slots)
+			if (room.timetable[day][hour] !== null) {
+				usedSlots++
+				used++
+			}
 		byRoom[id] = Math.round((used / slots.length) * 100)
 	}
 	for (const [id, lecturer] of Object.entries(lecturers)) {

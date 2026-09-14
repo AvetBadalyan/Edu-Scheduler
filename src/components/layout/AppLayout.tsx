@@ -18,7 +18,7 @@ import {
 	LogOut,
 	Menu,
 	Users,
-	X
+	X,
 } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
 	{ to: '/lecturers', label: 'Lecturers', icon: Users },
 	{ to: '/rooms', label: 'Rooms', icon: DoorOpen },
 	{ to: '/faculties', label: 'Faculties', icon: GraduationCap },
-	{ to: '/schedule', label: 'Schedule', icon: CalendarDays }
+	{ to: '/schedule', label: 'Schedule', icon: CalendarDays },
 ]
 
 // Shown only in the content area while a lazy page chunk loads
@@ -93,10 +93,7 @@ export function AppLayout() {
 				</div>
 
 				{/* Nav */}
-				<nav
-					aria-label="Primary"
-					className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto"
-				>
+				<nav aria-label="Primary" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
 					{NAV_ITEMS.map(({ to, label, icon: Icon }) => (
 						<NavLink
 							key={to}
@@ -110,7 +107,7 @@ export function AppLayout() {
 												'bg-gradient-to-r from-indigo-500/20 to-violet-500/10',
 												'text-white',
 												'shadow-[inset_0_0_0_1px_rgba(99,102,241,0.3)]',
-												'nav-active-bar'
+												'nav-active-bar',
 											]
 										: 'text-slate-400 hover:text-white hover:bg-white/5'
 								)
@@ -126,15 +123,10 @@ export function AppLayout() {
 												: 'bg-white/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white'
 										)}
 									>
-										<Icon
-											className="size-4"
-											aria-hidden
-										/>
+										<Icon className="size-4" aria-hidden />
 									</span>
 									<span>{label}</span>
-									{isActive && (
-										<span className="ml-auto size-1.5 rounded-full bg-indigo-400" />
-									)}
+									{isActive && <span className="ml-auto size-1.5 rounded-full bg-indigo-400" />}
 								</>
 							)}
 						</NavLink>
@@ -146,13 +138,8 @@ export function AppLayout() {
 					{/* Mode badge */}
 					{isDemoMode && (
 						<div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
-							<FlaskConical
-								className="size-3.5 shrink-0 text-amber-400"
-								aria-hidden
-							/>
-							<span className="text-xs font-semibold text-amber-400 tracking-wide">
-								Demo Mode
-							</span>
+							<FlaskConical className="size-3.5 shrink-0 text-amber-400" aria-hidden />
+							<span className="text-xs font-semibold text-amber-400 tracking-wide">Demo Mode</span>
 						</div>
 					)}
 
@@ -180,21 +167,17 @@ export function AppLayout() {
 							}}
 							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-amber-400/80 transition-colors hover:bg-amber-500/10 hover:text-amber-300"
 						>
-							<LogOut
-								className="size-3.5"
-								aria-hidden
-							/>
+							<LogOut className="size-3.5" aria-hidden />
 							Exit Demo
 						</button>
 					) : (
 						<button
-							onClick={() => dispatch(logoutThunk())}
+							onClick={() => {
+								dispatch(logoutThunk()).then(() => navigate('/'))
+							}}
 							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
 						>
-							<LogOut
-								className="size-3.5"
-								aria-hidden
-							/>
+							<LogOut className="size-3.5" aria-hidden />
 							Sign out
 						</button>
 					)}
@@ -211,10 +194,7 @@ export function AppLayout() {
 			)}
 
 			{/* Main — Suspense wraps only the page content, never the sidebar */}
-			<main
-				id="main-content"
-				className="min-w-0 px-4 py-6 sm:px-6 lg:px-8"
-			>
+			<main id="main-content" className="min-w-0 px-4 py-6 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-6xl">
 					<Suspense fallback={<PageFallback />}>
 						<Outlet />
@@ -229,15 +209,10 @@ function Brand() {
 	return (
 		<div className="flex items-center gap-3">
 			<div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
-				<BrainCircuit
-					className="size-5 text-white"
-					aria-hidden
-				/>
+				<BrainCircuit className="size-5 text-white" aria-hidden />
 			</div>
 			<div className="leading-tight">
-				<span className="block text-sm font-bold text-white tracking-tight">
-					EduScheduler
-				</span>
+				<span className="block text-sm font-bold text-white tracking-tight">EduScheduler</span>
 				<span className="block text-[10px] text-slate-400 font-medium tracking-widest uppercase">
 					Manager
 				</span>

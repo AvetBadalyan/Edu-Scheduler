@@ -6,7 +6,7 @@ import {
 	ManyToOne,
 	PrimaryGeneratedColumn,
 	Unique,
-	UpdateDateColumn
+	UpdateDateColumn,
 } from 'typeorm'
 import { University } from './University'
 
@@ -21,7 +21,7 @@ export class Faculty {
 
 	@ManyToOne(() => University, university => university.faculties, {
 		onDelete: 'CASCADE',
-		nullable: true
+		nullable: true,
 	})
 	@JoinColumn({ name: 'university_id' })
 	university!: University | null

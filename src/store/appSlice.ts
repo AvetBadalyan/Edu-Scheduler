@@ -16,7 +16,7 @@ interface AppState {
 }
 
 const initialState: AppState = {
-	currentUniversity: null
+	currentUniversity: null,
 }
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
@@ -25,13 +25,10 @@ const appSlice = createSlice({
 	name: 'app',
 	initialState,
 	reducers: {
-		setCurrentUniversity(
-			state,
-			action: PayloadAction<University | null>
-		) {
+		setCurrentUniversity(state, action: PayloadAction<University | null>) {
 			state.currentUniversity = action.payload
-		}
-	}
+		},
+	},
 })
 
 export const { setCurrentUniversity } = appSlice.actions
@@ -39,5 +36,4 @@ export default appSlice.reducer
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
-export const selectCurrentUniversity = (s: RootState) =>
-	s.app.currentUniversity
+export const selectCurrentUniversity = (s: RootState) => s.app.currentUniversity
