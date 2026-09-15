@@ -1,5 +1,5 @@
 {
-  "name": "education-management-server",
+  "name": "edu-scheduler-server",
   "version": "1.0.0",
   "private": true,
   "type": "commonjs",
