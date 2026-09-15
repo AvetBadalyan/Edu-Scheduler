@@ -20,13 +20,12 @@ export function ProtectedRoute() {
 
 	useEffect(() => {
 		// If Redux already has an authenticated user (demo or previously-verified
-		// Supabase session) we don't need to hit the network.
-		if (isAuthenticated) {
-			setChecking(false)
-			return
-		}
+		// Supabase session) there's nothing to restore — `checking` already
+		// starts false in that case, so we skip the network call entirely.
+		if (isAuthenticated) return
 
-		// Try to restore a Supabase session from storage on first load
+		// Try to restore a Supabase session from storage on first load.
+		// setChecking runs inside the promise callback, not in the effect body.
 		supabase.auth
 			.getSession()
 			.then(({ data }) => {

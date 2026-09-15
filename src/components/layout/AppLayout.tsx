@@ -21,7 +21,7 @@ import {
 	X,
 } from 'lucide-react'
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 interface NavItem {
 	to: string
@@ -49,19 +49,16 @@ function PageFallback() {
 
 export function AppLayout() {
 	const [mobileOpen, setMobileOpen] = useState(false)
-	const location = useLocation()
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 	const user = useAppSelector(selectUser)
 	const isDemoMode = useAppSelector(selectIsDemoMode)
 	const sidebarRef = useRef<HTMLElement>(null)
 
-	// Close the mobile drawer whenever the route changes.
-	useEffect(() => {
-		setMobileOpen(false)
-	}, [location.pathname])
+	const closeMobileMenu = () => setMobileOpen(false)
 
 	// While the mobile drawer is open: focus it and close it on Escape.
+	// (setState here runs inside the keydown callback, not in the effect body.)
 	useEffect(() => {
 		if (!mobileOpen) return
 		sidebarRef.current?.focus()
@@ -116,6 +113,7 @@ export function AppLayout() {
 						<NavLink
 							key={to}
 							to={to}
+							onClick={closeMobileMenu}
 							end={to === '/dashboard'}
 							className={({ isActive }) =>
 								cn(
