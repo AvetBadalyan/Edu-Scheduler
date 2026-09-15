@@ -8,6 +8,8 @@ solver and step-by-step algorithm visualization.
 
 ## Live Demo
 
+**[→ edu-scheduler-aca.vercel.app](https://edu-scheduler-aca.vercel.app)**
+
 Try it with Armenian Code Academy data — no account required. One click loads 12
 lecturers, 8 rooms, and 4 faculties, then generates a conflict-free schedule in
 seconds.
