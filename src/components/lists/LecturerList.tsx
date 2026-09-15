@@ -5,103 +5,15 @@
  * a coloured glow on hover, and smooth reveal animations.
  */
 import { Input } from '@/components/ui/input'
+import { accentGradient, techColor } from '@/lib/ui/subjectColors'
 import { cn } from '@/lib/utils'
-import { useAppSelector } from '@/store/hooks'
 import { selectAllLecturers } from '@/store/entitySlice'
+import { useAppSelector } from '@/store/hooks'
 import type { Lecturer, LecturerId } from '@/types'
 import { Pencil, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-// ─── Tech-brand colours per specialty ────────────────────────────────────────
-
-const TECH_COLORS: Record<string, { bg: string; text: string; glow: string; dot: string }> = {
-	JavaScript: {
-		bg: 'bg-yellow-400/15',
-		text: 'text-yellow-700',
-		glow: 'shadow-yellow-400/30',
-		dot: 'bg-yellow-400',
-	},
-	TypeScript: {
-		bg: 'bg-blue-500/15',
-		text: 'text-blue-700',
-		glow: 'shadow-blue-500/30',
-		dot: 'bg-blue-500',
-	},
-	ReactJS: {
-		bg: 'bg-cyan-400/15',
-		text: 'text-cyan-700',
-		glow: 'shadow-cyan-400/30',
-		dot: 'bg-cyan-400',
-	},
-	NodeJS: {
-		bg: 'bg-green-500/15',
-		text: 'text-green-700',
-		glow: 'shadow-green-500/30',
-		dot: 'bg-green-500',
-	},
-	Java: {
-		bg: 'bg-orange-500/15',
-		text: 'text-orange-700',
-		glow: 'shadow-orange-500/30',
-		dot: 'bg-orange-500',
-	},
-	Python: {
-		bg: 'bg-sky-500/15',
-		text: 'text-sky-700',
-		glow: 'shadow-sky-500/30',
-		dot: 'bg-sky-500',
-	},
-	CSS: {
-		bg: 'bg-violet-500/15',
-		text: 'text-violet-700',
-		glow: 'shadow-violet-500/30',
-		dot: 'bg-violet-500',
-	},
-	HTML: {
-		bg: 'bg-rose-500/15',
-		text: 'text-rose-700',
-		glow: 'shadow-rose-500/30',
-		dot: 'bg-rose-500',
-	},
-	'UI/UX': {
-		bg: 'bg-fuchsia-500/15',
-		text: 'text-fuchsia-700',
-		glow: 'shadow-fuchsia-500/30',
-		dot: 'bg-fuchsia-500',
-	},
-	'Project Management': {
-		bg: 'bg-teal-500/15',
-		text: 'text-teal-700',
-		glow: 'shadow-teal-500/30',
-		dot: 'bg-teal-500',
-	},
-}
-
-const DEFAULT_TECH = {
-	bg: 'bg-slate-400/15',
-	text: 'text-slate-700',
-	glow: 'shadow-slate-400/30',
-	dot: 'bg-slate-400',
-}
-
-// Primary specialty → card accent gradient
-const ACCENT_GRADIENTS: Record<string, string> = {
-	JavaScript: 'from-yellow-400 to-amber-500',
-	TypeScript: 'from-blue-500 to-indigo-600',
-	ReactJS: 'from-cyan-400 to-blue-500',
-	NodeJS: 'from-green-500 to-emerald-600',
-	Java: 'from-orange-500 to-red-600',
-	Python: 'from-sky-400 to-blue-600',
-	CSS: 'from-violet-500 to-purple-600',
-	HTML: 'from-rose-500 to-orange-600',
-	'UI/UX': 'from-fuchsia-500 to-pink-600',
-	'Project Management': 'from-teal-500 to-cyan-600',
-}
-
-const DEFAULT_GRADIENT = 'from-slate-500 to-slate-600'
-
 interface LecturerListProps {
-	onSelect?: (l: Lecturer) => void
 	onEdit?: (l: Lecturer) => void
 	onDelete?: (id: LecturerId) => void
 	className?: string
@@ -166,7 +78,7 @@ export function LecturerList({ onEdit, onDelete, className }: LecturerListProps)
 							label={s}
 							active={filterSpecialty === s}
 							onClick={() => setFilterSpecialty(s === filterSpecialty ? null : s)}
-							colors={TECH_COLORS[s] ?? DEFAULT_TECH}
+							colors={techColor(s)}
 						/>
 					))}
 				</div>
@@ -174,7 +86,9 @@ export function LecturerList({ onEdit, onDelete, className }: LecturerListProps)
 
 			{/* ── Count ────────────────────────────────────────────────────── */}
 			<p className="text-sm font-medium text-gray-500" aria-live="polite">
-				<span className="text-2xl font-bold text-gray-900 mr-1.5">{filtered.length}</span>
+				<span className="text-xl font-bold text-gray-900 mr-1.5 sm:text-2xl">
+					{filtered.length}
+				</span>
 				lecturer{filtered.length !== 1 ? 's' : ''}
 				{filterSpecialty && <span className="text-indigo-600 ml-1.5">· {filterSpecialty}</span>}
 			</p>
@@ -184,10 +98,7 @@ export function LecturerList({ onEdit, onDelete, className }: LecturerListProps)
 				<EmptyState search={search} />
 			) : (
 				<div
-					className="grid gap-5"
-					style={{
-						gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-					}}
+					className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 					role="list"
 					aria-label="Lecturers"
 				>
@@ -248,8 +159,8 @@ interface LecturerCardProps {
 
 function LecturerCard({ lecturer, index, onEdit, onDelete }: LecturerCardProps) {
 	const primary = lecturer.specialties[0] ?? ''
-	const accent = ACCENT_GRADIENTS[primary] ?? DEFAULT_GRADIENT
-	const tech = TECH_COLORS[primary] ?? DEFAULT_TECH
+	const accent = accentGradient(primary)
+	const tech = techColor(primary)
 	const delay = `${(index % 8) * 50}ms`
 
 	return (
@@ -328,12 +239,12 @@ function LecturerCard({ lecturer, index, onEdit, onDelete }: LecturerCardProps) 
 				{/* Specialty badges with tech colours */}
 				<div className="flex flex-wrap gap-1.5">
 					{lecturer.specialties.map(s => {
-						const c = TECH_COLORS[s] ?? DEFAULT_TECH
+						const c = techColor(s)
 						return (
 							<span
 								key={s}
 								className={cn(
-									'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide',
+									'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold tracking-wide',
 									c.bg,
 									c.text
 								)}
@@ -368,5 +279,3 @@ function EmptyState({ search }: { search: string }) {
 		</div>
 	)
 }
-
-export default LecturerList

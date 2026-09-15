@@ -6,9 +6,9 @@
  *
  * Requirements: 14.5, 14.6
  */
-import { Component, ErrorInfo, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { logError } from '@/lib/errorLogger'
+import { Component, ErrorInfo, ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
 	children: ReactNode
@@ -72,5 +72,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 		return this.props.children
 	}
 }
-
-export default ErrorBoundary

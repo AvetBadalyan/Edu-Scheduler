@@ -10,7 +10,7 @@
  */
 import { DEMO_UNIVERSITY, seedFaculties, seedLecturers, seedRooms } from '@/lib/seedData'
 import { setCurrentUniversity } from '@/store/appSlice'
-import { selectIsDemoMode, selectIsAuthenticated } from '@/store/authSlice'
+import { selectIsAuthenticated, selectIsDemoMode } from '@/store/authSlice'
 import {
 	addFaculty,
 	addLecturer,
@@ -20,7 +20,40 @@ import {
 	setRooms,
 } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { loadSchedule } from '@/store/scheduleSlice'
+import type { ScheduleState } from '@/types'
 import { useEffect, useRef } from 'react'
+
+// ─── Demo schedule persistence ────────────────────────────────────────────────
+
+const DEMO_SCHEDULE_KEY = 'em.demo_schedule'
+
+export function saveDemoSchedule(state: ScheduleState): void {
+	try {
+		sessionStorage.setItem(DEMO_SCHEDULE_KEY, JSON.stringify(state))
+	} catch {
+		/* quota exceeded or private mode */
+	}
+}
+
+export function clearDemoSchedule(): void {
+	try {
+		sessionStorage.removeItem(DEMO_SCHEDULE_KEY)
+	} catch {
+		/* ignore */
+	}
+}
+
+function loadDemoSchedule(): ScheduleState | null {
+	try {
+		const raw = sessionStorage.getItem(DEMO_SCHEDULE_KEY)
+		return raw ? (JSON.parse(raw) as ScheduleState) : null
+	} catch {
+		return null
+	}
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSeedData(): void {
 	const dispatch = useAppDispatch()
@@ -37,6 +70,10 @@ export function useSeedData(): void {
 				seedRooms.forEach(r => dispatch(addRoom(r)))
 				seedFaculties.forEach(f => dispatch(addFaculty(f)))
 				dispatch(setCurrentUniversity(DEMO_UNIVERSITY))
+
+				// Restore previously generated schedule if one was saved
+				const saved = loadDemoSchedule()
+				if (saved) dispatch(loadSchedule(saved))
 			}
 		} else if (isAuthenticated) {
 			// Authenticated mode — clear any seed data so it doesn't bleed through.
@@ -47,6 +84,7 @@ export function useSeedData(): void {
 				dispatch(setRooms([]))
 				dispatch(setFaculties([]))
 				dispatch(setCurrentUniversity(null))
+				clearDemoSchedule()
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

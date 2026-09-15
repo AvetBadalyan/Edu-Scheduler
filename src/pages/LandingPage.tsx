@@ -84,24 +84,24 @@ function StepChip({ number, text }: { number: number; text: string }) {
 
 function StatPill({
 	icon: Icon,
-	label,
 	value,
 	color,
 }: {
 	icon: typeof Users
-	label: string
 	value: string
 	color: string
 }) {
 	return (
-		<div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-100">
-			<span className={cn('flex size-9 items-center justify-center rounded-lg', color)}>
-				<Icon className="size-4 text-white" aria-hidden />
+		<div className="flex flex-col items-center gap-1.5 rounded-xl bg-white px-2 py-3 shadow-sm ring-1 ring-gray-100 sm:flex-row sm:gap-2.5 sm:px-4">
+			<span
+				className={cn(
+					'flex size-7 shrink-0 items-center justify-center rounded-lg sm:size-8',
+					color
+				)}
+			>
+				<Icon className="size-3.5 text-white sm:size-4" aria-hidden />
 			</span>
-			<div>
-				<p className="text-xs text-gray-500">{label}</p>
-				<p className="text-sm font-bold text-gray-900">{value}</p>
-			</div>
+			<p className="text-xs font-bold text-gray-900 text-center sm:text-sm sm:text-left">{value}</p>
 		</div>
 	)
 }
@@ -131,21 +131,6 @@ export default function LandingPage() {
 						</span>
 						<span className="text-sm font-bold text-gray-900 tracking-tight">EduScheduler</span>
 					</div>
-					<nav aria-label="Site navigation" className="flex items-center gap-2">
-						<Link
-							to="/login"
-							className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-indigo-700"
-						>
-							Sign in
-						</Link>
-						<button
-							onClick={handleDemoClick}
-							disabled={isBusy}
-							className="rounded-lg bg-indigo-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-800 disabled:opacity-60"
-						>
-							Try demo
-						</button>
-					</nav>
 				</div>
 			</header>
 
@@ -156,14 +141,14 @@ export default function LandingPage() {
 					className="mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6 sm:pt-28 text-center"
 				>
 					{/* eyebrow */}
-					<div className="animate-fade-up mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700">
+					<div className="animate-fade-up mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700 sm:text-sm">
 						<Zap className="size-3.5" aria-hidden />
 						Constraint-satisfaction scheduling with drag-and-drop editing
 					</div>
 
 					<h1
 						id="hero-heading"
-						className="animate-fade-up delay-75 text-4xl font-black tracking-tight text-gray-900 sm:text-5xl lg:text-6xl"
+						className="animate-fade-up delay-75 text-3xl font-black tracking-tight text-gray-900 sm:text-4xl lg:text-5xl xl:text-6xl"
 					>
 						University schedules, <span className="gradient-text">solved automatically</span>
 					</h1>
@@ -220,33 +205,26 @@ export default function LandingPage() {
 					</p>
 
 					{/* demo data stats */}
-					<div className="animate-fade-up delay-300 mt-10 flex flex-wrap justify-center gap-3">
+					<div className="animate-fade-up delay-300 mt-10 grid grid-cols-3 gap-2 w-full max-w-sm mx-auto sm:max-w-lg sm:gap-3">
 						<StatPill
 							icon={Users}
-							label="Lecturers"
 							value={`${seedLecturers.length} lecturers`}
 							color="bg-indigo-600"
 						/>
-						<StatPill
-							icon={DoorOpen}
-							label="Classrooms"
-							value={`${seedRooms.length} rooms`}
-							color="bg-emerald-600"
-						/>
+						<StatPill icon={DoorOpen} value={`${seedRooms.length} rooms`} color="bg-emerald-600" />
 						<StatPill
 							icon={GraduationCap}
-							label="Faculties"
-							value={`${seedFaculties.length} departments`}
+							value={`${seedFaculties.length} faculties`}
 							color="bg-amber-600"
 						/>
 					</div>
 				</section>
 
-				{/* ── Simulated timetable preview ──────────────────────────────── */}
+				{/* ── Timetable preview ────────────────────────────────────────── */}
 				<section aria-label="Timetable preview" className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
 					<div className="relative rounded-3xl bg-gradient-to-br from-indigo-700 via-violet-700 to-indigo-800 p-1 shadow-2xl shadow-indigo-900/40">
 						<div className="rounded-[calc(1.5rem-1px)] bg-gray-950/90 p-4 sm:p-6">
-							{/* window chrome */}
+							{/* Window chrome */}
 							<div className="mb-4 flex items-center gap-2">
 								<span className="size-3 rounded-full bg-red-500/70" />
 								<span className="size-3 rounded-full bg-amber-500/70" />
@@ -254,84 +232,126 @@ export default function LandingPage() {
 								<span className="ml-3 flex-1 rounded-md bg-white/5 px-3 py-1 text-xs text-white/30">
 									EduScheduler — Generated Timetable
 								</span>
+								<span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+									63 classes · 0 conflicts
+								</span>
 							</div>
 
-							{/* mini timetable */}
+							{/* Timetable — same grid structure as real app, realistic subjects */}
 							<div className="overflow-x-auto">
-								<table className="w-full text-xs">
-									<thead>
-										<tr>
-											<th className="w-16 py-2 text-left text-white/40 font-medium pl-2">Hour</th>
-											{['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(d => (
-												<th key={d} className="py-2 text-center font-medium text-white/50">
-													{d}
-												</th>
-											))}
-										</tr>
-									</thead>
-									<tbody>
-										{[
-											{
-												hour: '09:00',
-												cells: ['JavaScript', '', 'Python', 'React', ''],
-											},
-											{
-												hour: '10:00',
-												cells: ['', 'Algorithms', 'React', '', 'JavaScript'],
-											},
-											{
-												hour: '11:00',
-												cells: ['Python', 'JavaScript', '', 'Algorithms', 'Python'],
-											},
-											{
-												hour: '12:00',
-												cells: ['React', '', 'JavaScript', '', 'Algorithms'],
-											},
-										].map(({ hour, cells }, ri) => (
-											<tr key={hour}>
-												<td className="py-1.5 pl-2 text-white/30 font-mono">{hour}</td>
-												{cells.map((c, ci) => (
-													<td key={ci} className="px-1 py-1.5">
-														{c ? (
-															<div
-																className={cn(
-																	'rounded-lg px-2 py-1.5 text-center font-medium',
-																	(ri + ci) % 3 === 0
-																		? 'bg-indigo-500/20 text-indigo-300'
-																		: (ri + ci) % 3 === 1
-																			? 'bg-violet-500/20 text-violet-300'
-																			: 'bg-cyan-500/20 text-cyan-300'
-																)}
-															>
-																{c}
-															</div>
-														) : (
-															<div className="rounded-lg border border-white/5 px-2 py-1.5 text-center text-white/10">
-																—
-															</div>
-														)}
-													</td>
-												))}
-											</tr>
+								<div className="min-w-[480px]">
+									{/* Header */}
+									<div
+										className="grid border-b border-white/10"
+										style={{ gridTemplateColumns: '4rem repeat(5, minmax(0, 1fr))' }}
+									>
+										<div className="py-2 text-center text-xs font-medium uppercase tracking-wide text-white/30">
+											Time
+										</div>
+										{['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(d => (
+											<div key={d} className="py-2 text-center text-xs font-semibold text-white/50">
+												{d}
+											</div>
 										))}
-									</tbody>
-								</table>
-							</div>
+									</div>
 
-							{/* playback controls mock */}
-							<div className="mt-4 flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5">
-								<RotateCcw className="size-4 text-white/30" aria-hidden />
-								<button
-									aria-label="Generate schedule"
-									className="flex size-7 items-center justify-center rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/50 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-									onClick={handleDemoClick}
-								>
-									<Play className="size-3.5 fill-white text-white ml-0.5" aria-hidden />
-								</button>
-								<div className="flex-1 rounded-full bg-white/10 h-1.5 overflow-hidden">
-									<div className="h-full w-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+									{/* Rows — data matches real seed subjects */}
+									{[
+										{
+											hour: '09:00',
+											cells: [
+												{
+													s: 'Web Fundamentals',
+													color: 'bg-indigo-500/25 text-indigo-300 border-indigo-500/30',
+												},
+												null,
+												{
+													s: 'Web Fundamentals',
+													color: 'bg-indigo-500/25 text-indigo-300 border-indigo-500/30',
+												},
+												{
+													s: 'JavaScript',
+													color: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/30',
+												},
+												null,
+											],
+										},
+										{
+											hour: '11:00',
+											cells: [
+												{
+													s: 'JavaScript',
+													color: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/30',
+												},
+												{ s: 'NodeJS', color: 'bg-teal-500/25 text-teal-300 border-teal-500/30' },
+												null,
+												{
+													s: 'Web Fundamentals',
+													color: 'bg-indigo-500/25 text-indigo-300 border-indigo-500/30',
+												},
+												{ s: 'ReactJS', color: 'bg-cyan-500/25 text-cyan-300 border-cyan-500/30' },
+											],
+										},
+										{
+											hour: '13:00',
+											cells: [
+												{ s: 'ReactJS', color: 'bg-cyan-500/25 text-cyan-300 border-cyan-500/30' },
+												{
+													s: 'JavaScript',
+													color: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/30',
+												},
+												{ s: 'NodeJS', color: 'bg-teal-500/25 text-teal-300 border-teal-500/30' },
+												null,
+												{
+													s: 'JavaScript',
+													color: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/30',
+												},
+											],
+										},
+										{
+											hour: '15:00',
+											cells: [
+												null,
+												{ s: 'ReactJS', color: 'bg-cyan-500/25 text-cyan-300 border-cyan-500/30' },
+												{
+													s: 'JavaScript',
+													color: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/30',
+												},
+												{ s: 'NodeJS', color: 'bg-teal-500/25 text-teal-300 border-teal-500/30' },
+												null,
+											],
+										},
+									].map(({ hour, cells }) => (
+										<div
+											key={hour}
+											className="grid border-b border-white/5"
+											style={{ gridTemplateColumns: '4rem repeat(5, minmax(0, 1fr))' }}
+										>
+											<div className="flex min-h-[4rem] items-center justify-center text-xs font-mono text-white/30">
+												{hour}
+											</div>
+											{cells.map((cell, ci) => (
+												<div
+													key={ci}
+													className="border-l border-white/5 p-1.5 flex items-center justify-center min-h-[4rem]"
+												>
+													{cell ? (
+														<div
+															className={cn(
+																'w-full rounded-lg border px-2 py-1.5 text-center text-xs font-semibold',
+																cell.color
+															)}
+														>
+															{cell.s}
+														</div>
+													) : (
+														<span className="text-xs text-white/15">—</span>
+													)}
+												</div>
+											))}
+										</div>
+									))}
 								</div>
-								<span className="text-xs font-mono text-white/40">48 classes · 0 conflicts</span>
 							</div>
 						</div>
 					</div>
@@ -349,7 +369,7 @@ export default function LandingPage() {
 						>
 							Built to impress, designed to work
 						</h2>
-						<p className="mt-3 text-sm text-gray-500 max-w-xl mx-auto">
+						<p className="mt-3 text-sm text-gray-500 max-w-xl mx-auto sm:text-base">
 							Every feature was designed to showcase real engineering depth — not just a pretty UI.
 						</p>
 					</div>
@@ -419,29 +439,12 @@ export default function LandingPage() {
 								The Armenian Code Academy demo ships with real curriculum data — lecturers, rooms,
 								and faculty syllabuses already configured. Just click and watch.
 							</p>
-							<button
-								onClick={handleDemoClick}
-								disabled={isBusy}
-								className="mt-8 group inline-flex items-center gap-2.5 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-indigo-700 shadow-lg transition-all duration-200 hover:bg-indigo-50 hover:shadow-xl hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-60"
-							>
-								{isBusy ? (
-									'Loading…'
-								) : (
-									<>
-										Try it now{' '}
-										<ArrowRight
-											className="size-4 transition-transform group-hover:translate-x-0.5"
-											aria-hidden
-										/>
-									</>
-								)}
-							</button>
 						</div>
 
 						<div className="flex flex-col gap-3">
 							<StepChip
 								number={1}
-								text="Land on the dashboard with 12 lecturers, 8 rooms and 4 faculties pre-loaded"
+								text={`Land on the dashboard with ${seedLecturers.length} lecturers, ${seedRooms.length} rooms and ${seedFaculties.length} faculties pre-loaded`}
 							/>
 							<div className="ml-4 w-0.5 h-3 bg-white/20 rounded-full" />
 							<StepChip
@@ -480,12 +483,6 @@ export default function LandingPage() {
 					<p className="text-xs text-gray-400">
 						Portfolio project · React 19, TypeScript, Tailwind CSS, Redux Toolkit, Vite
 					</p>
-					<Link
-						to="/login"
-						className="text-xs font-medium text-indigo-700 hover:underline underline-offset-2"
-					>
-						Sign in →
-					</Link>
 				</div>
 			</footer>
 		</div>

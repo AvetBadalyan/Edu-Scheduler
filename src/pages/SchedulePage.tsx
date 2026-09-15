@@ -1,12 +1,13 @@
 import { PageHeader } from '@/components/layout/PageHeader'
 import { TimetableViewer } from '@/components/timetable/TimetableViewer'
 import { Button } from '@/components/ui/button'
+import { clearDemoSchedule, saveDemoSchedule } from '@/hooks/useSeedData'
 import { useToast } from '@/hooks/useToast'
 import { useUndoRedo } from '@/hooks/useUndoRedo'
 import { runSchedulingAlgorithm } from '@/lib/algorithm/schedulingAlgorithm'
 import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
-import { store } from '@/store'
+import { selectIsDemoMode } from '@/store/authSlice'
 import { pushEdit } from '@/store/editHistorySlice'
 import { selectAllFaculties, selectAllLecturers, selectAllRooms } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -63,6 +64,7 @@ export default function SchedulePage() {
 	const rooms = useAppSelector(selectAllRooms)
 	const faculties = useAppSelector(selectAllFaculties)
 	const hasSchedule = useAppSelector(selectHasSchedule)
+	const isDemoMode = useAppSelector(selectIsDemoMode)
 	const { undo, redo, canUndo, canRedo } = useUndoRedo()
 	const toast = useToast()
 
@@ -76,7 +78,12 @@ export default function SchedulePage() {
 		[lecturers, rooms, faculties]
 	)
 
-	const persist = () => {
+	const persist = (schedule?: Parameters<typeof saveDemoSchedule>[0]) => {
+		if (isDemoMode) {
+			// Demo mode — save to sessionStorage so reload restores it
+			if (schedule) saveDemoSchedule(schedule)
+			return
+		}
 		dispatch(saveScheduleThunk())
 			.unwrap()
 			.catch(() => toast.error('Schedule saved locally but could not sync.'))
@@ -94,49 +101,53 @@ export default function SchedulePage() {
 						`Scheduled ${countTimetableSlots(outcome.schedule.faculties)} classes with no conflicts.`
 					)
 				: toast.warning(`${outcome.unresolvedConstraints.length} class(es) could not be placed.`)
-			persist()
+			persist(outcome.schedule)
 		}, 50)
 	}
 
 	const handleReset = () => {
 		dispatch(resetSchedule())
 		setResult(null)
+		if (isDemoMode) clearDemoSchedule()
 		toast.info('Schedule cleared.')
 	}
 
 	const handleSlotDrop = (from: TimeSlotRef, to: TimeSlotRef) => {
-		const state = store.getState()
-		const { rooms, lecturers, faculties } = state.schedule
-		const { day, hour, entityType, entityId } = from
+		dispatch((dispatchInner, getState) => {
+			const { rooms, lecturers, faculties } = getState().schedule
+			const { day, hour, entityType, entityId } = from
 
-		let before: ClassAssignment | null = null
-		if (entityType === 'room') before = rooms[entityId]?.timetable[day][hour] ?? null
-		else if (entityType === 'lecturer') before = lecturers[entityId]?.timetable[day][hour] ?? null
-		else if (entityType === 'faculty') before = faculties[entityId]?.timetable[day][hour] ?? null
+			let before: ClassAssignment | null = null
+			if (entityType === 'room') before = rooms[entityId]?.timetable[day][hour] ?? null
+			else if (entityType === 'lecturer') before = lecturers[entityId]?.timetable[day][hour] ?? null
+			else if (entityType === 'faculty') before = faculties[entityId]?.timetable[day][hour] ?? null
 
-		const moveResult = dispatch(moveClass(from, to))
-		if (!moveResult.success) {
-			toast.error(moveResult.error ?? 'Could not move class.')
-			return
-		}
-
-		if (before) {
-			const after: ClassAssignment = {
-				...before,
-				timeSlot: { day: to.day, hour: to.hour },
+			const moveResult = dispatchInner(moveClass(from, to))
+			if (!moveResult.success) {
+				toast.error(moveResult.error ?? 'Could not move class.')
+				return
 			}
-			dispatch(
-				pushEdit({
-					id: crypto.randomUUID(),
-					timestamp: new Date(),
-					type: 'move',
-					before,
-					after,
-				})
-			)
-		}
 
-		persist()
+			if (before) {
+				const after: ClassAssignment = {
+					...before,
+					timeSlot: { day: to.day, hour: to.hour },
+				}
+				dispatchInner(
+					pushEdit({
+						id: crypto.randomUUID(),
+						timestamp: new Date(),
+						type: 'move',
+						before,
+						after,
+					})
+				)
+			}
+
+			// Persist after move — read updated state
+			const updated = getState().schedule
+			persist(updated)
+		})
 	}
 
 	return (
@@ -145,32 +156,8 @@ export default function SchedulePage() {
 				title="Schedule"
 				description="Generate a conflict-free timetable, then drag classes to fine-tune."
 				actions={
-					<div className="flex flex-wrap gap-2">
-						{hasSchedule && (
-							<>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={undo}
-									disabled={!canUndo}
-									aria-label="Undo"
-								>
-									<Undo2 className="size-3.5" />
-								</Button>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={redo}
-									disabled={!canRedo}
-									aria-label="Redo"
-								>
-									<Redo2 className="size-3.5" />
-								</Button>
-								<Button variant="outline" size="sm" onClick={handleReset}>
-									<RotateCcw className="size-3.5" /> Reset
-								</Button>
-							</>
-						)}
+					<div className="flex flex-wrap items-center gap-2">
+						{/* Generate is first — primary action, always visible */}
 						<Button onClick={handleGenerate} disabled={!canGenerate || isGenerating}>
 							{isGenerating ? (
 								<>
@@ -182,6 +169,34 @@ export default function SchedulePage() {
 								</>
 							)}
 						</Button>
+						{/* Secondary actions — only after a schedule exists */}
+						{hasSchedule && (
+							<>
+								<Button variant="outline" onClick={handleReset}>
+									<RotateCcw className="size-4" /> Reset
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={undo}
+									disabled={!canUndo}
+									aria-label="Undo last move"
+									title="Undo (Ctrl+Z)"
+								>
+									<Undo2 className="size-4" />
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={redo}
+									disabled={!canRedo}
+									aria-label="Redo last move"
+									title="Redo (Ctrl+Y)"
+								>
+									<Redo2 className="size-4" />
+								</Button>
+							</>
+						)}
 					</div>
 				}
 			/>

@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { emptyTimetable } from '@/lib/timetable'
+import { ERROR, FIELD } from '@/lib/ui/formStyles'
 import { cn } from '@/lib/utils'
 import type { CreateLecturerInput } from '@/types'
-import { AlertCircle, Image, Tag, User, Users } from 'lucide-react'
+import { AlertCircle, Image as ImageIcon, Tag, User, Users } from 'lucide-react'
 import { useState } from 'react'
 
 interface LecturerFormProps {
@@ -13,9 +15,6 @@ interface LecturerFormProps {
 	onCancel: () => void
 	isLoading?: boolean
 }
-
-const FIELD = 'flex flex-col gap-1.5'
-const ERROR = 'flex items-center gap-1 text-xs text-red-600'
 
 export function LecturerForm({
 	mode,
@@ -56,13 +55,7 @@ export function LecturerForm({
 				.map(s => s.trim())
 				.filter(Boolean),
 			imageUrl: imageUrl.trim() || undefined,
-			availability: {
-				1: { 1: null, 2: null, 3: null, 4: null },
-				2: { 1: null, 2: null, 3: null, 4: null },
-				3: { 1: null, 2: null, 3: null, 4: null },
-				4: { 1: null, 2: null, 3: null, 4: null },
-				5: { 1: null, 2: null, 3: null, 4: null },
-			} as CreateLecturerInput['availability'],
+			availability: emptyTimetable(),
 		})
 	}
 
@@ -177,7 +170,7 @@ export function LecturerForm({
 					Photo URL <span className="normal-case font-normal text-gray-400">(optional)</span>
 				</Label>
 				<div className="relative">
-					<Image className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
+					<ImageIcon className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
 					<Input
 						id="lf-img"
 						type="url"
@@ -204,5 +197,3 @@ export function LecturerForm({
 		</form>
 	)
 }
-
-export default LecturerForm

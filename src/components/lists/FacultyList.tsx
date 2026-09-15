@@ -5,10 +5,11 @@
  * with colour-coded pills, a student count badge, sortable/searchable
  * controls and smooth hover animations.
  */
-import { useAppSelector } from '@/store/hooks'
-import { selectAllFaculties } from '@/store/entitySlice'
 import { Input } from '@/components/ui/input'
+import { subjectPill } from '@/lib/ui/subjectColors'
 import { cn } from '@/lib/utils'
+import { selectAllFaculties } from '@/store/entitySlice'
+import { useAppSelector } from '@/store/hooks'
 import type { Faculty, FacultyId } from '@/types'
 import { BookOpen, GraduationCap, Pencil, Search, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -54,26 +55,6 @@ const CARD_PALETTES = [
 	},
 ]
 
-// Subject → colour mapping so the same subject always gets the same colour
-const SUBJECT_COLORS: Record<string, string> = {
-	JavaScript: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-	TypeScript: 'bg-blue-100 text-blue-800 border-blue-200',
-	ReactJS: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-	NodeJS: 'bg-green-100 text-green-800 border-green-200',
-	Java: 'bg-orange-100 text-orange-800 border-orange-200',
-	Python: 'bg-sky-100 text-sky-800 border-sky-200',
-	CSS: 'bg-violet-100 text-violet-800 border-violet-200',
-	HTML: 'bg-rose-100 text-rose-800 border-rose-200',
-	'UI/UX': 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
-	'Project Management': 'bg-teal-100 text-teal-800 border-teal-200',
-	Node: 'bg-green-100 text-green-800 border-green-200',
-}
-const DEFAULT_SUBJECT = 'bg-slate-100 text-slate-700 border-slate-200'
-
-function subjectColor(s: string) {
-	return SUBJECT_COLORS[s] ?? DEFAULT_SUBJECT
-}
-
 // ─── Sort options ─────────────────────────────────────────────────────────────
 
 type SortKey = 'name' | 'students' | 'subjects'
@@ -87,7 +68,6 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface FacultyListProps {
-	onSelect?: (f: Faculty) => void
 	onEdit?: (f: Faculty) => void
 	onDelete?: (id: FacultyId) => void
 	className?: string
@@ -137,7 +117,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 	return (
 		<div className={cn('flex flex-col gap-6', className)}>
 			{/* ── Summary bar ────────────────────────────────────────────────── */}
-			<div className="grid grid-cols-3 gap-3 sm:grid-cols-3">
+			<div className="grid grid-cols-3 gap-3 min-w-0">
 				{[
 					{
 						icon: GraduationCap,
@@ -147,7 +127,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 					},
 					{
 						icon: Users,
-						label: 'Total Students',
+						label: 'Students',
 						value: totalStudents,
 						color: 'from-emerald-500 to-teal-600',
 					},
@@ -163,13 +143,13 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 					<div
 						key={label}
 						className={cn(
-							'flex flex-col gap-1 overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white shadow-md',
+							'flex flex-col gap-1 overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white shadow-md min-w-0',
 							color
 						)}
 					>
-						<Icon className="size-5 opacity-80" aria-hidden />
+						<Icon className="size-5 opacity-80 shrink-0" aria-hidden />
 						<p className="text-2xl font-black tabular-nums">{value}</p>
-						<p className="text-xs font-semibold opacity-80">{label}</p>
+						<p className="text-xs font-semibold opacity-80 truncate">{label}</p>
 					</div>
 				))}
 			</div>
@@ -209,7 +189,9 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 
 			{/* ── Count ──────────────────────────────────────────────────────── */}
 			<p className="text-sm font-medium text-gray-500" aria-live="polite">
-				<span className="text-2xl font-bold text-gray-900 mr-1.5">{filtered.length}</span>
+				<span className="text-xl font-bold text-gray-900 mr-1.5 sm:text-2xl">
+					{filtered.length}
+				</span>
 				{filtered.length === 1 ? 'faculty' : 'faculties'}
 			</p>
 
@@ -221,10 +203,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 				</div>
 			) : (
 				<div
-					className="grid gap-5"
-					style={{
-						gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-					}}
+					className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-3"
 					role="list"
 					aria-label="Faculties"
 				>
@@ -296,15 +275,15 @@ function FacultyCard({ faculty, palette, index, onEdit, onDelete }: FacultyCardP
 				<div className="flex gap-4 text-center">
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
 						<p className={cn('text-xl font-black', palette.text)}>{faculty.syllabus.length}</p>
-						<p className="text-[10px] font-semibold text-gray-500">Subjects</p>
+						<p className="text-xs font-semibold text-gray-500">Subjects</p>
 					</div>
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
 						<p className={cn('text-xl font-black', palette.text)}>{totalHours}</p>
-						<p className="text-[10px] font-semibold text-gray-500">Total hrs</p>
+						<p className="text-xs font-semibold text-gray-500">Total hrs</p>
 					</div>
 					<div className={cn('flex-1 rounded-xl p-2', palette.light)}>
 						<p className={cn('text-xl font-black', palette.text)}>{faculty.students.length}</p>
-						<p className="text-[10px] font-semibold text-gray-500">Students</p>
+						<p className="text-xs font-semibold text-gray-500">Students</p>
 					</div>
 				</div>
 
@@ -314,8 +293,8 @@ function FacultyCard({ faculty, palette, index, onEdit, onDelete }: FacultyCardP
 						<span
 							key={entry.subject}
 							className={cn(
-								'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold',
-								subjectColor(entry.subject)
+								'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold',
+								subjectPill(entry.subject)
 							)}
 						>
 							{entry.subject}
@@ -350,5 +329,3 @@ function FacultyCard({ faculty, palette, index, onEdit, onDelete }: FacultyCardP
 		</article>
 	)
 }
-
-export default FacultyList

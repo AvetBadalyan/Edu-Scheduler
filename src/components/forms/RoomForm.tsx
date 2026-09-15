@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { emptyTimetable } from '@/lib/timetable'
+import { capacityHint } from '@/lib/ui/capacityTiers'
+import { ERROR, FIELD } from '@/lib/ui/formStyles'
 import { cn } from '@/lib/utils'
 import type { CreateRoomInput } from '@/types'
 import { AlertCircle, DoorOpen, Hash, Users } from 'lucide-react'
@@ -12,27 +15,6 @@ interface RoomFormProps {
 	onSubmit: (data: CreateRoomInput) => Promise<void>
 	onCancel: () => void
 	isLoading?: boolean
-}
-
-function emptyTimetable() {
-	return {
-		1: { 1: null, 2: null, 3: null, 4: null },
-		2: { 1: null, 2: null, 3: null, 4: null },
-		3: { 1: null, 2: null, 3: null, 4: null },
-		4: { 1: null, 2: null, 3: null, 4: null },
-		5: { 1: null, 2: null, 3: null, 4: null },
-	} as CreateRoomInput['availability']
-}
-
-const FIELD = 'flex flex-col gap-1.5'
-const ERROR = 'flex items-center gap-1 text-xs text-red-600'
-
-// Capacity tier hint
-function capacityTier(n: number) {
-	if (n <= 20) return { label: 'Small room', color: 'text-sky-700 bg-sky-50' }
-	if (n <= 40) return { label: 'Medium room', color: 'text-violet-700 bg-violet-50' }
-	if (n <= 100) return { label: 'Large room', color: 'text-emerald-700 bg-emerald-50' }
-	return { label: 'Auditorium', color: 'text-amber-700 bg-amber-50' }
 }
 
 export function RoomForm({
@@ -47,7 +29,7 @@ export function RoomForm({
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
 	const cap = parseInt(capacity, 10)
-	const tier = !isNaN(cap) && cap >= 1 ? capacityTier(cap) : null
+	const tier = !isNaN(cap) && cap >= 1 ? capacityHint(cap) : null
 
 	const validate = () => {
 		const e: Record<string, string> = {}
@@ -160,5 +142,3 @@ export function RoomForm({
 		</form>
 	)
 }
-
-export default RoomForm

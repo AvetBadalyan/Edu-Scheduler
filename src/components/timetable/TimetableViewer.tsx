@@ -92,7 +92,7 @@ export function TimetableViewer({
 						aria-selected={viewMode === mode}
 						onClick={() => handleViewChange(mode)}
 						className={cn(
-							'flex-1 rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+							'flex-1 rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
 							viewMode === mode
 								? 'bg-white shadow-sm text-gray-900'
 								: 'text-gray-500 hover:text-gray-800'
@@ -103,17 +103,22 @@ export function TimetableViewer({
 				))}
 			</div>
 
-			{/* Entity pill selector */}
+			{/* Entity pill selector — scrollable row on mobile, wrapping on desktop */}
 			{entities.length > 0 ? (
-				<div className="flex flex-wrap gap-2" role="group" aria-label={`Select ${viewMode}`}>
+				<div
+					className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0 scrollbar-hide"
+					role="group"
+					aria-label={`Select ${viewMode}`}
+					style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+				>
 					{entities.map(entity => (
 						<button
 							key={entity.id}
 							onClick={() => setSelectedEntityId(entity.id)}
 							className={cn(
-								'rounded-full border px-3 py-1 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+								'shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
 								activeEntityId === entity.id
-									? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+									? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
 									: 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
 							)}
 						>

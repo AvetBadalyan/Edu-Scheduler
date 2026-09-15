@@ -33,9 +33,6 @@ export interface TimetableGridProps {
 	className?: string
 }
 
-const DAYS = ALL_DAYS
-const HOURS = ALL_HOURS
-
 const DAY_NAMES: Record<DayOfWeek, string> = {
 	1: 'Mon',
 	2: 'Tue',
@@ -128,7 +125,7 @@ function AssignmentTooltip({
 				</div>
 
 				{assignment.isManual && (
-					<div className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-2 py-1 text-[11px] font-semibold text-amber-300">
+					<div className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-300">
 						✎ Manually placed
 					</div>
 				)}
@@ -163,6 +160,7 @@ function Row({ icon, label, value }: { icon: string; label: string; value: strin
 interface CellProps {
 	assignment: ClassAssignment | null
 	isEditable: boolean
+	compact: boolean
 	slot: TimeSlot
 	entityId: string
 	entityType: 'lecturer' | 'room' | 'faculty'
@@ -176,6 +174,7 @@ interface CellProps {
 function TimetableCell({
 	assignment,
 	isEditable,
+	compact,
 	slot,
 	entityId,
 	entityType,
@@ -229,8 +228,9 @@ function TimetableCell({
 	}
 
 	const cellClass = cn(
-		// Base
-		'group relative flex flex-col justify-center border-b border-r p-1.5 text-xs transition-all duration-150 select-none min-h-[5.5rem]',
+		// Base — content wraps naturally, no overflow clipping needed
+		'group relative flex flex-col justify-center border-b border-r text-xs transition-all duration-150 select-none',
+		compact ? 'p-1 min-h-[4.5rem]' : 'p-1.5 min-h-[5.5rem]',
 		// Empty
 		assignment === null && 'bg-white hover:bg-slate-50',
 		// Filled
@@ -265,23 +265,30 @@ function TimetableCell({
 		>
 			{assignment !== null ? (
 				<>
-					{/* Subject */}
-					<span className="block truncate font-semibold leading-snug">{assignment.subject}</span>
-					{/* Lecturer name (resolved, not raw ID) */}
-					<span className="block truncate text-[11px] opacity-70 leading-snug mt-0.5">
-						{lecturerName}
+					{/* Subject — wraps to multiple lines, no truncation */}
+					<span
+						className={cn('block font-semibold leading-snug break-words', compact && 'text-xs')}
+					>
+						{assignment.subject}
 					</span>
-					{/* Room */}
-					<span className="block truncate text-[10px] opacity-50 leading-snug">{roomLabel}</span>
+					{/* Lecturer + Room — hidden in compact mode to save space */}
+					{!compact && (
+						<>
+							<span className="block truncate text-xs opacity-70 leading-snug mt-0.5">
+								{lecturerName}
+							</span>
+							<span className="block truncate text-xs opacity-50 leading-snug">{roomLabel}</span>
+						</>
+					)}
 					{/* Manual badge */}
 					{assignment.isManual && (
-						<span className="absolute right-1 top-0.5 rounded bg-amber-400 px-1 py-px text-[9px] font-bold text-amber-900">
+						<span className="absolute right-1 top-0.5 rounded bg-amber-400 px-1 py-px text-[10px] font-bold text-amber-900">
 							M
 						</span>
 					)}
 				</>
 			) : (
-				<span className="block text-center text-[11px] text-gray-400">—</span>
+				<span className="block text-center text-xs text-gray-400">—</span>
 			)}
 
 			{showTooltip && assignment !== null && anchorRect && (
@@ -296,6 +303,11 @@ function TimetableCell({
 		</div>
 	)
 }
+
+// Single source of truth for the grid column template used by every row.
+// minmax(0, 1fr) instead of 1fr — prevents long subject names from stretching columns.
+const GRID_COLS_STYLE = { gridTemplateColumns: '4rem repeat(5, minmax(0, 1fr))' } as const
+const GRID_COLS_STYLE_MD = { gridTemplateColumns: '5rem repeat(5, minmax(0, 1fr))' } as const
 
 // ─── TimetableGrid ────────────────────────────────────────────────────────────
 
@@ -327,70 +339,115 @@ export function TimetableGrid({
 	}
 
 	return (
-		<div
-			className={cn(
-				'w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm',
-				className
-			)}
-			role="grid"
-			aria-label={`${viewMode} timetable`}
-		>
-			{/* Min-width so the grid doesn't collapse on small screens */}
-			<div className="min-w-[600px]">
-				{/* Header row */}
-				<div className="grid border-b" style={{ gridTemplateColumns: '5rem repeat(5, 1fr)' }}>
-					<div className="flex h-10 items-center justify-center border-r bg-gray-50 text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-						Hour
-					</div>
-					{DAYS.map(day => (
-						<div
-							key={day}
-							className="flex h-10 items-center justify-center border-r bg-gray-50 text-xs font-semibold text-gray-600"
-							role="columnheader"
-							aria-label={DAY_FULL[day]}
-						>
-							<span className="hidden sm:block">{DAY_FULL[day]}</span>
-							<span className="sm:hidden">{DAY_NAMES[day]}</span>
+		<div className={cn('relative w-full', className)}>
+			{/* Scroll hint — fade on right edge to signal more content */}
+			<div
+				className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white/80 to-transparent rounded-r-xl md:hidden"
+				aria-hidden
+			/>
+
+			<div
+				className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm"
+				role="grid"
+				aria-label={`${viewMode} timetable`}
+				style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+			>
+				{/* min-w-[560px] gives ~100px per day column — clean 2-line wrap for long subject names */}
+				<div className="min-w-[560px] md:min-w-[640px]">
+					{/* Header row */}
+					<div className="grid border-b md:hidden" style={GRID_COLS_STYLE}>
+						<div className="flex h-9 items-center justify-center border-r bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+							Time
 						</div>
+						{ALL_DAYS.map(day => (
+							<div
+								key={day}
+								className="flex h-9 items-center justify-center border-r bg-gray-50 text-xs font-semibold text-gray-600"
+								role="columnheader"
+								aria-label={DAY_FULL[day]}
+							>
+								{DAY_NAMES[day]}
+							</div>
+						))}
+					</div>
+					<div className="hidden border-b md:grid" style={GRID_COLS_STYLE_MD}>
+						<div className="flex h-10 items-center justify-center border-r bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+							Hour
+						</div>
+						{ALL_DAYS.map(day => (
+							<div
+								key={day}
+								className="flex h-10 items-center justify-center border-r bg-gray-50 text-xs font-semibold text-gray-600"
+								role="columnheader"
+								aria-label={DAY_FULL[day]}
+							>
+								{DAY_FULL[day]}
+							</div>
+						))}
+					</div>
+
+					{/* Data rows */}
+					{ALL_HOURS.map(hour => (
+						<React.Fragment key={hour}>
+							{/* Mobile row */}
+							<div className="grid md:hidden" style={GRID_COLS_STYLE} role="row">
+								<div className="flex min-h-[4rem] items-center justify-center border-b border-r bg-gray-50 text-xs font-medium text-gray-500 leading-tight text-center px-1">
+									{HOUR_LABELS[hour]}
+								</div>
+								{ALL_DAYS.map(day => {
+									const assignment = timetable[day][hour]
+									return (
+										<TimetableCell
+											key={`${day}-${hour}`}
+											assignment={assignment}
+											isEditable={isEditable}
+											compact
+											slot={{ day, hour }}
+											entityId={entityId}
+											entityType={viewMode}
+											lecturerName={assignment ? resolveLecturerName(assignment.lecturerId) : ''}
+											roomLabel={assignment ? resolveRoomLabel(assignment.roomId) : ''}
+											facultyName={assignment ? resolveFacultyName(assignment.facultyId) : ''}
+											onSlotClick={onSlotClick}
+											onSlotDrop={onSlotDrop}
+										/>
+									)
+								})}
+							</div>
+							{/* Desktop row */}
+							<div className="hidden md:grid" style={GRID_COLS_STYLE_MD} role="row">
+								<div className="flex min-h-[5.5rem] items-center justify-center border-b border-r bg-gray-50 text-xs font-medium text-gray-500">
+									{HOUR_LABELS[hour]}
+								</div>
+								{ALL_DAYS.map(day => {
+									const assignment = timetable[day][hour]
+									return (
+										<TimetableCell
+											key={`${day}-${hour}`}
+											assignment={assignment}
+											isEditable={isEditable}
+											compact={false}
+											slot={{ day, hour }}
+											entityId={entityId}
+											entityType={viewMode}
+											lecturerName={assignment ? resolveLecturerName(assignment.lecturerId) : ''}
+											roomLabel={assignment ? resolveRoomLabel(assignment.roomId) : ''}
+											facultyName={assignment ? resolveFacultyName(assignment.facultyId) : ''}
+											onSlotClick={onSlotClick}
+											onSlotDrop={onSlotDrop}
+										/>
+									)
+								})}
+							</div>
+						</React.Fragment>
 					))}
 				</div>
-
-				{/* Data rows */}
-				{HOURS.map(hour => (
-					<div
-						key={hour}
-						className="grid"
-						style={{ gridTemplateColumns: '5rem repeat(5, 1fr)' }}
-						role="row"
-					>
-						{/* Hour label */}
-						<div className="flex min-h-[5.5rem] items-center justify-center border-b border-r bg-gray-50 text-[11px] font-medium text-gray-500">
-							{HOUR_LABELS[hour]}
-						</div>
-
-						{DAYS.map(day => {
-							const assignment = timetable[day][hour]
-							return (
-								<TimetableCell
-									key={`${day}-${hour}`}
-									assignment={assignment}
-									isEditable={isEditable}
-									slot={{ day, hour }}
-									entityId={entityId}
-									entityType={viewMode}
-									lecturerName={assignment ? resolveLecturerName(assignment.lecturerId) : ''}
-									roomLabel={assignment ? resolveRoomLabel(assignment.roomId) : ''}
-									facultyName={assignment ? resolveFacultyName(assignment.facultyId) : ''}
-									onSlotClick={onSlotClick}
-									onSlotDrop={onSlotDrop}
-								/>
-							)
-						})}
-					</div>
-				))}
 			</div>
+
+			{/* Mobile scroll hint text */}
+			<p className="mt-1.5 text-center text-xs text-gray-400 md:hidden" aria-hidden>
+				← scroll to see all days →
+			</p>
 		</div>
 	)
 }
-
-export default TimetableGrid

@@ -5,6 +5,8 @@
  * a circular capacity indicator, an animated utilisation bar and
  * a colour-coded status pill. Hover lifts the card with a coloured glow.
  */
+import { allTimeSlots } from '@/lib/timetable'
+import { CAPACITY_TIERS, getTier, type CapacityTier } from '@/lib/ui/capacityTiers'
 import { cn } from '@/lib/utils'
 import { selectAllRooms } from '@/store/entitySlice'
 import { useAppSelector } from '@/store/hooks'
@@ -13,52 +15,9 @@ import type { Room, RoomId } from '@/types'
 import { Pencil, Trash2, Users } from 'lucide-react'
 import { useMemo } from 'react'
 
-// ─── Capacity tiers ───────────────────────────────────────────────────────────
-
-const TIERS = [
-	{
-		label: 'Small',
-		min: 1,
-		max: 20,
-		icon: '🪑',
-		gradient: 'from-sky-500 to-blue-600',
-		ring: 'ring-sky-400/40',
-		glow: 'hover:shadow-sky-400/25',
-	},
-	{
-		label: 'Medium',
-		min: 21,
-		max: 40,
-		icon: '🏫',
-		gradient: 'from-violet-500 to-purple-600',
-		ring: 'ring-violet-400/40',
-		glow: 'hover:shadow-violet-400/25',
-	},
-	{
-		label: 'Large',
-		min: 41,
-		max: 100,
-		icon: '🎓',
-		gradient: 'from-emerald-500 to-teal-600',
-		ring: 'ring-emerald-400/40',
-		glow: 'hover:shadow-emerald-400/25',
-	},
-	{
-		label: 'Auditorium',
-		min: 101,
-		max: Infinity,
-		icon: '🏟️',
-		gradient: 'from-amber-500 to-orange-600',
-		ring: 'ring-amber-400/40',
-		glow: 'hover:shadow-amber-400/25',
-	},
-]
-
-function getTier(capacity: number) {
-	return TIERS.find(t => capacity >= t.min && capacity <= t.max) ?? TIERS[0]
-}
-
 // ─── Utilisation helpers ──────────────────────────────────────────────────────
+
+const TOTAL_SLOTS = allTimeSlots().length // 20 — computed once, not hardcoded
 
 function calcUtil(
 	room: Room,
@@ -69,7 +28,7 @@ function calcUtil(
 	let used = 0
 	for (const d of [1, 2, 3, 4, 5] as const)
 		for (const h of [1, 2, 3, 4] as const) if (t[d][h] !== null) used++
-	return Math.round((used / 20) * 100)
+	return Math.round((used / TOTAL_SLOTS) * 100)
 }
 
 function utilColor(pct: number) {
@@ -85,7 +44,6 @@ function utilColor(pct: number) {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface RoomListProps {
-	onSelect?: (r: Room) => void
 	onEdit?: (r: Room) => void
 	onDelete?: (id: RoomId) => void
 	className?: string
@@ -98,8 +56,8 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 	const scheduleRooms = useAppSelector(selectScheduleRooms)
 
 	const grouped = useMemo(() => {
-		const map = new Map<string, { tier: (typeof TIERS)[0]; rooms: Room[] }>()
-		TIERS.forEach(t => map.set(t.label, { tier: t, rooms: [] }))
+		const map = new Map<string, { tier: CapacityTier; rooms: Room[] }>()
+		CAPACITY_TIERS.forEach(t => map.set(t.label, { tier: t, rooms: [] }))
 		rooms.forEach(r => {
 			const t = getTier(r.capacity)
 			map.get(t.label)!.rooms.push(r)
@@ -135,7 +93,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 						<p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
 							Overall Room Utilisation
 						</p>
-						<p className="mt-1 text-4xl font-black tabular-nums">{overall}%</p>
+						<p className="mt-1 text-3xl font-black tabular-nums sm:text-4xl">{overall}%</p>
 					</div>
 					<div className="flex items-center gap-4 text-sm text-slate-300">
 						<span>
@@ -180,12 +138,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 						</div>
 					</div>
 
-					<div
-						className="grid gap-4"
-						style={{
-							gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-						}}
-					>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{tierRooms.map((room, i) => (
 							<RoomCard
 								key={room.id}
@@ -208,7 +161,7 @@ export function RoomList({ onEdit, onDelete, className }: RoomListProps) {
 
 interface RoomCardProps {
 	room: Room
-	tier: (typeof TIERS)[0]
+	tier: CapacityTier
 	utilisation: number
 	index: number
 	onEdit?: (r: Room) => void
@@ -246,7 +199,7 @@ function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCard
 				{/* Utilisation pill */}
 				<div
 					className={cn(
-						'absolute right-2.5 top-2.5 rounded-full px-2 py-0.5 text-[10px] font-bold',
+						'absolute right-2.5 top-2.5 rounded-full px-2 py-0.5 text-xs font-bold',
 						uc.bg,
 						uc.text
 					)}
@@ -266,7 +219,7 @@ function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCard
 					</div>
 					<span
 						className={cn(
-							'rounded-full px-2.5 py-1 text-[11px] font-bold',
+							'rounded-full px-2.5 py-1 text-xs font-bold',
 							'bg-gradient-to-r',
 							tier.gradient,
 							'text-white shadow-sm'
@@ -278,7 +231,7 @@ function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCard
 
 				{/* Utilisation bar */}
 				<div>
-					<div className="mb-1 flex justify-between text-[10px] text-gray-400">
+					<div className="mb-1 flex justify-between text-xs text-gray-400">
 						<span>Utilisation</span>
 						<span className={cn('font-semibold', uc.text)}>{utilisation}%</span>
 					</div>
@@ -316,5 +269,3 @@ function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCard
 		</article>
 	)
 }
-
-export default RoomList

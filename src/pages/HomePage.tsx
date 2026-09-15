@@ -132,7 +132,7 @@ export default function HomePage() {
 					<TipChip text="University Schedule Manager" />
 					{hasSchedule && <TipChip text={`${scheduledClasses} classes scheduled`} />}
 				</div>
-				<h1 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
+				<h1 className="text-2xl font-black tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
 					Welcome back, <span className="gradient-text">{firstName}</span> 👋
 				</h1>
 				<p className="mt-2 text-base text-gray-500 max-w-lg">
@@ -210,7 +210,7 @@ export default function HomePage() {
 				<div className="h-px flex-1 bg-gray-200" />
 			</div>
 
-			<section aria-label="Features" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<section aria-label="Features" className="grid gap-4 sm:grid-cols-3">
 				<FeatureCard
 					icon={BrainCircuit}
 					title="Smart Scheduling Engine"
@@ -243,25 +243,27 @@ export default function HomePage() {
 				<Link
 					to="/schedule"
 					className={cn(
-						'group flex items-center justify-between gap-4 rounded-2xl p-6 bg-gradient-to-r from-indigo-700 via-violet-700 to-indigo-800 shadow-lg shadow-indigo-700/25 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 animate-fade-up delay-300'
+						'group flex flex-col gap-4 rounded-2xl p-6 bg-gradient-to-r from-indigo-700 via-violet-700 to-indigo-800 shadow-lg shadow-indigo-700/25 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 animate-fade-up delay-300 sm:flex-row sm:items-center sm:justify-between'
 					)}
-					aria-label="Generate your first schedule"
+					aria-label="Go to schedule and generate timetable"
 				>
 					<div className="flex items-center gap-4">
 						<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 animate-float">
 							<BrainCircuit className="size-6 text-white" aria-hidden />
 						</div>
 						<div>
-							<p className="text-base font-bold text-white">Ready to generate your schedule?</p>
-							<p className="text-sm text-white/90">
-								You have {lecturers.length} lecturers, {rooms.length} rooms and {faculties.length}{' '}
-								faculties set up.
+							<p className="text-base font-bold text-white">Your data is ready</p>
+							<p className="text-sm text-white/70">
+								{lecturers.length} lecturers · {rooms.length} rooms · {faculties.length} faculties
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white transition-all group-hover:bg-white/25">
-						Generate now
-						<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+					<div className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-2.5 text-sm font-semibold text-white transition-all group-hover:bg-white/25 sm:w-auto w-full">
+						Build schedule
+						<ArrowRight
+							className="size-4 transition-transform group-hover:translate-x-1"
+							aria-hidden
+						/>
 					</div>
 				</Link>
 			)}

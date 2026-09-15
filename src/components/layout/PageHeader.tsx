@@ -21,5 +21,3 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
 		</div>
 	)
 }
-
-export default PageHeader

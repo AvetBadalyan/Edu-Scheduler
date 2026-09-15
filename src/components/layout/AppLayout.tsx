@@ -79,6 +79,9 @@ export function AppLayout() {
 			{/* Sidebar */}
 			<aside
 				id="app-navigation"
+				role={mobileOpen ? 'dialog' : undefined}
+				aria-modal={mobileOpen ? true : undefined}
+				aria-label={mobileOpen ? 'Navigation menu' : undefined}
 				className={cn(
 					// Dark gradient sidebar
 					'flex flex-col h-screen sticky top-0 overflow-hidden',
@@ -152,7 +155,7 @@ export function AppLayout() {
 							<p className="truncate text-xs font-medium text-white">
 								{user?.name ?? 'Demo Admin'}
 							</p>
-							<p className="truncate text-[10px] text-slate-500">
+							<p className="truncate text-xs text-slate-500">
 								{isDemoMode ? 'Demo session' : (user?.email ?? 'Administrator')}
 							</p>
 						</div>
@@ -213,12 +216,10 @@ function Brand() {
 			</div>
 			<div className="leading-tight">
 				<span className="block text-sm font-bold text-white tracking-tight">EduScheduler</span>
-				<span className="block text-[10px] text-slate-400 font-medium tracking-widest uppercase">
+				<span className="block text-xs text-slate-400 font-medium tracking-widest uppercase">
 					Manager
 				</span>
 			</div>
 		</div>
 	)
 }
-
-export default AppLayout
