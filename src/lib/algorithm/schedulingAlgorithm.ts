@@ -1,23 +1,30 @@
 /**
  * Scheduling Algorithm — Backtracking CSP Solver
  *
- * Given faculties (with syllabi), lecturers (with specialties), and rooms
- * (with capacities), assigns every class to a time slot with no conflicts.
+ * HOW IT WORKS:
  *
- * How it works:
- * 1. Sort classes by "most constrained first" — hardest to place goes first.
- * 2. For each class, try every (time slot, lecturer, room) combination in order.
- * 3. If a class has no valid option, undo the previous placement and try its
- *    next option instead. This is backtracking.
- * 4. Repeat until all classes are placed or truly cannot be placed.
+ * We have a list of classes to place (e.g. "JavaScript for Frontend Bootcamp").
+ * Each class needs a free time slot + a qualified lecturer + a big enough room,
+ * all at the same time with no conflicts.
  *
- * The generator yields one AlgorithmStep per decision so the UI can visualize
- * the process step by step.
+ * Step 1 — Sort by hardest first:
+ *   Classes with fewer qualified lecturers go first. Scheduling the hardest
+ *   classes first means less backtracking later.
+ *
+ * Step 2 — Try options one by one:
+ *   For each class we try every (time slot + lecturer + room) combination.
+ *   The moment we find one where nothing conflicts, we place the class and
+ *   move on to the next.
+ *
+ * Step 3 — Backtrack if stuck:
+ *   If a class has zero valid options, we go back to the previous class,
+ *   undo its placement, and try its next option. This is backtracking.
+ *   We repeat until all classes are placed or we run out of options.
  */
+
 import { ALL_DAYS, ALL_HOURS, emptyTimetable } from '@/lib/timetable'
 import { validateScheduleInput } from '@/lib/validation/scheduleValidation'
 import type {
-	AlgorithmStep,
 	BacktrackingOptions,
 	ClassAssignment,
 	DayOfWeek,
@@ -26,29 +33,32 @@ import type {
 	HourSlot,
 	LecturerId,
 	LecturerWithTimetable,
-	Room,
 	RoomId,
 	RoomWithTimetable,
 	ScheduleInput,
 	ScheduleResult,
 	ScheduleState,
 	UnresolvedConstraint,
-	ValidationResult,
 } from '@/types'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
 
-/** All three timetables in one place — mutated as assignments are made/undone. */
+/** All three timetables together — mutated as assignments are made and undone. */
 interface MutableState {
 	rooms: Record<RoomId, RoomWithTimetable>
 	lecturers: Record<LecturerId, LecturerWithTimetable>
 	faculties: Record<FacultyId, FacultyWithTimetable>
 }
 
-/**
- * One fully-specified option for placing a class:
- * a specific time slot + lecturer + room combination.
- */
+/** One class waiting to be placed. */
+interface QueueEntry {
+	facultyId: FacultyId
+	subject: string
+	/** How many lecturers can teach this subject — fewer means harder to place. */
+	lecturerCount: number
+}
+
+/** One fully-specified option for placing a class: slot + lecturer + room. */
 interface Candidate {
 	day: DayOfWeek
 	hour: HourSlot
@@ -56,17 +66,13 @@ interface Candidate {
 	roomId: RoomId
 }
 
-/**
- * Per-queue-item state used by the backtracker.
- * Keeping these together (rather than three separate arrays) makes the
- * backtrack logic easier to read.
- */
-interface ItemState {
-	/** Every valid (slot, lecturer, room) combo for this class, pre-sorted. */
+/** Per-class backtracking state. */
+interface ClassItem {
+	/** Options to try, built fresh on each visit. */
 	candidates: Candidate[]
-	/** Which candidate to try next. Advances on each failed attempt. */
+	/** Which option to try next. */
 	cursor: number
-	/** The assignment currently placed for this item, or null if unplaced. */
+	/** What we placed here, or null if nothing placed yet. */
 	placed: ClassAssignment | null
 }
 
@@ -78,47 +84,50 @@ const DEFAULT_OPTIONS: BacktrackingOptions = {
 	minimizeRoomWaste: true,
 }
 
-// ─── Setup helpers ────────────────────────────────────────────────────────────
+// ─── Setup ────────────────────────────────────────────────────────────────────
 
-/** Creates empty timetables for every room, lecturer, and faculty. */
+// Create an empty timetable for every room, lecturer, and faculty.
+// Every slot starts as null (free).
 function initState(input: ScheduleInput): MutableState {
 	const state: MutableState = { rooms: {}, lecturers: {}, faculties: {} }
+
 	for (const room of input.rooms) state.rooms[room.id] = { ...room, timetable: emptyTimetable() }
+
 	for (const lecturer of input.lecturers)
 		state.lecturers[lecturer.id] = { ...lecturer, timetable: emptyTimetable() }
+
 	for (const faculty of input.faculties)
 		state.faculties[faculty.id] = { ...faculty, timetable: emptyTimetable() }
+
 	return state
 }
 
-/**
- * Builds the list of classes to place, sorted most-constrained-first.
- * "Most constrained" = fewest lecturers qualified to teach that subject.
- * Scheduling the hardest classes first reduces backtracking.
- */
-function buildQueue(input: ScheduleInput): Array<{ facultyId: FacultyId; subject: string }> {
-	const queue: Array<{ facultyId: FacultyId; subject: string; qualifiedCount: number }> = []
+// Build the list of classes to place.
+// One syllabus entry like "JavaScript: 5 hours" becomes 5 items in the queue.
+// Sorted so the hardest-to-place classes go first.
+function buildQueue(input: ScheduleInput): QueueEntry[] {
+	const queue: QueueEntry[] = []
 
 	for (const faculty of input.faculties) {
 		for (const entry of faculty.syllabus) {
-			const qualifiedCount = input.lecturers.filter(l =>
+			const lecturerCount = input.lecturers.filter(l =>
 				l.specialties.includes(entry.subject)
 			).length
+
 			for (let i = 0; i < entry.requiredHours; i++) {
-				queue.push({ facultyId: faculty.id, subject: entry.subject, qualifiedCount })
+				queue.push({ facultyId: faculty.id, subject: entry.subject, lecturerCount })
 			}
 		}
 	}
 
-	queue.sort((a, b) => a.qualifiedCount - b.qualifiedCount)
+	// Fewest qualified lecturers = hardest to place = goes first
+	queue.sort((a, b) => a.lecturerCount - b.lecturerCount)
 	return queue
 }
 
-/**
- * Builds every possible (time slot, lecturer, room) combination for one class.
- * Slots are sorted to spread classes evenly across days.
- * Rooms are sorted smallest-first to minimize empty seats.
- */
+// Build every (time slot + lecturer + room) option for one class.
+// Slots sorted so days with fewer classes are filled first (even spread).
+// Rooms sorted smallest-first to avoid wasting a big room on a small group.
 function buildCandidates(
 	facultyId: FacultyId,
 	subject: string,
@@ -128,23 +137,20 @@ function buildCandidates(
 ): Candidate[] {
 	const faculty = state.faculties[facultyId]
 
-	// Lecturers who can teach this subject
 	const qualifiedLecturers = input.lecturers.filter(l => l.specialties.includes(subject))
 
-	// Rooms big enough for this faculty's students, smallest first
-	const eligibleRooms: Room[] = input.rooms
+	const eligibleRooms = input.rooms
 		.filter(r => r.capacity >= faculty.students.length)
 		.sort((a, b) => (options.minimizeRoomWaste ? a.capacity - b.capacity : 0))
 
-	// Time slots sorted so days with fewer classes are preferred
 	const timeSlots = ALL_DAYS.flatMap(day => {
-		const dayUsage = ALL_HOURS.filter(h => faculty.timetable[day][h] !== null).length
-		return ALL_HOURS.map(hour => ({ day, hour, dayUsage }))
+		const classesThisDay = ALL_HOURS.filter(h => faculty.timetable[day][h] !== null).length
+		return ALL_HOURS.map(hour => ({ day, hour, classesThisDay }))
 	}).sort((a, b) =>
-		options.preferEvenDistribution ? a.dayUsage - b.dayUsage || a.hour - b.hour : 0
+		options.preferEvenDistribution ? a.classesThisDay - b.classesThisDay || a.hour - b.hour : 0
 	)
 
-	// Flat list of all combinations in priority order
+	// Flat list of every combination in priority order
 	const candidates: Candidate[] = []
 	for (const { day, hour } of timeSlots)
 		for (const lecturer of qualifiedLecturers)
@@ -156,6 +162,7 @@ function buildCandidates(
 
 // ─── Timetable helpers ────────────────────────────────────────────────────────
 
+// Are the faculty, lecturer, and room all free at this day + hour?
 function isSlotFree(
 	state: MutableState,
 	facultyId: FacultyId,
@@ -171,46 +178,35 @@ function isSlotFree(
 	)
 }
 
-function writeAssignment(state: MutableState, a: ClassAssignment): void {
-	const { day, hour } = a.timeSlot
-	state.faculties[a.facultyId].timetable[day][hour] = a
-	state.lecturers[a.lecturerId].timetable[day][hour] = a
-	state.rooms[a.roomId].timetable[day][hour] = a
+// Place this assignment into all three timetables at the same time.
+function placeAssignment(state: MutableState, assignment: ClassAssignment): void {
+	const { day, hour } = assignment.timeSlot
+	state.faculties[assignment.facultyId].timetable[day][hour] = assignment
+	state.lecturers[assignment.lecturerId].timetable[day][hour] = assignment
+	state.rooms[assignment.roomId].timetable[day][hour] = assignment
 }
 
-function clearAssignment(state: MutableState, a: ClassAssignment): void {
-	const { day, hour } = a.timeSlot
-	state.faculties[a.facultyId].timetable[day][hour] = null
-	state.lecturers[a.lecturerId].timetable[day][hour] = null
-	state.rooms[a.roomId].timetable[day][hour] = null
+// Remove this assignment from all three timetables (called when backtracking).
+function removeAssignment(state: MutableState, assignment: ClassAssignment): void {
+	const { day, hour } = assignment.timeSlot
+	state.faculties[assignment.facultyId].timetable[day][hour] = null
+	state.lecturers[assignment.lecturerId].timetable[day][hour] = null
+	state.rooms[assignment.roomId].timetable[day][hour] = null
 }
 
-// ─── Core algorithm ───────────────────────────────────────────────────────────
+// ─── Main algorithm ───────────────────────────────────────────────────────────
 
-export function* generateSchedule(
+export function runSchedulingAlgorithm(
 	input: ScheduleInput,
 	options: BacktrackingOptions = DEFAULT_OPTIONS
-): Generator<AlgorithmStep, ScheduleResult> {
-	let stepNumber = 0
-	let backtracks = 0
-	const unresolvedConstraints: UnresolvedConstraint[] = []
-
-	// Helper to create a step object for the visualization player
-	const step = (
-		type: AlgorithmStep['type'],
-		description: string,
-		extra: Partial<AlgorithmStep> = {}
-	): AlgorithmStep => ({ stepNumber: ++stepNumber, type, description, ...extra })
-
-	// ── 1. Validate ──────────────────────────────────────────────────────────
-
-	const validation: ValidationResult = validateScheduleInput(input)
+): ScheduleResult {
+	// Validate first
+	const validation = validateScheduleInput(input)
 	if (!validation.isValid) {
-		yield step('complete', `Validation failed: ${validation.errors.map(e => e.message).join('; ')}`)
 		return {
 			success: false,
 			schedule: { rooms: {}, lecturers: {}, faculties: {} },
-			totalSteps: stepNumber,
+			totalSteps: 0,
 			backtracks: 0,
 			unresolvedConstraints: validation.errors.map(e => ({
 				type: e.code,
@@ -220,54 +216,42 @@ export function* generateSchedule(
 		}
 	}
 
-	// ── 2. Initialize ────────────────────────────────────────────────────────
-
 	const state = initState(input)
 	const queue = buildQueue(input)
 
-	// Per-item backtracking state. items[i] tracks everything we need to
-	// place, retry, or undo queue[i].
-	const items: ItemState[] = queue.map(() => ({
-		candidates: [], // built on first visit (state may differ on revisit)
-		cursor: 0,
-		placed: null,
-	}))
+	// One item per class in the queue.
+	// candidates — list of options to try (built fresh on each visit)
+	// cursor     — which option to try next
+	// placed     — what we placed here (null if nothing placed yet)
+	const classItems: ClassItem[] = queue.map(() => ({ candidates: [], cursor: 0, placed: null }))
 
-	yield step('evaluate', `Starting schedule generation for ${queue.length} class assignments.`)
+	let backtracks = 0
+	const unresolvedConstraints: UnresolvedConstraint[] = []
 
-	// ── 3. Main loop ─────────────────────────────────────────────────────────
-	//
-	// We walk forward through the queue placing classes one by one.
-	// When a class has no valid option, we walk backward (backtrack),
-	// undo the previous placement, and try that item's next option.
-
-	let i = 0
-	while (i < queue.length) {
-		const { facultyId, subject } = queue[i]
+	let classIndex = 0
+	while (classIndex < queue.length) {
+		const { facultyId, subject } = queue[classIndex]
 		const faculty = state.faculties[facultyId]
 
-		// Build candidates on first visit (or after a backtrack cleared them).
-		// We rebuild after backtrack because freed slots change what's available.
-		if (items[i].candidates.length === 0) {
-			items[i].candidates = buildCandidates(facultyId, subject, input, state, options)
-			items[i].cursor = 0
-			yield step('evaluate', `Looking for a slot for "${subject}" (${faculty.name}).`, {
-				currentFaculty: facultyId,
-				currentSubject: subject,
-			})
+		// Build the candidate list on first visit, or after a backtrack cleared it.
+		// We rebuild after backtrack because freeing a slot changes what's available.
+		if (classItems[classIndex].candidates.length === 0) {
+			classItems[classIndex].candidates = buildCandidates(facultyId, subject, input, state, options)
+			classItems[classIndex].cursor = 0
 		}
 
-		// Try candidates from the current cursor onward
+		// Try each candidate from where we left off
 		let placed = false
-		while (items[i].cursor < items[i].candidates.length) {
-			const { day, hour, lecturerId, roomId } = items[i].candidates[items[i].cursor]
+		while (classItems[classIndex].cursor < classItems[classIndex].candidates.length) {
+			const { day, hour, lecturerId, roomId } =
+				classItems[classIndex].candidates[classItems[classIndex].cursor]
 
 			if (!isSlotFree(state, facultyId, lecturerId, roomId, day, hour)) {
-				items[i].cursor++
+				classItems[classIndex].cursor++ // this slot is taken, try the next one
 				continue
 			}
 
-			// Found a valid slot — place the class
+			// Free slot found — place the class
 			const assignment: ClassAssignment = {
 				facultyId,
 				lecturerId,
@@ -276,115 +260,49 @@ export function* generateSchedule(
 				timeSlot: { day, hour },
 				isManual: false,
 			}
-			writeAssignment(state, assignment)
-			items[i].placed = assignment
-
-			const lecturer = input.lecturers.find(l => l.id === lecturerId)!
-			const room = input.rooms.find(r => r.id === roomId)!
-			yield step(
-				'assign',
-				`Assigned "${subject}" to ${lecturer.name} in room ${room.number} (day ${day}, hour ${hour}).`,
-				{
-					currentFaculty: facultyId,
-					currentSubject: subject,
-					currentLecturer: lecturerId,
-					currentRoom: roomId,
-					currentSlot: { day, hour },
-				}
-			)
+			placeAssignment(state, assignment)
+			classItems[classIndex].placed = assignment
 
 			placed = true
-			i++
+			classIndex++ // move on to the next class
 			break
 		}
 
 		if (placed) continue
 
-		// No valid candidate found for this class — backtrack
-		items[i].candidates = [] // clear so it rebuilds on next visit
-		items[i].cursor = 0
+		// No valid option found — backtrack
+		classItems[classIndex].candidates = [] // will rebuild fresh on next visit
+		classItems[classIndex].cursor = 0
 
-		const canBacktrack = i > 0 && backtracks < options.maxBacktracks
+		const canBacktrack = classIndex > 0 && backtracks < options.maxBacktracks
 		if (!canBacktrack) {
-			// Truly stuck — record as unresolved and move on
+			// Truly stuck — record as unresolved and skip this class
 			unresolvedConstraints.push({
 				type: 'NO_VALID_SLOT',
 				description: `Could not place "${subject}" for "${faculty.name}".`,
 				affectedEntities: [facultyId, subject],
 			})
-			yield step('backtrack', `No slot found for "${subject}" — skipping.`, {
-				currentFaculty: facultyId,
-				currentSubject: subject,
-			})
-			i++
+			classIndex++
 		} else {
-			// Step back, undo the previous placement, try its next option
-			i--
-			const prev = items[i].placed!
-			clearAssignment(state, prev)
-			items[i].placed = null
-			items[i].candidates = [] // rebuild on next visit — freed slot changes availability
+			// Go back one step, undo the previous placement, try its next option
+			classIndex--
+			const previousClass = classItems[classIndex].placed
+			if (previousClass) {
+				removeAssignment(state, previousClass)
+				classItems[classIndex].placed = null
+			}
+			classItems[classIndex].candidates = [] // rebuild — timetable just changed
 			backtracks++
-
-			yield step(
-				'backtrack',
-				`Backtrack #${backtracks}: undoing "${prev.subject}", trying next option.`,
-				{
-					currentFaculty: prev.facultyId,
-					currentSubject: prev.subject,
-					currentLecturer: prev.lecturerId,
-					currentRoom: prev.roomId,
-					currentSlot: prev.timeSlot,
-				}
-			)
 		}
 	}
 
-	// ── 4. Done ──────────────────────────────────────────────────────────────
-
-	const totalPlaced = items.filter(it => it.placed !== null).length
-	const success = unresolvedConstraints.length === 0
-
-	yield step(
-		'complete',
-		success
-			? `Done! ${totalPlaced} classes placed with ${backtracks} backtracks.`
-			: `Finished with ${unresolvedConstraints.length} unresolved. ${totalPlaced} classes placed.`
-	)
+	const totalPlaced = classItems.filter(item => item.placed !== null).length
 
 	return {
-		success,
+		success: unresolvedConstraints.length === 0,
 		schedule: state as ScheduleState,
-		totalSteps: stepNumber,
+		totalSteps: totalPlaced + backtracks,
 		backtracks,
 		unresolvedConstraints,
 	}
-}
-
-// ─── Public helpers ───────────────────────────────────────────────────────────
-
-/** Run to completion without collecting steps. Use when you don't need visualization. */
-export function runSchedulingAlgorithm(
-	input: ScheduleInput,
-	options?: BacktrackingOptions
-): ScheduleResult {
-	const gen = generateSchedule(input, options)
-	let next = gen.next()
-	while (!next.done) next = gen.next()
-	return next.value as ScheduleResult
-}
-
-/** Collect all steps and the final result. Used by the visualization store. */
-export function collectSteps(
-	input: ScheduleInput,
-	options?: BacktrackingOptions
-): { steps: AlgorithmStep[]; result: ScheduleResult } {
-	const steps: AlgorithmStep[] = []
-	const gen = generateSchedule(input, options)
-	let next = gen.next()
-	while (!next.done) {
-		steps.push(next.value as AlgorithmStep)
-		next = gen.next()
-	}
-	return { steps, result: next.value as ScheduleResult }
 }

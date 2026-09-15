@@ -7,7 +7,6 @@
  *   entities    — lecturers, rooms, faculties (normalized)
  *   schedule    — timetable assignment state
  *   editHistory — undo/redo stack
- *   visualization — algorithm playback
  *   toast       — notification queue
  */
 import { configureStore } from '@reduxjs/toolkit'
@@ -17,7 +16,6 @@ import editHistoryReducer from './editHistorySlice'
 import entityReducer from './entitySlice'
 import scheduleReducer from './scheduleSlice'
 import toastReducer from './toastSlice'
-import visualizationReducer from './visualizationSlice'
 
 export const store = configureStore({
 	reducer: {
@@ -26,7 +24,6 @@ export const store = configureStore({
 		entities: entityReducer,
 		schedule: scheduleReducer,
 		editHistory: editHistoryReducer,
-		visualization: visualizationReducer,
 		toast: toastReducer,
 	},
 	middleware: getDefaultMiddleware =>

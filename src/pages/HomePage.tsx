@@ -221,8 +221,8 @@ export default function HomePage() {
 				/>
 				<FeatureCard
 					icon={Sparkles}
-					title="Step-by-step Visualization"
-					description="Watch the algorithm think in real time. Cells appear and disappear as assignments are made and backtracked — every decision is observable."
+					title="Instant, Conflict-free Results"
+					description="The solver places every subject in seconds while respecting every constraint, then reports classes placed, backtracks, and any slots it couldn't fill."
 					cta="See it in action"
 					to="/schedule"
 					accent="bg-gradient-to-br from-violet-500 to-purple-600"

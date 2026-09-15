@@ -158,7 +158,7 @@ export default function LandingPage() {
 					{/* eyebrow */}
 					<div className="animate-fade-up mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700">
 						<Zap className="size-3.5" aria-hidden />
-						Constraint-satisfaction scheduling with step-by-step visualization
+						Constraint-satisfaction scheduling with drag-and-drop editing
 					</div>
 
 					<h1
@@ -170,8 +170,7 @@ export default function LandingPage() {
 
 					<p className="animate-fade-up delay-150 mx-auto mt-6 max-w-2xl text-base leading-relaxed text-gray-500 sm:text-lg">
 						Add your lecturers, rooms, and faculties. The backtracking CSP solver finds a
-						conflict-free timetable in seconds — and you can watch every decision unfold in real
-						time.
+						conflict-free timetable in seconds — then drag any class to fine-tune it.
 					</p>
 
 					{/* CTA buttons */}
@@ -253,7 +252,7 @@ export default function LandingPage() {
 								<span className="size-3 rounded-full bg-amber-500/70" />
 								<span className="size-3 rounded-full bg-green-500/70" />
 								<span className="ml-3 flex-1 rounded-md bg-white/5 px-3 py-1 text-xs text-white/30">
-									EduScheduler — Algorithm Visualization
+									EduScheduler — Generated Timetable
 								</span>
 							</div>
 
@@ -323,16 +322,16 @@ export default function LandingPage() {
 							<div className="mt-4 flex items-center gap-2 rounded-xl bg-white/5 px-4 py-2.5">
 								<RotateCcw className="size-4 text-white/30" aria-hidden />
 								<button
-									aria-label="Play visualization (decorative)"
+									aria-label="Generate schedule"
 									className="flex size-7 items-center justify-center rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/50 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
 									onClick={handleDemoClick}
 								>
 									<Play className="size-3.5 fill-white text-white ml-0.5" aria-hidden />
 								</button>
 								<div className="flex-1 rounded-full bg-white/10 h-1.5 overflow-hidden">
-									<div className="h-full w-[62%] rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+									<div className="h-full w-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
 								</div>
-								<span className="text-xs font-mono text-white/40">step 312 / 501</span>
+								<span className="text-xs font-mono text-white/40">48 classes · 0 conflicts</span>
 							</div>
 						</div>
 					</div>
@@ -365,11 +364,11 @@ export default function LandingPage() {
 						/>
 						<FeatureCard
 							icon={Sparkles}
-							title="Algorithm Visualization"
-							description="Watch every evaluate → assign → conflict → backtrack step in real time. Adjustable playback speed and a full decision log."
+							title="Transparent Results"
+							description="Every run reports classes placed, backtracks taken, and any constraints it couldn't satisfy — so you always know how the schedule was built."
 							accent="bg-gradient-to-br from-violet-500 to-purple-600"
 							delay="delay-75"
-							badge="WOW factor"
+							badge="At a glance"
 						/>
 						<FeatureCard
 							icon={GripVertical}
@@ -447,12 +446,12 @@ export default function LandingPage() {
 							<div className="ml-4 w-0.5 h-3 bg-white/20 rounded-full" />
 							<StepChip
 								number={2}
-								text='Click "Generate schedule" — the CSP solver runs and yields 500+ visualization steps'
+								text='Click "Generate schedule" — the CSP solver builds a conflict-free timetable in seconds'
 							/>
 							<div className="ml-4 w-0.5 h-3 bg-white/20 rounded-full" />
 							<StepChip
 								number={3}
-								text="Hit Play to watch every assignment and backtrack animate in the timetable grid"
+								text="Review the result stats — classes placed, backtracks taken, and any unresolved slots"
 							/>
 							<div className="ml-4 w-0.5 h-3 bg-white/20 rounded-full" />
 							<StepChip

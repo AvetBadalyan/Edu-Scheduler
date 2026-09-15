@@ -138,25 +138,6 @@ export interface ScheduleInput {
 	faculties: Faculty[]
 }
 
-export interface ConstraintCheck {
-	constraint: string
-	passed: boolean
-	details: string
-}
-
-export interface AlgorithmStep {
-	stepNumber: number
-	type: 'evaluate' | 'assign' | 'conflict' | 'backtrack' | 'complete'
-	description: string
-	currentFaculty?: FacultyId
-	currentSubject?: string
-	currentLecturer?: LecturerId
-	currentRoom?: RoomId
-	currentSlot?: TimeSlot
-	constraintChecks?: ConstraintCheck[]
-	stateSnapshot?: Partial<ScheduleState>
-}
-
 export interface UnresolvedConstraint {
 	type: string
 	description: string
@@ -263,22 +244,7 @@ export interface ApiError {
 	details?: Record<string, unknown>
 }
 
-// ─── UI / Visualization models ────────────────────────────────────────────────
-
-export type PlaybackState = 'idle' | 'playing' | 'paused' | 'complete'
-
-export interface HighlightedElement {
-	type: 'lecturer' | 'room' | 'faculty' | 'slot'
-	id: string
-	slot?: TimeSlot
-	style: 'active' | 'conflict' | 'success'
-}
-
-export interface DecisionLogEntry {
-	stepNumber: number
-	description: string
-	type: 'evaluate' | 'assign' | 'conflict' | 'backtrack' | 'complete'
-}
+// ─── UI models ────────────────────────────────────────────────────────────────
 
 export interface UtilizationStats {
 	totalSlots: number

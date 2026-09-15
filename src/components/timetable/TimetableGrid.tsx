@@ -2,8 +2,7 @@
  * TimetableGrid — 5-day × 4-hour schedule grid.
  *
  * Reads entity names from scheduleStore so cells show human-readable text
- * instead of raw IDs. Accepts highlightedSlots / conflictSlots from the
- * visualization store so the grid lights up during step playback.
+ * instead of raw IDs.
  */
 import { ALL_DAYS, ALL_HOURS } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
@@ -30,10 +29,6 @@ export interface TimetableGridProps {
 	entityId: string
 	onSlotClick?: (slot: TimeSlot, assignment: ClassAssignment | null) => void
 	onSlotDrop?: (from: TimeSlotRef, to: TimeSlotRef) => void
-	highlightedSlots?: TimeSlot[]
-	conflictSlots?: TimeSlot[]
-	/** Slot being actively evaluated by the visualizer (pulses) */
-	activeSlot?: TimeSlot | null
 	isEditable?: boolean
 	className?: string
 }
@@ -167,9 +162,6 @@ function Row({ icon, label, value }: { icon: string; label: string; value: strin
 
 interface CellProps {
 	assignment: ClassAssignment | null
-	isHighlighted: boolean
-	isConflict: boolean
-	isActive: boolean
 	isEditable: boolean
 	slot: TimeSlot
 	entityId: string
@@ -183,9 +175,6 @@ interface CellProps {
 
 function TimetableCell({
 	assignment,
-	isHighlighted,
-	isConflict,
-	isActive,
 	isEditable,
 	slot,
 	entityId,
@@ -245,13 +234,7 @@ function TimetableCell({
 		// Empty
 		assignment === null && 'bg-white hover:bg-slate-50',
 		// Filled
-		assignment !== null && !isConflict && subjectColor(assignment.subject),
-		// Conflict
-		isConflict && 'bg-red-100 border-red-400 text-red-900',
-		// Highlighted by visualizer
-		isHighlighted && !isConflict && 'ring-2 ring-inset ring-blue-500 brightness-95',
-		// Active slot being evaluated
-		isActive && 'ring-2 ring-inset ring-yellow-400 animate-pulse',
+		assignment !== null && subjectColor(assignment.subject),
 		// Editable states
 		isEditable && assignment !== null && 'cursor-grab active:cursor-grabbing',
 		isEditable && assignment === null && 'cursor-pointer',
@@ -322,9 +305,6 @@ export function TimetableGrid({
 	entityId,
 	onSlotClick,
 	onSlotDrop,
-	highlightedSlots = [],
-	conflictSlots = [],
-	activeSlot,
 	isEditable = false,
 	className,
 }: TimetableGridProps) {
@@ -345,15 +325,6 @@ export function TimetableGrid({
 		const f = storeFaculties[id]
 		return f ? f.name : id
 	}
-
-	const isSlotHighlighted = (day: DayOfWeek, hour: HourSlot) =>
-		highlightedSlots.some(s => s.day === day && s.hour === hour)
-
-	const isSlotConflict = (day: DayOfWeek, hour: HourSlot) =>
-		conflictSlots.some(s => s.day === day && s.hour === hour)
-
-	const isSlotActive = (day: DayOfWeek, hour: HourSlot) =>
-		activeSlot?.day === day && activeSlot?.hour === hour
 
 	return (
 		<div
@@ -403,9 +374,6 @@ export function TimetableGrid({
 								<TimetableCell
 									key={`${day}-${hour}`}
 									assignment={assignment}
-									isHighlighted={isSlotHighlighted(day, hour)}
-									isConflict={isSlotConflict(day, hour)}
-									isActive={isSlotActive(day, hour)}
 									isEditable={isEditable}
 									slot={{ day, hour }}
 									entityId={entityId}
