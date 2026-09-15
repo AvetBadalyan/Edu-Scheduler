@@ -4,24 +4,18 @@ import { resolve } from 'path'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-	plugins: [
-		tailwindcss(),
-		react({
-			include: '**/*.{jsx,js,tsx,ts}',
-		}),
-	],
+	plugins: [tailwindcss(), react()],
 	resolve: {
 		alias: {
-			'@': resolve(__dirname, './src'),
-			'@components': resolve(__dirname, './src/components'),
-			'@pages': resolve(__dirname, './src/pages'),
-			'@lib': resolve(__dirname, './src/lib'),
-			'@types': resolve(__dirname, './src/types'),
-			'@hooks': resolve(__dirname, './src/hooks'),
-			'@assets': resolve(__dirname, './src/assets'),
+			'@': resolve(import.meta.dirname, './src'),
+			'@components': resolve(import.meta.dirname, './src/components'),
+			'@pages': resolve(import.meta.dirname, './src/pages'),
+			'@lib': resolve(import.meta.dirname, './src/lib'),
+			'@types': resolve(import.meta.dirname, './src/types'),
+			'@hooks': resolve(import.meta.dirname, './src/hooks'),
+			'@assets': resolve(import.meta.dirname, './src/assets'),
 		},
 	},
-	// Vitest config — test config lives here to avoid CLI path-with-spaces issues
 	test: {
 		globals: true,
 		environment: 'node',
@@ -30,21 +24,19 @@ export default defineConfig({
 	},
 	build: {
 		sourcemap: true,
-		target: 'es2020',
-		chunkSizeWarningLimit: 500,
+		chunkSizeWarningLimit: 600,
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					vendor: ['react', 'react-dom'],
-					router: ['react-router-dom'],
-					redux: ['@reduxjs/toolkit', 'react-redux'],
+				// Rolldown (Vite 8) requires manualChunks as a function
+				manualChunks(id) {
+					if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
+						return 'vendor'
+					if (id.includes('node_modules/react-router')) return 'router'
+					if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux'))
+						return 'redux'
 				},
 			},
 		},
-		minify: 'esbuild',
-	},
-	esbuild: {
-		drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
 	},
 	server: {
 		port: 3000,
