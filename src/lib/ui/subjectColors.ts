@@ -21,61 +21,61 @@ export const TECH_COLORS: Record<string, TechColor> = {
 	JavaScript: {
 		bg: 'bg-yellow-400/15',
 		text: 'text-yellow-700',
-		glow: 'shadow-yellow-400/30',
+		glow: 'hover:shadow-yellow-400/30',
 		dot: 'bg-yellow-400',
 	},
 	TypeScript: {
 		bg: 'bg-blue-500/15',
 		text: 'text-blue-700',
-		glow: 'shadow-blue-500/30',
+		glow: 'hover:shadow-blue-500/30',
 		dot: 'bg-blue-500',
 	},
 	ReactJS: {
 		bg: 'bg-cyan-400/15',
 		text: 'text-cyan-700',
-		glow: 'shadow-cyan-400/30',
+		glow: 'hover:shadow-cyan-400/30',
 		dot: 'bg-cyan-400',
 	},
 	NodeJS: {
 		bg: 'bg-green-500/15',
 		text: 'text-green-700',
-		glow: 'shadow-green-500/30',
+		glow: 'hover:shadow-green-500/30',
 		dot: 'bg-green-500',
 	},
 	Java: {
 		bg: 'bg-orange-500/15',
 		text: 'text-orange-700',
-		glow: 'shadow-orange-500/30',
+		glow: 'hover:shadow-orange-500/30',
 		dot: 'bg-orange-500',
 	},
 	Python: {
 		bg: 'bg-sky-500/15',
 		text: 'text-sky-700',
-		glow: 'shadow-sky-500/30',
+		glow: 'hover:shadow-sky-500/30',
 		dot: 'bg-sky-500',
 	},
 	CSS: {
 		bg: 'bg-violet-500/15',
 		text: 'text-violet-700',
-		glow: 'shadow-violet-500/30',
+		glow: 'hover:shadow-violet-500/30',
 		dot: 'bg-violet-500',
 	},
 	HTML: {
 		bg: 'bg-rose-500/15',
 		text: 'text-rose-700',
-		glow: 'shadow-rose-500/30',
+		glow: 'hover:shadow-rose-500/30',
 		dot: 'bg-rose-500',
 	},
 	'UI/UX': {
 		bg: 'bg-fuchsia-500/15',
 		text: 'text-fuchsia-700',
-		glow: 'shadow-fuchsia-500/30',
+		glow: 'hover:shadow-fuchsia-500/30',
 		dot: 'bg-fuchsia-500',
 	},
 	'Project Management': {
 		bg: 'bg-teal-500/15',
 		text: 'text-teal-700',
-		glow: 'shadow-teal-500/30',
+		glow: 'hover:shadow-teal-500/30',
 		dot: 'bg-teal-500',
 	},
 }
@@ -83,7 +83,7 @@ export const TECH_COLORS: Record<string, TechColor> = {
 export const DEFAULT_TECH: TechColor = {
 	bg: 'bg-slate-400/15',
 	text: 'text-slate-700',
-	glow: 'shadow-slate-400/30',
+	glow: 'hover:shadow-slate-400/30',
 	dot: 'bg-slate-400',
 }
 

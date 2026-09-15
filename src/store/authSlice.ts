@@ -53,6 +53,14 @@ function hasDemoSession(): boolean {
 
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms))
 
+// Supabase stores the display name in user_metadata, which is untyped (unknown).
+// Return it only if it's actually a string; otherwise fall back to the email name.
+function readDisplayName(metadata: Record<string, unknown> | undefined, email: string): string {
+	const name = metadata?.name
+	if (typeof name === 'string' && name.trim()) return name
+	return email.split('@')[0] || 'User'
+}
+
 // ─── Async thunks ─────────────────────────────────────────────────────────────
 
 export const loginThunk = createAsyncThunk<
@@ -77,13 +85,16 @@ export const loginThunk = createAsyncThunk<
 	return {
 		id: data.user.id,
 		email: data.user.email ?? email,
-		name: (data.user.user_metadata?.name as string) ?? email.split('@')[0],
+		name: readDisplayName(data.user.user_metadata, data.user.email ?? email),
 		createdAt: new Date(data.user.created_at),
-	} satisfies User
+	}
 })
 
+// Returns the new User when Supabase signs them in right away.
+// Returns null when the account was created but the user must confirm their
+// email first (Supabase gives us no session in that case).
 export const signUpThunk = createAsyncThunk<
-	User,
+	User | null,
 	{ email: string; password: string; name: string },
 	{ rejectValue: string }
 >('auth/signUp', async ({ email, password, name }, { rejectWithValue }) => {
@@ -95,12 +106,15 @@ export const signUpThunk = createAsyncThunk<
 	if (error) return rejectWithValue(error.message)
 	if (!data.user) return rejectWithValue('Sign-up failed. Please try again.')
 
+	// No session means the user needs to confirm their email before signing in.
+	if (!data.session) return null
+
 	return {
 		id: data.user.id,
 		email: data.user.email ?? email,
 		name,
 		createdAt: new Date(data.user.created_at),
-	} satisfies User
+	}
 })
 
 export const logoutThunk = createAsyncThunk('auth/logout', async () => {
@@ -115,6 +129,8 @@ interface AuthState {
 	isAuthenticated: boolean
 	isLoading: boolean
 	error: string | null
+	/** Set after a sign-up that requires email confirmation before sign-in. */
+	needsConfirmation: boolean
 }
 
 const initialState: AuthState = {
@@ -122,6 +138,7 @@ const initialState: AuthState = {
 	isAuthenticated: hasDemoSession(),
 	isLoading: false,
 	error: null,
+	needsConfirmation: false,
 }
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
@@ -132,6 +149,7 @@ const authSlice = createSlice({
 	reducers: {
 		clearError(state) {
 			state.error = null
+			state.needsConfirmation = false
 		},
 		/** Called by the Supabase onAuthStateChange listener to hydrate state. */
 		setSessionUser(state, action: PayloadAction<User | null>) {
@@ -151,11 +169,10 @@ const authSlice = createSlice({
 				state.user = action.payload
 				state.isAuthenticated = true
 			})
-			.addCase(loginThunk.rejected, (state, action) => {
+			.addCase(loginThunk.rejected, state => {
 				state.isLoading = false
 				state.error = 'Invalid email or password.'
 				state.isAuthenticated = false
-				void action.payload
 			})
 
 		// sign up
@@ -163,11 +180,18 @@ const authSlice = createSlice({
 			.addCase(signUpThunk.pending, state => {
 				state.isLoading = true
 				state.error = null
+				state.needsConfirmation = false
 			})
-			.addCase(signUpThunk.fulfilled, (state, action: PayloadAction<User>) => {
+			.addCase(signUpThunk.fulfilled, (state, action: PayloadAction<User | null>) => {
 				state.isLoading = false
-				state.user = action.payload
-				state.isAuthenticated = true
+				if (action.payload) {
+					// Signed in right away.
+					state.user = action.payload
+					state.isAuthenticated = true
+				} else {
+					// Account created but the user must confirm their email first.
+					state.needsConfirmation = true
+				}
 			})
 			.addCase(signUpThunk.rejected, (state, action) => {
 				state.isLoading = false
@@ -206,7 +230,7 @@ export function mapSupabaseUser(sbUser: {
 	return {
 		id: sbUser.id,
 		email: sbUser.email ?? '',
-		name: (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
+		name: readDisplayName(sbUser.user_metadata, sbUser.email ?? ''),
 		createdAt: new Date(sbUser.created_at),
 	}
 }
@@ -218,5 +242,7 @@ export const selectUser = (s: RootState) => s.auth.user
 export const selectIsAuthenticated = (s: RootState) => s.auth.isAuthenticated
 export const selectAuthLoading = (s: RootState) => s.auth.isLoading
 export const selectAuthError = (s: RootState) => s.auth.error
+/** True after sign-up when the user must confirm their email before signing in. */
+export const selectNeedsConfirmation = (s: RootState) => s.auth.needsConfirmation
 /** True when the current session belongs to the built-in demo account. */
 export const selectIsDemoMode = (s: RootState) => s.auth.user?.id === DEMO_USER.id

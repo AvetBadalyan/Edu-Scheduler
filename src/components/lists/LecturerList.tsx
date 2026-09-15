@@ -168,7 +168,8 @@ function LecturerCard({ lecturer, index, onEdit, onDelete }: LecturerCardProps) 
 			className={cn(
 				'group relative flex flex-col overflow-hidden rounded-2xl bg-white',
 				'shadow-md transition-all duration-300',
-				`hover:shadow-xl hover:-translate-y-1.5 hover:shadow-${tech.dot.replace('bg-', '')}/20`,
+				'hover:-translate-y-1.5 hover:shadow-xl',
+				tech.glow,
 				'animate-fade-up border border-gray-100'
 			)}
 			style={{ animationDelay: delay }}

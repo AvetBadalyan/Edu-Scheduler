@@ -20,7 +20,6 @@ import type {
 	RoomWithTimetable,
 	ScheduleState,
 	TimeSlotRef,
-	Timetable,
 	UtilizationStats,
 } from '@/types'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
@@ -35,17 +34,6 @@ interface ScheduleSliceState {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Clear every timetable slot back to null. */
-function clearTimetables<T extends { timetable: Timetable }>(
-	record: Record<string, T>
-): Record<string, T> {
-	const out: Record<string, T> = {}
-	for (const [id, entity] of Object.entries(record)) {
-		out[id] = { ...entity, timetable: emptyTimetable() }
-	}
-	return out
-}
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
@@ -94,17 +82,15 @@ const scheduleSlice = createSlice({
 		},
 
 		resetSchedule(state) {
-			state.rooms = clearTimetables(state.rooms) as typeof state.rooms
-			state.lecturers = clearTimetables(state.lecturers) as typeof state.lecturers
-			state.faculties = clearTimetables(state.faculties) as typeof state.faculties
+			// Empty every room/lecturer/faculty timetable back to all-null.
+			for (const room of Object.values(state.rooms)) room.timetable = emptyTimetable()
+			for (const lecturer of Object.values(state.lecturers)) lecturer.timetable = emptyTimetable()
+			for (const faculty of Object.values(state.faculties)) faculty.timetable = emptyTimetable()
 		},
 
 		loadSchedule(_state, action: PayloadAction<ScheduleState>) {
-			return {
-				rooms: action.payload.rooms as ScheduleSliceState['rooms'],
-				lecturers: action.payload.lecturers as ScheduleSliceState['lecturers'],
-				faculties: action.payload.faculties as ScheduleSliceState['faculties'],
-			}
+			// ScheduleState has the same shape as this slice's state, so use it directly.
+			return action.payload
 		},
 	},
 })
@@ -167,109 +153,99 @@ export const loadLatestScheduleThunk = createAsyncThunk<boolean, void, { state: 
 	}
 )
 
-// ─── Thunk-style action creators with validation ──────────────────────────────
-// These are plain functions (not RTK thunks) that can return a result.
-// Components import these and dispatch the inner action only if valid.
+// ─── Manual edit thunks (drag-and-drop + undo/redo) ────────────────────────────
+// Components dispatch these named thunks. The messy "read state, check, then
+// dispatch" work lives here so components stay simple.
 
+import {
+	pushEdit,
+	redo as redoHistory,
+	selectCurrentEdit,
+	selectNextEdit,
+	undo as undoHistory,
+} from './editHistorySlice'
 import type { AppDispatch } from './index'
 
-export interface AssignmentResult {
-	success: boolean
-	error?: string
-}
 export interface MoveResult {
 	success: boolean
 	error?: string
 }
 
-/** Validates constraints then dispatches _assignClass. */
-export function assignClass(
-	assignment: ClassAssignment
-): (dispatch: AppDispatch, getState: () => RootState) => AssignmentResult {
-	return (dispatch, getState) => {
-		const { rooms, lecturers, faculties } = getState().schedule
-		const {
-			facultyId,
-			lecturerId,
-			roomId,
-			timeSlot: { day, hour },
-		} = assignment
-
-		if (!rooms[roomId]) return { success: false, error: 'Room not found' }
-		if (!lecturers[lecturerId]) return { success: false, error: 'Lecturer not found' }
-		if (!faculties[facultyId]) return { success: false, error: 'Faculty not found' }
-
-		if (rooms[roomId].timetable[day][hour] !== null)
-			return { success: false, error: 'Room is already booked at this time' }
-		if (lecturers[lecturerId].timetable[day][hour] !== null)
-			return {
-				success: false,
-				error: 'Lecturer is already booked at this time',
-			}
-		if (faculties[facultyId].timetable[day][hour] !== null)
-			return {
-				success: false,
-				error: 'Faculty already has a class at this time',
-			}
-
-		dispatch(_assignClass(assignment))
-		return { success: true }
-	}
+/** Reads the assignment sitting in a given slot, or null if the slot is empty. */
+function readAssignment(state: RootState, ref: TimeSlotRef): ClassAssignment | null {
+	const { rooms, lecturers, faculties } = state.schedule
+	const { day, hour, entityType, entityId } = ref
+	if (entityType === 'room') return rooms[entityId]?.timetable[day][hour] ?? null
+	if (entityType === 'lecturer') return lecturers[entityId]?.timetable[day][hour] ?? null
+	return faculties[entityId]?.timetable[day][hour] ?? null
 }
 
-/** Finds the assignment at slotRef, then removes it from all three timetables. */
-export function unassignClass(
-	slotRef: TimeSlotRef
-): (dispatch: AppDispatch, getState: () => RootState) => void {
-	return (dispatch, getState) => {
-		const { rooms, lecturers, faculties } = getState().schedule
-		const { day, hour, entityType, entityId } = slotRef
+/** Returns an error message if the class can't go in its slot, or null if it's free. */
+function findConflict(state: RootState, assignment: ClassAssignment): string | null {
+	const { rooms, lecturers, faculties } = state.schedule
+	const { facultyId, lecturerId, roomId, timeSlot } = assignment
+	const { day, hour } = timeSlot
 
-		let assignment: ClassAssignment | null = null
-		if (entityType === 'room') assignment = rooms[entityId]?.timetable[day][hour] ?? null
-		if (entityType === 'lecturer') assignment = lecturers[entityId]?.timetable[day][hour] ?? null
-		if (entityType === 'faculty') assignment = faculties[entityId]?.timetable[day][hour] ?? null
+	if (!rooms[roomId]) return 'Room not found'
+	if (!lecturers[lecturerId]) return 'Lecturer not found'
+	if (!faculties[facultyId]) return 'Faculty not found'
 
-		if (!assignment) return
+	if (rooms[roomId].timetable[day][hour] !== null) return 'Room is already booked at this time'
+	if (lecturers[lecturerId].timetable[day][hour] !== null)
+		return 'Lecturer is already booked at this time'
+	if (faculties[facultyId].timetable[day][hour] !== null)
+		return 'Faculty already has a class at this time'
 
+	return null
+}
+
+/**
+ * Move a class from one slot to another and record it in the undo history.
+ * Returns { success, error } so the page can show a toast.
+ */
+export const moveClassWithHistory =
+	(from: TimeSlotRef, to: TimeSlotRef) =>
+	(dispatch: AppDispatch, getState: () => RootState): MoveResult => {
+		const before = readAssignment(getState(), from)
+		if (!before) return { success: false, error: 'No assignment at source slot' }
+
+		const moved: ClassAssignment = { ...before, timeSlot: { day: to.day, hour: to.hour } }
+
+		// Free the old slot first, then make sure the new slot is clear.
+		dispatch(_unassignSlot({ ...before, day: from.day, hour: from.hour }))
+		const conflict = findConflict(getState(), moved)
+		if (conflict) {
+			dispatch(_assignClass(before)) // put it back
+			return { success: false, error: conflict }
+		}
+
+		dispatch(_assignClass(moved))
 		dispatch(
-			_unassignSlot({
-				roomId: assignment.roomId,
-				lecturerId: assignment.lecturerId,
-				facultyId: assignment.facultyId,
-				day,
-				hour,
+			pushEdit({
+				id: crypto.randomUUID(),
+				timestamp: new Date(),
+				type: 'move',
+				before,
+				after: moved,
 			})
 		)
+		return { success: true }
 	}
+
+/** Undo the most recent manual edit (reverses the last move). */
+export const undoLastMove = () => (dispatch: AppDispatch, getState: () => RootState) => {
+	const edit = selectCurrentEdit(getState())
+	dispatch(undoHistory())
+	if (!edit) return
+	if (edit.after) dispatch(_unassignSlot({ ...edit.after, ...edit.after.timeSlot }))
+	if (edit.before) dispatch(_assignClass(edit.before))
 }
 
-/** Move an assignment from one slot to another with rollback on failure. */
-export function moveClass(
-	from: TimeSlotRef,
-	to: TimeSlotRef
-): (dispatch: AppDispatch, getState: () => RootState) => MoveResult {
-	return (dispatch, getState) => {
-		const { rooms, lecturers, faculties } = getState().schedule
-		const { day: fDay, hour: fHour, entityType, entityId } = from
-
-		let assignment: ClassAssignment | null = null
-		if (entityType === 'room') assignment = rooms[entityId]?.timetable[fDay][fHour] ?? null
-		if (entityType === 'lecturer') assignment = lecturers[entityId]?.timetable[fDay][fHour] ?? null
-		if (entityType === 'faculty') assignment = faculties[entityId]?.timetable[fDay][fHour] ?? null
-
-		if (!assignment) return { success: false, error: 'No assignment at source slot' }
-
-		dispatch(unassignClass(from))
-		const result = dispatch(
-			assignClass({ ...assignment, timeSlot: { day: to.day, hour: to.hour } })
-		)
-		if (!result.success) {
-			// Rollback
-			dispatch(_assignClass(assignment))
-		}
-		return result
-	}
+/** Redo the edit that was just undone (re-applies the move). */
+export const redoLastMove = () => (dispatch: AppDispatch, getState: () => RootState) => {
+	const edit = selectNextEdit(getState())
+	dispatch(redoHistory())
+	if (edit?.after) dispatch(_assignClass(edit.after))
 }
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
@@ -293,15 +269,20 @@ export function selectConflicts(state: RootState): Conflict[] {
 	const conflicts: Conflict[] = []
 
 	for (const { day, hour } of allTimeSlots()) {
-		const roomIds = Object.values(rooms)
-			.map(r => r.timetable[day][hour]?.roomId)
-			.filter(Boolean) as RoomId[]
-		const lecturerIds = Object.values(lecturers)
-			.map(l => l.timetable[day][hour]?.lecturerId)
-			.filter(Boolean) as LecturerId[]
-		const facultyIds = Object.values(faculties)
-			.map(f => f.timetable[day][hour]?.facultyId)
-			.filter(Boolean) as FacultyId[]
+		// Collect the ids booked in this slot. flatMap with [] skips empty slots,
+		// so we get a clean string[] without needing a type cast.
+		const roomIds = Object.values(rooms).flatMap(r => {
+			const id = r.timetable[day][hour]?.roomId
+			return id ? [id] : []
+		})
+		const lecturerIds = Object.values(lecturers).flatMap(l => {
+			const id = l.timetable[day][hour]?.lecturerId
+			return id ? [id] : []
+		})
+		const facultyIds = Object.values(faculties).flatMap(f => {
+			const id = f.timetable[day][hour]?.facultyId
+			return id ? [id] : []
+		})
 
 		const check = (type: 'room' | 'lecturer' | 'faculty', ids: string[]) => {
 			const counts = new Map<string, number>()

@@ -11,6 +11,7 @@ import {
 	selectAuthError,
 	selectAuthLoading,
 	selectIsAuthenticated,
+	selectNeedsConfirmation,
 	signUpThunk,
 } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -91,6 +92,7 @@ export default function LoginPage() {
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
 	const isLoading = useAppSelector(selectAuthLoading)
 	const error = useAppSelector(selectAuthError)
+	const needsConfirmation = useAppSelector(selectNeedsConfirmation)
 
 	const [tab, setTab] = useState<Tab>('signin')
 	const [email, setEmail] = useState<string>(DEMO_CREDENTIALS.email)
@@ -170,6 +172,16 @@ export default function LoginPage() {
 						</button>
 					))}
 				</div>
+
+				{/* Email-confirmation notice (after sign-up when confirmation is required) */}
+				{needsConfirmation && (
+					<div
+						className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800"
+						role="status"
+					>
+						Account created. Check your email for a confirmation link, then sign in.
+					</div>
+				)}
 
 				{/* Sign in */}
 				{tab === 'signin' && (

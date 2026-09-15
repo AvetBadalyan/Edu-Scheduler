@@ -172,14 +172,12 @@ export const addLecturerThunk = createAsyncThunk<void, CreateLecturerInput, { st
 	'entities/addLecturerThunk',
 	async (input, { dispatch, getState }) => {
 		const s = getState()
-		if (selectIsDemoMode(s) || !selectCurrentUniversity(s)) {
+		const university = selectCurrentUniversity(s)
+		if (selectIsDemoMode(s) || !university) {
 			dispatch(addLecturer(input))
 			return
 		}
-		const created = await lecturersApi.create({
-			...input,
-			universityId: selectCurrentUniversity(s)!.id,
-		})
+		const created = await lecturersApi.create({ ...input, universityId: university.id })
 		dispatch(upsertLecturer(created))
 	}
 )
@@ -214,14 +212,12 @@ export const addRoomThunk = createAsyncThunk<void, CreateRoomInput, { state: Roo
 	'entities/addRoomThunk',
 	async (input, { dispatch, getState }) => {
 		const s = getState()
-		if (selectIsDemoMode(s) || !selectCurrentUniversity(s)) {
+		const university = selectCurrentUniversity(s)
+		if (selectIsDemoMode(s) || !university) {
 			dispatch(addRoom(input))
 			return
 		}
-		const created = await roomsApi.create({
-			...input,
-			universityId: selectCurrentUniversity(s)!.id,
-		})
+		const created = await roomsApi.create({ ...input, universityId: university.id })
 		dispatch(upsertRoom(created))
 	}
 )
@@ -256,14 +252,12 @@ export const addFacultyThunk = createAsyncThunk<void, CreateFacultyInput, { stat
 	'entities/addFacultyThunk',
 	async (input, { dispatch, getState }) => {
 		const s = getState()
-		if (selectIsDemoMode(s) || !selectCurrentUniversity(s)) {
+		const university = selectCurrentUniversity(s)
+		if (selectIsDemoMode(s) || !university) {
 			dispatch(addFaculty(input))
 			return
 		}
-		const created = await facultiesApi.create({
-			...input,
-			universityId: selectCurrentUniversity(s)!.id,
-		})
+		const created = await facultiesApi.create({ ...input, universityId: university.id })
 		dispatch(upsertFaculty(created))
 	}
 )

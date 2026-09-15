@@ -7,18 +7,18 @@ import { useUndoRedo } from '@/hooks/useUndoRedo'
 import { runSchedulingAlgorithm } from '@/lib/algorithm/schedulingAlgorithm'
 import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
+import { store } from '@/store'
 import { selectIsDemoMode } from '@/store/authSlice'
-import { pushEdit } from '@/store/editHistorySlice'
 import { selectAllFaculties, selectAllLecturers, selectAllRooms } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
 	loadSchedule,
-	moveClass,
+	moveClassWithHistory,
 	resetSchedule,
 	saveScheduleThunk,
 	selectHasSchedule,
 } from '@/store/scheduleSlice'
-import type { ClassAssignment, ScheduleInput, ScheduleResult, TimeSlotRef } from '@/types'
+import type { ScheduleInput, ScheduleResult, TimeSlotRef } from '@/types'
 import {
 	BrainCircuit,
 	CalendarCheck,
@@ -113,41 +113,12 @@ export default function SchedulePage() {
 	}
 
 	const handleSlotDrop = (from: TimeSlotRef, to: TimeSlotRef) => {
-		dispatch((dispatchInner, getState) => {
-			const { rooms, lecturers, faculties } = getState().schedule
-			const { day, hour, entityType, entityId } = from
-
-			let before: ClassAssignment | null = null
-			if (entityType === 'room') before = rooms[entityId]?.timetable[day][hour] ?? null
-			else if (entityType === 'lecturer') before = lecturers[entityId]?.timetable[day][hour] ?? null
-			else if (entityType === 'faculty') before = faculties[entityId]?.timetable[day][hour] ?? null
-
-			const moveResult = dispatchInner(moveClass(from, to))
-			if (!moveResult.success) {
-				toast.error(moveResult.error ?? 'Could not move class.')
-				return
-			}
-
-			if (before) {
-				const after: ClassAssignment = {
-					...before,
-					timeSlot: { day: to.day, hour: to.hour },
-				}
-				dispatchInner(
-					pushEdit({
-						id: crypto.randomUUID(),
-						timestamp: new Date(),
-						type: 'move',
-						before,
-						after,
-					})
-				)
-			}
-
-			// Persist after move — read updated state
-			const updated = getState().schedule
-			persist(updated)
-		})
+		const result = dispatch(moveClassWithHistory(from, to))
+		if (!result.success) {
+			toast.error(result.error ?? 'Could not move class.')
+			return
+		}
+		persist(store.getState().schedule)
 	}
 
 	return (

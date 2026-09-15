@@ -20,6 +20,13 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loadLatestScheduleThunk } from '@/store/scheduleSlice'
 import { useEffect, useRef } from 'react'
 
+/** Builds a default university name from the email domain, e.g. "aca@x.com" → "X University". */
+function universityNameFor(email: string): string {
+	const domain = email.split('@')[1] ?? 'my' // "aca.am" (or fallback "my")
+	const firstPart = domain.split('.')[0] ?? 'my' // "aca"
+	return firstPart.charAt(0).toUpperCase() + firstPart.slice(1) + ' University'
+}
+
 export function useAuthenticatedMode(): void {
 	const dispatch = useAppDispatch()
 	const isAuthenticated = useAppSelector(selectIsAuthenticated)
@@ -33,17 +40,19 @@ export function useAuthenticatedMode(): void {
 		if (loadedRef.current === user.id) return // already loaded for this user
 		loadedRef.current = user.id
 
+		// Capture the user in a local const so it's non-null inside bootstrap().
+		const currentUser = user
+
 		async function bootstrap() {
 			try {
-				// 1. Get or create university
+				// 1. Get or create the user's university
 				let universities = await universitiesApi.list()
 				if (universities.length === 0) {
-					const prefix = (user!.email.split('@')[1] ?? 'my').split('.')[0]!
-					const newName = prefix.charAt(0).toUpperCase() + prefix.slice(1) + ' University'
-					const created = await universitiesApi.create(newName)
+					const created = await universitiesApi.create(universityNameFor(currentUser.email))
 					universities = [created]
 				}
-				const university = universities[0]!
+				const university = universities[0]
+				if (!university) return
 				dispatch(setCurrentUniversity(university))
 
 				// 2. Load entities for that university

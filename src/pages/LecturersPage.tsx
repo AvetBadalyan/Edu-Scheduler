@@ -4,27 +4,75 @@ import { LecturerList } from '@/components/lists/LecturerList'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { useEntityCrud } from '@/hooks/useEntityCrud'
+import { useToast } from '@/hooks/useToast'
 import {
 	addLecturerThunk,
 	deleteLecturerThunk,
 	selectLecturerById,
 	updateLecturerThunk,
 } from '@/store/entitySlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import type { CreateLecturerInput, Lecturer } from '@/types'
 import { Plus } from 'lucide-react'
-
-const lecturerLabel = (data: Pick<Lecturer, 'name' | 'surname'>) => `${data.name} ${data.surname}`
+import { useState } from 'react'
 
 export default function LecturersPage() {
-	const crud = useEntityCrud<Lecturer, CreateLecturerInput>({
-		selectById: selectLecturerById,
-		addThunk: addLecturerThunk,
-		updateThunk: updateLecturerThunk,
-		deleteThunk: deleteLecturerThunk,
-		label: lecturerLabel,
-		labelFromInput: lecturerLabel,
-	})
+	const dispatch = useAppDispatch()
+	const toast = useToast()
+
+	const [dialogOpen, setDialogOpen] = useState(false)
+	const [editingId, setEditingId] = useState<string | null>(null)
+	const [deleteId, setDeleteId] = useState<string | null>(null)
+	const [isSaving, setIsSaving] = useState(false)
+
+	// Look up the entity being edited / deleted from the store (stays in sync).
+	const editing = useAppSelector(state =>
+		editingId ? selectLecturerById(state, editingId) : undefined
+	)
+	const deleteTarget = useAppSelector(state =>
+		deleteId ? selectLecturerById(state, deleteId) : undefined
+	)
+
+	const openCreate = () => {
+		setEditingId(null)
+		setDialogOpen(true)
+	}
+
+	const openEdit = (lecturer: Lecturer) => {
+		setEditingId(lecturer.id)
+		setDialogOpen(true)
+	}
+
+	const handleSubmit = async (data: CreateLecturerInput) => {
+		const name = `${data.name} ${data.surname}`
+		setIsSaving(true)
+		try {
+			if (editingId) {
+				await dispatch(updateLecturerThunk({ id: editingId, updates: data })).unwrap()
+				toast.success(`Updated ${name}`)
+			} else {
+				await dispatch(addLecturerThunk(data)).unwrap()
+				toast.success(`Added ${name}`)
+			}
+			setDialogOpen(false)
+		} catch {
+			toast.error(`Could not save ${name}. Please try again.`)
+		} finally {
+			setIsSaving(false)
+		}
+	}
+
+	const confirmDelete = async () => {
+		if (!deleteTarget) return
+		const name = `${deleteTarget.name} ${deleteTarget.surname}`
+		setDeleteId(null)
+		try {
+			await dispatch(deleteLecturerThunk(deleteTarget.id)).unwrap()
+			toast.info(`Removed ${name}`)
+		} catch {
+			toast.error(`Could not remove ${name}. Please try again.`)
+		}
+	}
 
 	return (
 		<>
@@ -32,37 +80,37 @@ export default function LecturersPage() {
 				title="Lecturers"
 				description="Teaching staff and their specialties"
 				actions={
-					<Button onClick={crud.openCreate} className="gap-2">
+					<Button onClick={openCreate} className="gap-2">
 						<Plus className="size-4" aria-hidden />
 						Add Lecturer
 					</Button>
 				}
 			/>
-			<LecturerList onEdit={crud.openEdit} onDelete={crud.requestDelete} />
+			<LecturerList onEdit={openEdit} onDelete={setDeleteId} />
 
-			<Dialog open={crud.dialogOpen} onOpenChange={crud.setDialogOpen}>
-				<DialogContent title={crud.editingId ? 'Edit lecturer' : 'Add lecturer'}>
+			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+				<DialogContent title={editingId ? 'Edit lecturer' : 'Add lecturer'}>
 					<LecturerForm
-						mode={crud.editingId ? 'edit' : 'create'}
-						initialData={crud.editing ?? undefined}
-						onSubmit={crud.handleSubmit}
-						onCancel={crud.closeDialog}
-						isLoading={crud.isSaving}
+						mode={editingId ? 'edit' : 'create'}
+						initialData={editing ?? undefined}
+						onSubmit={handleSubmit}
+						onCancel={() => setDialogOpen(false)}
+						isLoading={isSaving}
 					/>
 				</DialogContent>
 			</Dialog>
 
 			<ConfirmDialog
-				open={!!crud.deleteTarget}
-				onOpenChange={open => !open && crud.cancelDelete()}
+				open={!!deleteTarget}
+				onOpenChange={open => !open && setDeleteId(null)}
 				title="Delete Lecturer?"
 				description={
-					crud.deleteTarget
-						? `Are you sure you want to remove ${crud.deleteTarget.name} ${crud.deleteTarget.surname}? This action cannot be undone.`
+					deleteTarget
+						? `Are you sure you want to remove ${deleteTarget.name} ${deleteTarget.surname}? This action cannot be undone.`
 						: ''
 				}
 				confirmLabel="Delete"
-				onConfirm={crud.confirmDelete}
+				onConfirm={confirmDelete}
 			/>
 		</>
 	)
