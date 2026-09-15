@@ -194,6 +194,23 @@ const authSlice = createSlice({
 export const { clearError, setSessionUser } = authSlice.actions
 export default authSlice.reducer
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Maps a raw Supabase auth user to the app's User type. */
+export function mapSupabaseUser(sbUser: {
+	id: string
+	email?: string | null
+	user_metadata?: Record<string, unknown>
+	created_at: string
+}): User {
+	return {
+		id: sbUser.id,
+		email: sbUser.email ?? '',
+		name: (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
+		createdAt: new Date(sbUser.created_at),
+	}
+}
+
 // ─── Selectors ────────────────────────────────────────────────────────────────
 
 import type { RootState } from './index'

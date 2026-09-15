@@ -7,10 +7,8 @@
  * on initial load to avoid a flash-redirect to /login.
  */
 import { supabase } from '@/lib/supabase'
-import { setSessionUser } from '@/store/authSlice'
+import { mapSupabaseUser, selectIsAuthenticated, setSessionUser } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { selectIsAuthenticated } from '@/store/authSlice'
-import type { User } from '@/types'
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
@@ -33,14 +31,7 @@ export function ProtectedRoute() {
 			.getSession()
 			.then(({ data }) => {
 				if (data.session?.user) {
-					const sbUser = data.session.user
-					const user: User = {
-						id: sbUser.id,
-						email: sbUser.email ?? '',
-						name: (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
-						createdAt: new Date(sbUser.created_at),
-					}
-					dispatch(setSessionUser(user))
+					dispatch(setSessionUser(mapSupabaseUser(data.session.user)))
 				}
 			})
 			.finally(() => setChecking(false))

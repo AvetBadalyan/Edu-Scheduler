@@ -1,3 +1,4 @@
+import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { selectIsDemoMode, selectUser } from '@/store/authSlice'
 import { selectAllFaculties, selectAllLecturers, selectAllRooms } from '@/store/entitySlice'
@@ -122,13 +123,7 @@ export default function HomePage() {
 	const firstName = user?.name?.split(' ')[0] ?? 'there'
 	const totalStudents = faculties.reduce((s, f) => s + f.students.length, 0)
 
-	const scheduledClasses = hasSchedule
-		? Object.values(scheduleFaculties).reduce((n, f) => {
-				for (const d of [1, 2, 3, 4, 5] as const)
-					for (const h of [1, 2, 3, 4] as const) if (f.timetable[d][h] !== null) n++
-				return n
-			}, 0)
-		: 0
+	const scheduledClasses = hasSchedule ? countTimetableSlots(scheduleFaculties) : 0
 
 	return (
 		<div className="space-y-8">

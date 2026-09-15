@@ -1,19 +1,11 @@
 import { Router } from 'express'
 import { AppDataSource } from '../data-source'
-import { Room, University } from '../entities'
+import { Room } from '../entities'
 import { AuthRequest, requireAuth } from '../middleware/supabaseAuth'
+import { getOwnedUniversity } from '../utils/authHelpers'
 
 export const roomsRouter = Router()
 roomsRouter.use(requireAuth)
-
-// Helper: verify university ownership
-async function getOwnedUniversity(universityId: string, userId: string) {
-	const uni = await AppDataSource.getRepository(University).findOneBy({
-		id: universityId,
-	})
-	if (!uni || uni.ownerId !== userId) return null
-	return uni
-}
 
 roomsRouter.get('/', async (req: AuthRequest, res, next) => {
 	try {

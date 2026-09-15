@@ -25,7 +25,6 @@ import {
 	Users,
 	Zap,
 } from 'lucide-react'
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 // ─── Feature highlight card ───────────────────────────────────────────────────
@@ -112,22 +111,14 @@ function StatPill({
 export default function LandingPage() {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
-	const isLoading = useAppSelector(selectAuthLoading)
-	const [entering, setEntering] = useState(false)
+	const isBusy = useAppSelector(selectAuthLoading)
 
 	async function handleDemoClick() {
-		setEntering(true)
-		try {
-			const result = await dispatch(loginThunk(DEMO_CREDENTIALS))
-			if (loginThunk.fulfilled.match(result)) {
-				navigate('/dashboard', { replace: true })
-			}
-		} finally {
-			setEntering(false)
+		const result = await dispatch(loginThunk(DEMO_CREDENTIALS))
+		if (loginThunk.fulfilled.match(result)) {
+			navigate('/dashboard', { replace: true })
 		}
 	}
-
-	const isBusy = isLoading || entering
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-indigo-50/40">

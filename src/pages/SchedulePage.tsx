@@ -7,6 +7,7 @@ import { useProgressiveTimetable } from '@/hooks/useProgressiveTimetable'
 import { useToast } from '@/hooks/useToast'
 import { useUndoRedo } from '@/hooks/useUndoRedo'
 import { runSchedulingAlgorithm } from '@/lib/algorithm/schedulingAlgorithm'
+import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { store } from '@/store'
 import { pushEdit } from '@/store/editHistorySlice'
@@ -38,14 +39,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-
-function countAssignments(result: ScheduleResult): number {
-	let n = 0
-	for (const f of Object.values(result.schedule.faculties))
-		for (const d of [1, 2, 3, 4, 5] as const)
-			for (const h of [1, 2, 3, 4] as const) if (f.timetable[d][h] !== null) n++
-	return n
-}
 
 function StatCard({
 	label,
@@ -118,7 +111,9 @@ export default function SchedulePage() {
 			setResult(outcome)
 			setIsGenerating(false)
 			outcome.success
-				? toast.success(`Scheduled ${countAssignments(outcome)} classes with no conflicts.`)
+				? toast.success(
+						`Scheduled ${countTimetableSlots(outcome.schedule.faculties)} classes with no conflicts.`
+					)
 				: toast.warning(`${outcome.unresolvedConstraints.length} class(es) could not be placed.`)
 			persist()
 		}, 50)
@@ -251,7 +246,7 @@ export default function SchedulePage() {
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-4 animate-fade-up">
 					<StatCard
 						label="Classes placed"
-						value={countAssignments(result)}
+						value={countTimetableSlots(result.schedule.faculties)}
 						icon={CalendarCheck}
 						gradient="from-indigo-600 to-violet-700"
 					/>

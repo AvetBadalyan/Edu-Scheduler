@@ -4,7 +4,7 @@
  * A timetable is a 5 (Mon–Fri) × 4 (hour slots) grid. An empty grid has every
  * slot set to `null`.
  */
-import type { DayOfWeek, HourSlot, Timetable, TimeSlot } from '@/types'
+import type { DayOfWeek, HourSlot, TimeSlot, Timetable } from '@/types'
 
 export const ALL_DAYS: DayOfWeek[] = [1, 2, 3, 4, 5]
 export const ALL_HOURS: HourSlot[] = [1, 2, 3, 4]
@@ -29,4 +29,15 @@ export function allTimeSlots(): TimeSlot[] {
 		}
 	}
 	return slots
+}
+
+/** Count non-null slots across a collection of timetables. */
+export function countTimetableSlots(
+	timetables: Record<string, { timetable: Record<DayOfWeek, Record<HourSlot, unknown | null>> }>
+): number {
+	let n = 0
+	for (const entity of Object.values(timetables))
+		for (const day of ALL_DAYS)
+			for (const hour of ALL_HOURS) if (entity.timetable[day][hour] !== null) n++
+	return n
 }

@@ -23,7 +23,6 @@ function getClient(): SupabaseClient {
 export interface AuthRequest extends Request {
 	userId?: string
 	userEmail?: string
-	universityId?: string
 }
 
 export async function requireAuth(

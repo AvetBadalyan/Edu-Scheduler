@@ -157,7 +157,6 @@ const facultySelectors = facultiesAdapter.getSelectors((s: RootState) => s.entit
 
 export const selectAllLecturers = lecturerSelectors.selectAll
 export const selectLecturerById = lecturerSelectors.selectById
-export const selectLecturerIds = lecturerSelectors.selectIds
 export const selectAllRooms = roomSelectors.selectAll
 export const selectRoomById = roomSelectors.selectById
 export const selectAllFaculties = facultySelectors.selectAll

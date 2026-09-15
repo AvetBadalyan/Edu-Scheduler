@@ -38,11 +38,8 @@ export function useAuthenticatedMode(): void {
 				// 1. Get or create university
 				let universities = await universitiesApi.list()
 				if (universities.length === 0) {
-					const domain = user!.email.split('@')[1] ?? 'My University'
-					const newName =
-						domain.split('.')[0]!.charAt(0).toUpperCase() +
-						domain.split('.')[0]!.slice(1) +
-						' University'
+					const prefix = (user!.email.split('@')[1] ?? 'my').split('.')[0]!
+					const newName = prefix.charAt(0).toUpperCase() + prefix.slice(1) + ' University'
 					const created = await universitiesApi.create(newName)
 					universities = [created]
 				}

@@ -17,9 +17,8 @@ import {
 	RoomsPage,
 	SchedulePage,
 } from '@/pages'
-import { DEMO_USER, setSessionUser } from '@/store/authSlice'
+import { DEMO_USER, mapSupabaseUser, setSessionUser } from '@/store/authSlice'
 import { useAppDispatch } from '@/store/hooks'
-import type { User } from '@/types'
 import { Suspense, useEffect } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 
@@ -70,13 +69,7 @@ function useSupabaseAuthSync() {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange((_event, session) => {
 			if (!session) return
-			const sbUser = session.user
-			const user: User = {
-				id: sbUser.id,
-				email: sbUser.email ?? '',
-				name: (sbUser.user_metadata?.name as string) ?? sbUser.email?.split('@')[0] ?? 'User',
-				createdAt: new Date(sbUser.created_at),
-			}
+			const user = mapSupabaseUser(session.user)
 			if (user.id === DEMO_USER.id) return
 			dispatch(setSessionUser(user))
 		})

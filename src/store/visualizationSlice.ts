@@ -53,6 +53,20 @@ function clearPlaybackInterval() {
 	}
 }
 
+/** Starts (or restarts) the playback interval at the given speed. */
+function startInterval(dispatch: AppDispatch, getState: () => RootState, speed: number) {
+	clearPlaybackInterval()
+	_intervalId = setInterval(() => {
+		const s = getState().visualization
+		if (s.currentStepIndex + 1 >= s.steps.length) {
+			clearPlaybackInterval()
+			dispatch(setPlaybackState('complete'))
+		} else {
+			dispatch(_tick())
+		}
+	}, 800 / speed)
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractHighlights(step: AlgorithmStep): HighlightedElement[] {
@@ -205,16 +219,7 @@ export function play() {
 
 		dispatch(setPlaybackState('playing'))
 
-		clearPlaybackInterval()
-		_intervalId = setInterval(() => {
-			const s = getState().visualization
-			if (s.currentStepIndex + 1 >= s.steps.length) {
-				clearPlaybackInterval()
-				dispatch(setPlaybackState('complete'))
-			} else {
-				dispatch(_tick())
-			}
-		}, 800 / getState().visualization.playbackSpeed)
+		startInterval(dispatch, getState, getState().visualization.playbackSpeed)
 	}
 }
 
@@ -223,16 +228,7 @@ export function updateSpeed(speed: number) {
 	return (dispatch: AppDispatch, getState: () => RootState) => {
 		dispatch(setSpeed(speed))
 		if (getState().visualization.playbackState === 'playing') {
-			clearPlaybackInterval()
-			_intervalId = setInterval(() => {
-				const s = getState().visualization
-				if (s.currentStepIndex + 1 >= s.steps.length) {
-					clearPlaybackInterval()
-					dispatch(setPlaybackState('complete'))
-				} else {
-					dispatch(_tick())
-				}
-			}, 800 / speed)
+			startInterval(dispatch, getState, speed)
 		}
 	}
 }
