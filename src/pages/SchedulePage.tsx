@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/layout/PageHeader'
 import { TimetableViewer } from '@/components/timetable/TimetableViewer'
 import { Button } from '@/components/ui/button'
+import { StatCard } from '@/components/ui/StatCard'
 import { clearDemoSchedule, saveDemoSchedule } from '@/hooks/useSeedData'
 import { useToast } from '@/hooks/useToast'
 import { useUndoRedo } from '@/hooks/useUndoRedo'
@@ -31,32 +32,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-
-function StatCard({
-	label,
-	value,
-	icon: Icon,
-	gradient,
-}: {
-	label: string
-	value: number
-	icon: typeof CalendarCheck
-	gradient: string
-}) {
-	return (
-		<div
-			className={cn(
-				'relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white shadow-md',
-				gradient
-			)}
-		>
-			<div className="pointer-events-none absolute -right-4 -top-4 size-20 rounded-full bg-white/10" />
-			<Icon className="size-5 opacity-80 mb-2" aria-hidden />
-			<p className="text-2xl font-black tabular-nums">{value}</p>
-			<p className="text-xs font-semibold opacity-80 mt-0.5">{label}</p>
-		</div>
-	)
-}
 
 export default function SchedulePage() {
 	const dispatch = useAppDispatch()
@@ -190,29 +165,30 @@ export default function SchedulePage() {
 						label="Classes placed"
 						value={countTimetableSlots(result.schedule.faculties)}
 						icon={CalendarCheck}
-						gradient="from-indigo-600 to-violet-700"
+						gradient="bg-gradient-to-br from-indigo-600 to-violet-700"
 					/>
 					<StatCard
 						label="Backtracks"
 						value={result.backtracks}
 						icon={RotateCcw}
-						gradient="from-sky-600 to-blue-700"
+						gradient="bg-gradient-to-br from-sky-600 to-blue-700"
 					/>
 					<StatCard
 						label="Algorithm steps"
 						value={result.totalSteps}
 						icon={BrainCircuit}
-						gradient="from-emerald-600 to-teal-700"
+						gradient="bg-gradient-to-br from-emerald-600 to-teal-700"
 					/>
 					<StatCard
 						label="Unresolved"
 						value={result.unresolvedConstraints.length}
 						icon={Zap}
-						gradient={
+						gradient={cn(
+							'bg-gradient-to-br',
 							result.unresolvedConstraints.length > 0
 								? 'from-amber-600 to-orange-700'
 								: 'from-emerald-600 to-teal-700'
-						}
+						)}
 					/>
 				</div>
 			)}

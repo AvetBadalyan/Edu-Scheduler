@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-function StatCard({
+// A stat tile that links to its section. (Distinct from the static StatCard in
+// components/ui — this one is a navigational Link with a hover arrow.)
+function StatLinkCard({
 	label,
 	value,
 	icon: Icon,
@@ -143,14 +145,14 @@ export default function HomePage() {
 
 			<section aria-label="Summary statistics">
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					<StatCard
+					<StatLinkCard
 						label="Lecturers"
 						value={lecturers.length}
 						icon={Users}
 						to="/lecturers"
 						gradient="bg-gradient-to-br from-indigo-700 to-violet-700"
 					/>
-					<StatCard
+					<StatLinkCard
 						label="Rooms"
 						value={rooms.length}
 						icon={DoorOpen}
@@ -158,7 +160,7 @@ export default function HomePage() {
 						gradient="bg-gradient-to-br from-emerald-700 to-teal-700"
 						delay="delay-75"
 					/>
-					<StatCard
+					<StatLinkCard
 						label="Faculties"
 						value={faculties.length}
 						icon={GraduationCap}
@@ -166,7 +168,7 @@ export default function HomePage() {
 						gradient="bg-gradient-to-br from-amber-700 to-orange-700"
 						delay="delay-150"
 					/>
-					<StatCard
+					<StatLinkCard
 						label="Students"
 						value={totalStudents}
 						icon={GraduationCap}

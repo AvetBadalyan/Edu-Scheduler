@@ -20,7 +20,7 @@ import {
 	Users,
 	X,
 } from 'lucide-react'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 interface NavItem {
@@ -54,10 +54,23 @@ export function AppLayout() {
 	const dispatch = useAppDispatch()
 	const user = useAppSelector(selectUser)
 	const isDemoMode = useAppSelector(selectIsDemoMode)
+	const sidebarRef = useRef<HTMLElement>(null)
 
+	// Close the mobile drawer whenever the route changes.
 	useEffect(() => {
 		setMobileOpen(false)
 	}, [location.pathname])
+
+	// While the mobile drawer is open: focus it and close it on Escape.
+	useEffect(() => {
+		if (!mobileOpen) return
+		sidebarRef.current?.focus()
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setMobileOpen(false)
+		}
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [mobileOpen])
 
 	return (
 		<div className="min-h-screen lg:grid lg:grid-cols-[15rem_1fr]">
@@ -78,7 +91,9 @@ export function AppLayout() {
 
 			{/* Sidebar */}
 			<aside
+				ref={sidebarRef}
 				id="app-navigation"
+				tabIndex={mobileOpen ? -1 : undefined}
 				role={mobileOpen ? 'dialog' : undefined}
 				aria-modal={mobileOpen ? true : undefined}
 				aria-label={mobileOpen ? 'Navigation menu' : undefined}

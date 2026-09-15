@@ -5,6 +5,7 @@
  * instead of raw IDs.
  */
 import { ALL_DAYS, ALL_HOURS } from '@/lib/timetable'
+import { subjectPill } from '@/lib/ui/subjectColors'
 import { cn } from '@/lib/utils'
 import { useAppSelector } from '@/store/hooks'
 import {
@@ -52,32 +53,6 @@ const HOUR_LABELS: Record<HourSlot, string> = {
 	2: '11:00',
 	3: '13:00',
 	4: '15:00',
-}
-
-// Deterministic per-subject colour — hash keeps colours stable across renders
-const PALETTE = [
-	'bg-indigo-100 border-indigo-300 text-indigo-900',
-	'bg-emerald-100 border-emerald-300 text-emerald-900',
-	'bg-amber-100 border-amber-300 text-amber-900',
-	'bg-rose-100 border-rose-300 text-rose-900',
-	'bg-violet-100 border-violet-300 text-violet-900',
-	'bg-cyan-100 border-cyan-300 text-cyan-900',
-	'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-900',
-	'bg-teal-100 border-teal-300 text-teal-900',
-	'bg-orange-100 border-orange-300 text-orange-900',
-	'bg-sky-100 border-sky-300 text-sky-900',
-]
-
-function hashSubject(subject: string): number {
-	let h = 0
-	for (let i = 0; i < subject.length; i++) {
-		h = (h * 31 + subject.charCodeAt(i)) >>> 0
-	}
-	return h % PALETTE.length
-}
-
-function subjectColor(subject: string) {
-	return PALETTE[hashSubject(subject)]
 }
 
 // ─── Tooltip (portal-based to escape overflow:hidden parents) ────────────────
@@ -233,8 +208,8 @@ function TimetableCell({
 		compact ? 'p-1 min-h-[4.5rem]' : 'p-1.5 min-h-[5.5rem]',
 		// Empty
 		assignment === null && 'bg-white hover:bg-slate-50',
-		// Filled
-		assignment !== null && subjectColor(assignment.subject),
+		// Filled — shared per-subject colour (matches the lists app-wide)
+		assignment !== null && subjectPill(assignment.subject),
 		// Editable states
 		isEditable && assignment !== null && 'cursor-grab active:cursor-grabbing',
 		isEditable && assignment === null && 'cursor-pointer',
@@ -271,13 +246,14 @@ function TimetableCell({
 					>
 						{assignment.subject}
 					</span>
-					{/* Lecturer + Room — hidden in compact mode to save space */}
+					{/* Lecturer + Room — hidden in compact mode to save space.
+					    Solid gray (not opacity) so text keeps enough contrast on the coloured cell. */}
 					{!compact && (
 						<>
-							<span className="block truncate text-xs opacity-70 leading-snug mt-0.5">
+							<span className="mt-0.5 block truncate text-xs leading-snug text-gray-600">
 								{lecturerName}
 							</span>
-							<span className="block truncate text-xs opacity-50 leading-snug">{roomLabel}</span>
+							<span className="block truncate text-xs leading-snug text-gray-500">{roomLabel}</span>
 						</>
 					)}
 					{/* Manual badge */}
