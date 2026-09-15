@@ -3,7 +3,7 @@
  * Auto-dismiss is handled by a thunk so the reducer stays pure.
  */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { RootState, AppDispatch } from './index'
+import type { AppDispatch, RootState } from './index'
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info'
 
@@ -23,13 +23,10 @@ const toastSlice = createSlice({
 		dismissToast(state, action: PayloadAction<string>) {
 			state.toasts = state.toasts.filter(t => t.id !== action.payload)
 		},
-		dismissAll(state) {
-			state.toasts = []
-		},
 	},
 })
 
-export const { dismissToast, dismissAll } = toastSlice.actions
+export const { dismissToast } = toastSlice.actions
 export default toastSlice.reducer
 
 // ─── Thunk — add with auto-dismiss ───────────────────────────────────────────

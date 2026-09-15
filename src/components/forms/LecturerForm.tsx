@@ -25,7 +25,9 @@ export function LecturerForm({
 }: LecturerFormProps) {
 	const [name, setName] = useState(initialData?.name ?? '')
 	const [surname, setSurname] = useState(initialData?.surname ?? '')
-	const [specialtiesInput, setSpecialties] = useState(initialData?.specialties?.join(', ') ?? '')
+	const [specialtiesInput, setSpecialtiesInput] = useState(
+		initialData?.specialties?.join(', ') ?? ''
+	)
 	const [imageUrl, setImageUrl] = useState(initialData?.imageUrl ?? '')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -144,7 +146,7 @@ export function LecturerForm({
 					<Input
 						id="lf-spec"
 						value={specialtiesInput}
-						onChange={e => setSpecialties(e.target.value)}
+						onChange={e => setSpecialtiesInput(e.target.value)}
 						className={cn(
 							'pl-9',
 							errors.specialties && 'border-red-400 focus-visible:ring-red-400'

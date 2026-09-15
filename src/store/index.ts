@@ -43,7 +43,7 @@ export const store = configureStore({
 					'schedule.rooms',
 					'schedule.lecturers',
 					'schedule.faculties',
-					'editHistory.edits',
+					'editHistory.history',
 				],
 				// loadSchedule/setCurrentUniversity/entity actions carry Date fields
 				// nested in their payloads; ignore those action sub-paths.

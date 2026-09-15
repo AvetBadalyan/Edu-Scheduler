@@ -275,7 +275,7 @@ function EmptyState({ search }: { search: string }) {
 			<p className="text-sm text-gray-500 max-w-xs">
 				{search
 					? 'Try a different name or specialty.'
-					: 'Click "+ Add Lecturer" to add your first lecturer.'}
+					: 'Click "Add Lecturer" to add your first lecturer.'}
 			</p>
 		</div>
 	)

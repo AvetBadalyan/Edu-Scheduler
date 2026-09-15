@@ -172,22 +172,6 @@ export interface ValidationResult {
 	errors: ValidationError[]
 }
 
-export interface ConstraintViolation {
-	type:
-		| 'lecturer_conflict'
-		| 'room_conflict'
-		| 'faculty_conflict'
-		| 'capacity_exceeded'
-		| 'specialty_mismatch'
-	message: string
-	conflictingAssignment?: ClassAssignment
-}
-
-export interface AssignmentValidation {
-	isValid: boolean
-	violations: ConstraintViolation[]
-}
-
 // ─── Edit history models ──────────────────────────────────────────────────────
 
 export interface ScheduleEdit {
@@ -196,12 +180,6 @@ export interface ScheduleEdit {
 	type: 'assign' | 'unassign' | 'move'
 	before: ClassAssignment | null
 	after: ClassAssignment | null
-}
-
-export interface Conflict {
-	type: 'double_booking' | 'capacity' | 'specialty_mismatch'
-	slots: TimeSlotRef[]
-	description: string
 }
 
 // ─── University models ────────────────────────────────────────────────────────
@@ -244,16 +222,6 @@ export interface ApiError {
 	details?: Record<string, unknown>
 }
 
-// ─── UI models ────────────────────────────────────────────────────────────────
-
-export interface UtilizationStats {
-	totalSlots: number
-	usedSlots: number
-	utilizationPercent: number
-	byRoom: Record<RoomId, number>
-	byLecturer: Record<LecturerId, number>
-}
-
 // ─── CRUD input types ─────────────────────────────────────────────────────────
 
 export type CreateLecturerInput = Omit<Lecturer, 'id' | 'createdAt' | 'updatedAt'>
@@ -273,13 +241,4 @@ export interface CreateScheduleInput {
 export interface UpdateScheduleInput {
 	name?: string
 	state?: ScheduleState
-}
-
-export interface ScheduleSummary {
-	id: ScheduleId
-	name: string
-	createdAt: Date
-	updatedAt: Date
-	isComplete: boolean
-	stats: ScheduleStats
 }

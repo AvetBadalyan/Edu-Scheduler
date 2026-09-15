@@ -78,7 +78,7 @@ export function RoomForm({
 						id="rf-num"
 						value={number}
 						onChange={e => setNumber(e.target.value)}
-						className={cn('pl-9', errors.number && 'border-red-400')}
+						className={cn('pl-9', errors.number && 'border-red-400 focus-visible:ring-red-400')}
 						placeholder="101"
 						autoFocus
 						aria-invalid={!!errors.number}
@@ -110,7 +110,7 @@ export function RoomForm({
 							max={500}
 							value={capacity}
 							onChange={e => setCapacity(e.target.value)}
-							className={cn('pl-9', errors.capacity && 'border-red-400')}
+							className={cn('pl-9', errors.capacity && 'border-red-400 focus-visible:ring-red-400')}
 							placeholder="30"
 							aria-invalid={!!errors.capacity}
 						/>

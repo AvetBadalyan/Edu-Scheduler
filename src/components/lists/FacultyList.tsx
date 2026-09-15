@@ -108,7 +108,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 				</div>
 				<p className="text-base font-semibold text-gray-800">No faculties yet</p>
 				<p className="text-sm text-gray-500 max-w-xs">
-					Click "+ Add Faculty" to create your first bootcamp or course.
+					Click "Add Faculty" to create your first bootcamp or course.
 				</p>
 			</div>
 		)
@@ -203,7 +203,7 @@ export function FacultyList({ onEdit, onDelete, className }: FacultyListProps) {
 				</div>
 			) : (
 				<div
-					className="grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-3"
+					className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
 					role="list"
 					aria-label="Faculties"
 				>

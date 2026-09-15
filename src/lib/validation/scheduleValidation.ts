@@ -23,7 +23,7 @@ function error(code: string, message: string, field?: string): ValidationError {
 
 // ─── Individual validators ────────────────────────────────────────────────────
 
-export function validateLecturer(l: Lecturer, index: number): ValidationError[] {
+function validateLecturer(l: Lecturer, index: number): ValidationError[] {
 	const errors: ValidationError[] = []
 	const field = `lecturers[${index}]`
 
@@ -63,7 +63,7 @@ export function validateLecturer(l: Lecturer, index: number): ValidationError[] 
 	return errors
 }
 
-export function validateRoom(r: Room, index: number): ValidationError[] {
+function validateRoom(r: Room, index: number): ValidationError[] {
 	const errors: ValidationError[] = []
 	const field = `rooms[${index}]`
 
@@ -85,7 +85,7 @@ export function validateRoom(r: Room, index: number): ValidationError[] {
 	return errors
 }
 
-export function validateFaculty(f: Faculty, index: number): ValidationError[] {
+function validateFaculty(f: Faculty, index: number): ValidationError[] {
 	const errors: ValidationError[] = []
 	const field = `faculties[${index}]`
 
@@ -138,10 +138,7 @@ export function validateFaculty(f: Faculty, index: number): ValidationError[] {
 
 // ─── Cross-entity validators ──────────────────────────────────────────────────
 
-export function validateSpecialtyMatches(
-	lecturers: Lecturer[],
-	faculties: Faculty[]
-): ValidationError[] {
+function validateSpecialtyMatches(lecturers: Lecturer[], faculties: Faculty[]): ValidationError[] {
 	const errors: ValidationError[] = []
 	const allSubjects = new Set(faculties.flatMap(f => f.syllabus.map(s => s.subject)))
 
@@ -161,7 +158,7 @@ export function validateSpecialtyMatches(
 	return errors
 }
 
-export function validateRoomCapacity(rooms: Room[], faculties: Faculty[]): ValidationError[] {
+function validateRoomCapacity(rooms: Room[], faculties: Faculty[]): ValidationError[] {
 	const errors: ValidationError[] = []
 	const maxRoomCapacity = rooms.length > 0 ? Math.max(...rooms.map(r => r.capacity)) : 0
 

@@ -2,8 +2,8 @@
  * editHistorySlice — undo/redo stack for manual schedule edits.
  * Max 50 entries. Trimmed when pushing new edits after an undo.
  */
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ScheduleEdit } from '@/types'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from './index'
 
 const MAX_HISTORY_SIZE = 50
@@ -39,14 +39,10 @@ const editHistorySlice = createSlice({
 				state.currentIndex += 1
 			}
 		},
-		clearHistory(state) {
-			state.history = []
-			state.currentIndex = -1
-		},
 	},
 })
 
-export const { pushEdit, undo, redo, clearHistory } = editHistorySlice.actions
+export const { pushEdit, undo, redo } = editHistorySlice.actions
 export default editHistorySlice.reducer
 
 // ─── Selectors ────────────────────────────────────────────────────────────────

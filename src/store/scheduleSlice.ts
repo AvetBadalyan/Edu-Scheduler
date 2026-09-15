@@ -2,14 +2,14 @@
  * scheduleSlice — timetable state for all rooms, lecturers and faculties.
  *
  * Each entity has a 5×4 timetable (days × hours). A cell is either null
- * (free) or a ClassAssignment object. assignClass, unassignClass and
- * moveClass keep all three timetables consistent atomically.
+ * (free) or a ClassAssignment object. The reducers (_assignClass,
+ * _unassignSlot) and the moveClassWithHistory thunk keep all three
+ * timetables consistent.
  */
 import { schedulesApi } from '@/lib/api/schedules'
-import { allTimeSlots, emptyTimetable } from '@/lib/timetable'
+import { emptyTimetable } from '@/lib/timetable'
 import type {
 	ClassAssignment,
-	Conflict,
 	DayOfWeek,
 	FacultyId,
 	FacultyWithTimetable,
@@ -20,7 +20,6 @@ import type {
 	RoomWithTimetable,
 	ScheduleState,
 	TimeSlotRef,
-	UtilizationStats,
 } from '@/types'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from './index'
@@ -32,8 +31,6 @@ interface ScheduleSliceState {
 	lecturers: Record<LecturerId, LecturerWithTimetable>
 	faculties: Record<FacultyId, FacultyWithTimetable>
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
@@ -254,83 +251,3 @@ export const selectScheduleRooms = (s: RootState) => s.schedule.rooms
 export const selectScheduleLecturers = (s: RootState) => s.schedule.lecturers
 export const selectScheduleFaculties = (s: RootState) => s.schedule.faculties
 export const selectHasSchedule = (s: RootState) => Object.keys(s.schedule.lecturers).length > 0
-
-export const selectRoomTimetable = (roomId: RoomId) => (s: RootState) =>
-	s.schedule.rooms[roomId]?.timetable ?? null
-
-export const selectLecturerTimetable = (lecturerId: LecturerId) => (s: RootState) =>
-	s.schedule.lecturers[lecturerId]?.timetable ?? null
-
-export const selectFacultyTimetable = (facultyId: FacultyId) => (s: RootState) =>
-	s.schedule.faculties[facultyId]?.timetable ?? null
-
-export function selectConflicts(state: RootState): Conflict[] {
-	const { rooms, lecturers, faculties } = state.schedule
-	const conflicts: Conflict[] = []
-
-	for (const { day, hour } of allTimeSlots()) {
-		// Collect the ids booked in this slot. flatMap with [] skips empty slots,
-		// so we get a clean string[] without needing a type cast.
-		const roomIds = Object.values(rooms).flatMap(r => {
-			const id = r.timetable[day][hour]?.roomId
-			return id ? [id] : []
-		})
-		const lecturerIds = Object.values(lecturers).flatMap(l => {
-			const id = l.timetable[day][hour]?.lecturerId
-			return id ? [id] : []
-		})
-		const facultyIds = Object.values(faculties).flatMap(f => {
-			const id = f.timetable[day][hour]?.facultyId
-			return id ? [id] : []
-		})
-
-		const check = (type: 'room' | 'lecturer' | 'faculty', ids: string[]) => {
-			const counts = new Map<string, number>()
-			ids.forEach(id => counts.set(id, (counts.get(id) ?? 0) + 1))
-			counts.forEach((count, id) => {
-				if (count > 1)
-					conflicts.push({
-						type: 'double_booking',
-						slots: [{ day, hour, entityType: type, entityId: id }],
-						description: `${type} ${id} double-booked day ${day} hour ${hour}`,
-					})
-			})
-		}
-		check('room', roomIds)
-		check('lecturer', lecturerIds)
-		check('faculty', facultyIds)
-	}
-	return conflicts
-}
-
-export function selectUtilizationStats(state: RootState): UtilizationStats {
-	const { rooms, lecturers } = state.schedule
-	const slots = allTimeSlots()
-	const totalSlots = Object.keys(rooms).length * slots.length
-	let usedSlots = 0
-	const byRoom: Record<RoomId, number> = {}
-	const byLecturer: Record<LecturerId, number> = {}
-
-	for (const [id, room] of Object.entries(rooms)) {
-		let used = 0
-		for (const { day, hour } of slots)
-			if (room.timetable[day][hour] !== null) {
-				usedSlots++
-				used++
-			}
-		byRoom[id] = Math.round((used / slots.length) * 100)
-	}
-	for (const [id, lecturer] of Object.entries(lecturers)) {
-		let used = 0
-		for (const { day, hour } of slots) if (lecturer.timetable[day][hour] !== null) used++
-		byLecturer[id] = Math.round((used / slots.length) * 100)
-	}
-
-	return {
-		totalSlots,
-		usedSlots,
-		utilizationPercent: totalSlots > 0 ? Math.round((usedSlots / totalSlots) * 100) : 0,
-		byRoom,
-		byLecturer,
-	}
-}
