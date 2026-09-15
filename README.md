@@ -1,6 +1,6 @@
 # EduScheduler
 
-> University timetable generator with a backtracking CSP solver and step-by-step algorithm visualization — built as a portfolio project demonstrating full-stack engineering depth.
+> University timetable generator with a backtracking CSP solver — built as a portfolio project demonstrating full-stack engineering depth.
 
 **[→ Live demo: edu-scheduler-aca.vercel.app](https://edu-scheduler-aca.vercel.app)**
 
@@ -12,7 +12,7 @@ No account required. One click loads the Armenian Code Academy dataset — 9 rea
 
 EduScheduler solves the university timetable problem automatically. You define lecturers with their specialties, rooms with capacities, and faculty syllabuses — the engine finds a valid conflict-free schedule that satisfies all constraints simultaneously.
 
-The scheduling engine is a **backtracking constraint-satisfaction algorithm** — the same class of algorithm used in real-world academic scheduling systems. Every decision it makes is recorded and can be replayed step by step in the visualization player.
+The scheduling engine is a **backtracking constraint-satisfaction algorithm** — the same class of algorithm used in real-world academic scheduling systems.
 
 ---
 
@@ -21,6 +21,10 @@ The scheduling engine is a **backtracking constraint-satisfaction algorithm** �
 ### Landing page
 
 ![Landing page](docs/screenshots/01-landing.png)
+
+### Login page
+
+![Login](docs/screenshots/02-login.png)
 
 ### Dashboard — university at a glance
 
@@ -38,13 +42,20 @@ The scheduling engine is a **backtracking constraint-satisfaction algorithm** �
 
 ![Faculties](docs/screenshots/05-faculties.png)
 
-### Schedule generation — 63 classes placed, 0 backtracks, 0 unresolved
+### Schedule — before generation
+
+![Schedule empty](docs/screenshots/06-schedule-empty.png)
+
+### Schedule — after generation with drag-and-drop editing
 
 ![Schedule result](docs/screenshots/06-schedule-result.png)
 
-### Algorithm visualization — step-by-step decision log with live timetable
+### Mobile responsive design
 
-![Algorithm visualization](docs/screenshots/07-schedule-generated.png)
+<p>
+<img src="docs/screenshots/08-mobile-dashboard.png" width="200" alt="Mobile dashboard" />
+<img src="docs/screenshots/09-mobile-schedule.png" width="200" alt="Mobile schedule" />
+</p>
 
 ---
 
@@ -61,10 +72,6 @@ The scheduling engine applies a most-constrained-first heuristic — each class 
 - Lecturer specialty must match the subject being taught
 
 For each class the solver searches time slots (spread evenly across days) and the tightest-fitting available room. When a class has no free slot, it undoes the previous assignment and retries; if it still can't be placed, the class is recorded as an unresolved constraint and the solver moves on rather than failing outright. On the Armenian Code Academy dataset (9 lecturers, 6 rooms, 4 bootcamps) the search finds a conflict-free placement for every class on the first pass — zero unresolved constraints and zero backtracks.
-
-### Step-by-step algorithm visualization
-
-The solver is implemented as a JavaScript generator function. Every `yield` produces one `AlgorithmStep` — an evaluate, assign, conflict, or backtrack event. The visualization player consumes these steps and animates them in the timetable grid at adjustable speed (0.5× – 4×). You can pause, step forward, step backward, or jump to any point in the algorithm's execution.
 
 ### Drag-and-drop schedule editing
 
@@ -100,7 +107,7 @@ Full edit history with up to 50 entries. Keyboard shortcuts Ctrl+Z and Ctrl+Y wo
 
 ## Architecture notes
 
-**Scheduling algorithm** lives in `src/lib/algorithm/schedulingAlgorithm.ts` as a pure generator function. It has no React dependencies and can be unit-tested in isolation. The visualization slice consumes its `AlgorithmStep[]` output independently of the schedule slice.
+**Scheduling algorithm** lives in `src/lib/algorithm/schedulingAlgorithm.ts` as a pure function. It has no React dependencies and can be unit-tested in isolation.
 
 **Mode-aware data layer** — entity thunks in `src/store/entitySlice.ts` check whether the user is in demo mode. In demo mode they dispatch synchronous Redux actions. In authenticated mode they call the REST API and upsert the server response. The UI components dispatch the same thunks regardless of mode.
 
@@ -166,6 +173,6 @@ The app deploys as a monorepo to Vercel — frontend built by Vite, backend serv
 
 This project started as a group final project at [Armenian Code Academy](https://bootcamps.aca.am) in 2022 — a basic React + Redux schedule manager.
 
-In 2026 it was fully rebuilt from scratch: migrated from Create React App to Vite 8, added TypeScript strict mode, replaced manual state with RTK entity adapters, implemented the backtracking CSP algorithm with generator-based visualization, added a full backend with Supabase authentication and PostgreSQL persistence, and deployed as a full-stack monorepo on Vercel.
+In 2026 it was fully rebuilt from scratch: migrated from Create React App to Vite 8, added TypeScript strict mode, replaced manual state with RTK entity adapters, implemented the backtracking CSP algorithm, added a full backend with Supabase authentication and PostgreSQL persistence, and deployed as a full-stack monorepo on Vercel.
 
 Original project: [RafaelAfrikyan/Education-management](https://github.com/RafaelAfrikyan/Education-management)
