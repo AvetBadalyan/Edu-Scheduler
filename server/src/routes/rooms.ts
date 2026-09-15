@@ -11,8 +11,8 @@ roomsRouter.get('/', async (req: AuthRequest, res, next) => {
 	try {
 		const universityId = req.query.universityId as string | undefined
 		if (!universityId)
-			return res.status(403).json({
-				code: 'FORBIDDEN',
+			return res.status(400).json({
+				code: 'VALIDATION_ERROR',
 				message: 'universityId query param is required.',
 			})
 		const uni = await getOwnedUniversity(universityId, req.userId!)

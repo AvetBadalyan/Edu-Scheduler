@@ -52,7 +52,7 @@ The scheduling engine is a **backtracking constraint-satisfaction algorithm** �
 
 ### Backtracking CSP solver
 
-The scheduling engine applies a most-constrained-first heuristic — faculties with fewer available slots are scheduled first, reducing backtracking. It enforces three constraint dimensions simultaneously:
+The scheduling engine applies a most-constrained-first heuristic — each class to place is ordered by how many lecturers are qualified to teach its subject, so the subjects with the fewest qualified lecturers are scheduled first. It enforces five constraints simultaneously:
 
 - A lecturer can only teach one class at a time
 - A room can only host one class at a time
@@ -60,7 +60,7 @@ The scheduling engine applies a most-constrained-first heuristic — faculties w
 - Room capacity must accommodate the faculty's student count
 - Lecturer specialty must match the subject being taught
 
-On the Armenian Code Academy dataset (9 lecturers, 6 rooms, 4 bootcamps) the algorithm typically completes with zero unresolved constraints and under 50 backtracks.
+For each class the solver searches time slots (spread evenly across days) and the tightest-fitting available room. When a class has no free slot, it undoes the previous assignment and retries; if it still can't be placed, the class is recorded as an unresolved constraint and the solver moves on rather than failing outright. On the Armenian Code Academy dataset (9 lecturers, 6 rooms, 4 bootcamps) the search finds a conflict-free placement for every class on the first pass — zero unresolved constraints and zero backtracks.
 
 ### Step-by-step algorithm visualization
 
@@ -150,14 +150,15 @@ The app deploys as a monorepo to Vercel — frontend built by Vite, backend serv
 2. Root directory: `/` — Framework: Vite
 3. Set environment variables:
 
-| Variable                 | Description                     |
-| ------------------------ | ------------------------------- |
-| `VITE_SUPABASE_URL`      | Supabase project URL            |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon/publishable key   |
-| `SUPABASE_URL`           | Same as above (used by backend) |
-| `SUPABASE_ANON_KEY`      | Same as above (used by backend) |
-| `DATABASE_URL`           | Supabase session pooler URI     |
-| `CLIENT_ORIGIN`          | Your Vercel deployment URL      |
+| Variable                 | Description                                            |
+| ------------------------ | ------------------------------------------------------ |
+| `VITE_SUPABASE_URL`      | Supabase project URL                                   |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon/publishable key                          |
+| `VITE_API_URL`           | Backend base URL (leave empty on Vercel — same domain) |
+| `SUPABASE_URL`           | Same as above (used by backend)                        |
+| `SUPABASE_ANON_KEY`      | Same as above (used by backend)                        |
+| `DATABASE_URL`           | Supabase session pooler URI                            |
+| `CLIENT_ORIGIN`          | Your Vercel deployment URL                             |
 
 ---
 

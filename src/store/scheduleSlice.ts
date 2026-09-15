@@ -10,8 +10,10 @@ import { allTimeSlots, emptyTimetable } from '@/lib/timetable'
 import type {
 	ClassAssignment,
 	Conflict,
+	DayOfWeek,
 	FacultyId,
 	FacultyWithTimetable,
+	HourSlot,
 	LecturerId,
 	LecturerWithTimetable,
 	RoomId,
@@ -70,10 +72,9 @@ const scheduleSlice = createSlice({
 				roomId,
 				timeSlot: { day, hour },
 			} = a
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			;(state.rooms[roomId].timetable as any)[day][hour] = a
-			;(state.lecturers[lecturerId].timetable as any)[day][hour] = a
-			;(state.faculties[facultyId].timetable as any)[day][hour] = a
+			state.rooms[roomId].timetable[day][hour] = a
+			state.lecturers[lecturerId].timetable[day][hour] = a
+			state.faculties[facultyId].timetable[day][hour] = a
 		},
 
 		_unassignSlot(
@@ -82,17 +83,14 @@ const scheduleSlice = createSlice({
 				roomId: RoomId
 				lecturerId: LecturerId
 				facultyId: FacultyId
-				day: number
-				hour: number
+				day: DayOfWeek
+				hour: HourSlot
 			}>
 		) {
 			const { roomId, lecturerId, facultyId, day, hour } = action.payload
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			if (state.rooms[roomId]) (state.rooms[roomId].timetable as any)[day][hour] = null
-			if (state.lecturers[lecturerId])
-				(state.lecturers[lecturerId].timetable as any)[day][hour] = null
-			if (state.faculties[facultyId])
-				(state.faculties[facultyId].timetable as any)[day][hour] = null
+			if (state.rooms[roomId]) state.rooms[roomId].timetable[day][hour] = null
+			if (state.lecturers[lecturerId]) state.lecturers[lecturerId].timetable[day][hour] = null
+			if (state.faculties[facultyId]) state.faculties[facultyId].timetable[day][hour] = null
 		},
 
 		resetSchedule(state) {

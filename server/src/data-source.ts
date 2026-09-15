@@ -2,8 +2,11 @@
  * TypeORM DataSource — connects to Supabase PostgreSQL.
  *
  * Reads DATABASE_URL from environment (set in server/.env).
- * SSL is always enabled for Supabase; rejectUnauthorized is relaxed
- * for local/dev to avoid certificate issues with self-signed certs.
+ * SSL is enabled for Supabase. The Supabase connection pooler presents a
+ * certificate that Node's default CA bundle doesn't trust, so we set
+ * `rejectUnauthorized: false`. The connection is still encrypted; only the
+ * certificate-chain check is skipped. To harden this, pass Supabase's CA
+ * certificate via `ssl: { ca: <cert> }` instead.
  */
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'

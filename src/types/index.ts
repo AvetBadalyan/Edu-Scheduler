@@ -88,8 +88,6 @@ export interface Faculty {
 
 export interface FacultyWithTimetable extends Faculty {
 	timetable: Timetable
-	/** subject -> hours remaining */
-	remainingHours: Record<string, number>
 }
 
 // ─── Schedule models ──────────────────────────────────────────────────────────

@@ -58,7 +58,6 @@ export function useProgressiveTimetable(): ScheduleState | null {
 			facultyState[f.id] = {
 				...f,
 				timetable: emptyTimetable(),
-				remainingHours: Object.fromEntries(f.syllabus.map(e => [e.subject, e.requiredHours])),
 			}
 		})
 

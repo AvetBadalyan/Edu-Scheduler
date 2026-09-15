@@ -205,20 +205,14 @@ export const startVisualization = createAsyncThunk<
 	setTimeout(() => dispatch(play()), 120)
 })
 
-/** Start/resume the interval-based playback. */
+/** Start/resume interval-based playback from the current step. */
 export function play() {
 	return (dispatch: AppDispatch, getState: () => RootState) => {
-		const { steps, currentStepIndex, playbackState } = getState().visualization
-		if (playbackState === 'complete' || steps.length === 0) return
-
-		// If at the end, restart from beginning
-		const startIdx = currentStepIndex === steps.length - 1 ? -1 : currentStepIndex
-		if (startIdx !== currentStepIndex) {
-			dispatch(visualizationSlice.actions._tick()) // harmless if already reset
-		}
+		const { steps, playbackState } = getState().visualization
+		// Nothing to play, or already at the end (use Reset to replay).
+		if (steps.length === 0 || playbackState === 'complete') return
 
 		dispatch(setPlaybackState('playing'))
-
 		startInterval(dispatch, getState, getState().visualization.playbackSpeed)
 	}
 }

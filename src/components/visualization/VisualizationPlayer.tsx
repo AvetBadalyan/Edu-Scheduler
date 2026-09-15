@@ -3,6 +3,7 @@
  * Lives inside the Schedule page next to the live timetable grid.
  */
 import { Button } from '@/components/ui/button'
+import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -58,13 +59,7 @@ export function VisualizationPlayer({ input, className }: VisualizationPlayerPro
 	const currentStep = currentStepIndex >= 0 ? steps[currentStepIndex] : null
 	const progress = steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0
 
-	const assignmentsMade = result
-		? Object.values(result.schedule.faculties).reduce((n, f) => {
-				for (const d of [1, 2, 3, 4, 5] as const)
-					for (const h of [1, 2, 3, 4] as const) if (f.timetable[d][h] !== null) n++
-				return n
-			}, 0)
-		: 0
+	const assignmentsMade = result ? countTimetableSlots(result.schedule.faculties) : 0
 
 	const handleStart = () => {
 		if (!input) return

@@ -89,7 +89,16 @@ schedulesRouter.patch('/:id', async (req: AuthRequest, res, next) => {
 			return res.status(404).json({ code: 'NOT_FOUND', message: 'Schedule not found.' })
 		if (schedule.userId !== req.userId)
 			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-		repo.merge(schedule, req.body)
+		// Whitelist updatable fields so a client can't reassign ownership
+		// (userId / universityId) or any other column via the request body.
+		const { name, state, stats } = req.body as {
+			name?: string
+			state?: object
+			stats?: object
+		}
+		if (name !== undefined) schedule.name = name
+		if (state !== undefined) schedule.state = state
+		if (stats !== undefined) schedule.stats = stats
 		await repo.save(schedule)
 		res.json(schedule)
 	} catch (err) {

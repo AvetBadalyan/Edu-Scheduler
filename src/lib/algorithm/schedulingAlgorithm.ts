@@ -7,16 +7,13 @@
  *
  * Design:
  * - Uses a generator so callers can collect AlgorithmSteps for visualization
- * - Applies a "most constrained first" heuristic (faculties with most
- *   remaining hours go first) to reduce backtracking
- * - Prefers distributing classes evenly across days (Req 5.6)
- * - Minimizes room capacity waste by sorting rooms ascending (Req 5.4)
- * - Backtracks when no valid slot can be found (Req 5.5)
- * - Completes within performance budget for 100L/50R/20F (Req 5.7)
- *
- * Requirements: 5.1–5.7
+ * - Applies a "most constrained first" heuristic (subjects with the fewest
+ *   qualified lecturers are scheduled first) to reduce backtracking
+ * - Prefers distributing classes evenly across days
+ * - Minimizes room capacity waste by sorting eligible rooms ascending
+ * - Backtracks (undoes the previous assignment) when no valid slot is found
  */
-import { emptyTimetable } from '@/lib/timetable'
+import { ALL_DAYS, ALL_HOURS, emptyTimetable } from '@/lib/timetable'
 import { validateScheduleInput } from '@/lib/validation/scheduleValidation'
 import type {
 	AlgorithmStep,
@@ -40,8 +37,8 @@ import type {
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
-const DAYS: DayOfWeek[] = [1, 2, 3, 4, 5]
-const HOURS: HourSlot[] = [1, 2, 3, 4]
+const DAYS = ALL_DAYS
+const HOURS = ALL_HOURS
 
 const DEFAULT_OPTIONS: BacktrackingOptions = {
 	maxBacktracks: 10000,
@@ -69,14 +66,9 @@ function initState(input: ScheduleInput): MutableState {
 		state.lecturers[lecturer.id] = { ...lecturer, timetable: emptyTimetable() }
 	}
 	for (const faculty of input.faculties) {
-		const remainingHours: Record<string, number> = {}
-		for (const entry of faculty.syllabus) {
-			remainingHours[entry.subject] = entry.requiredHours
-		}
 		state.faculties[faculty.id] = {
 			...faculty,
 			timetable: emptyTimetable(),
-			remainingHours,
 		}
 	}
 

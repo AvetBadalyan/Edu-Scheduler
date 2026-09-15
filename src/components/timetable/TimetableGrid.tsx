@@ -5,12 +5,13 @@
  * instead of raw IDs. Accepts highlightedSlots / conflictSlots from the
  * visualization store so the grid lights up during step playback.
  */
+import { ALL_DAYS, ALL_HOURS } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { useAppSelector } from '@/store/hooks'
 import {
-	selectScheduleRooms,
-	selectScheduleLecturers,
 	selectScheduleFaculties,
+	selectScheduleLecturers,
+	selectScheduleRooms,
 } from '@/store/scheduleSlice'
 import type {
 	ClassAssignment,
@@ -37,8 +38,8 @@ export interface TimetableGridProps {
 	className?: string
 }
 
-const DAYS: DayOfWeek[] = [1, 2, 3, 4, 5]
-const HOURS: HourSlot[] = [1, 2, 3, 4]
+const DAYS = ALL_DAYS
+const HOURS = ALL_HOURS
 
 const DAY_NAMES: Record<DayOfWeek, string> = {
 	1: 'Mon',
