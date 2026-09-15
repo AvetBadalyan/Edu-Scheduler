@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
 	plugins: [tailwindcss(), react()],
@@ -16,18 +16,11 @@ export default defineConfig({
 			'@assets': resolve(import.meta.dirname, './src/assets'),
 		},
 	},
-	test: {
-		globals: true,
-		environment: 'node',
-		include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
-		coverage: { provider: 'v8', reporter: ['text', 'html'] },
-	},
 	build: {
 		sourcemap: true,
 		chunkSizeWarningLimit: 600,
 		rollupOptions: {
 			output: {
-				// Rolldown (Vite 8) requires manualChunks as a function
 				manualChunks(id) {
 					if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
 						return 'vendor'

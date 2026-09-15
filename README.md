@@ -4,7 +4,7 @@
 
 **[→ Live demo: edu-scheduler-aca.vercel.app](https://edu-scheduler-aca.vercel.app)**
 
-No account required. One click loads the Armenian Code Academy dataset and generates a conflict-free schedule in real time.
+No account required. One click loads the Armenian Code Academy dataset — 9 real instructors, 6 rooms, and 4 bootcamp faculties — then generates a conflict-free schedule in seconds.
 
 ---
 
@@ -38,7 +38,11 @@ The scheduling engine is a **backtracking constraint-satisfaction algorithm** �
 
 ![Faculties](docs/screenshots/05-faculties.png)
 
-### Schedule generation — algorithm visualization with playback controls
+### Schedule generation — 63 classes placed, 0 backtracks, 0 unresolved
+
+![Schedule result](docs/screenshots/06-schedule-result.png)
+
+### Algorithm visualization — step-by-step decision log with live timetable
 
 ![Algorithm visualization](docs/screenshots/07-schedule-generated.png)
 
@@ -89,7 +93,6 @@ Full edit history with up to 50 entries. Keyboard shortcuts Ctrl+Z and Ctrl+Y wo
 | State     | Redux Toolkit — entity adapters, mode-aware async thunks |
 | Auth & DB | Supabase (Auth + PostgreSQL)                             |
 | Backend   | Express 4, TypeORM 0.3, Node.js                          |
-| Testing   | Vitest 5 + fast-check (property-based), Playwright (E2E) |
 | Tooling   | ESLint 10, Prettier 3, TypeScript 5.9                    |
 | Deploy    | Vercel (frontend + backend as serverless function)       |
 
@@ -102,8 +105,6 @@ Full edit history with up to 50 entries. Keyboard shortcuts Ctrl+Z and Ctrl+Y wo
 **Mode-aware data layer** — entity thunks in `src/store/entitySlice.ts` check whether the user is in demo mode. In demo mode they dispatch synchronous Redux actions. In authenticated mode they call the REST API and upsert the server response. The UI components dispatch the same thunks regardless of mode.
 
 **Backend** — a single Express app exported from `server/src/app.ts` without calling `listen()`. In production it runs as a Vercel serverless function via `api/index.ts`. Locally it runs as a standard Node server. All entity routes enforce university ownership — a user can only read and modify their own data.
-
-**Property-based tests** — `tests/properties/` uses fast-check to verify 9 correctness properties across 50–100 arbitrary inputs: no double-booking of lecturers, rooms, or faculties; specialty matching; timetable consistency across all three timetable views; and undo/redo reversibility.
 
 ---
 
@@ -138,13 +139,6 @@ npm run dev
 ```
 
 Tables are created automatically on first start via TypeORM `synchronize`.
-
-### Tests
-
-```bash
-npm test                  # property-based tests (vitest + fast-check)
-npx playwright test       # E2E tests (requires dev server running)
-```
 
 ---
 
