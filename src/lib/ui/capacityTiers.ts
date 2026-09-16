@@ -5,6 +5,10 @@
  * card styling) and RoomForm (capacity hint) never drift apart.
  */
 
+/** Allowed room-capacity range, shared by the form input and the validator. */
+export const MIN_ROOM_CAPACITY = 1
+export const MAX_ROOM_CAPACITY = 500
+
 export interface CapacityTier {
 	label: string
 	min: number

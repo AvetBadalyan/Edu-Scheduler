@@ -6,6 +6,7 @@
  * Shows a brief loading spinner while a Supabase session is being restored
  * on initial load to avoid a flash-redirect to /login.
  */
+import { ROUTES } from '@/lib/routes'
 import { supabase } from '@/lib/supabase'
 import { mapSupabaseUser, selectIsAuthenticated, setSessionUser } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -48,7 +49,7 @@ export function ProtectedRoute() {
 		)
 	}
 
-	if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location }} />
+	if (!isAuthenticated) return <Navigate to={ROUTES.login} replace state={{ from: location }} />
 
 	return <Outlet />
 }

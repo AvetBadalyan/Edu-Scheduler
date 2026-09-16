@@ -6,6 +6,7 @@
  *
  * Requirements: 5.1, 5.2
  */
+import { MAX_ROOM_CAPACITY, MIN_ROOM_CAPACITY } from '@/lib/ui/capacityTiers'
 import type {
 	Faculty,
 	Lecturer,
@@ -72,11 +73,15 @@ function validateRoom(r: Room, index: number): ValidationError[] {
 			error('ROOM_MISSING_NUMBER', `Room at index ${index} has no room number.`, `${field}.number`)
 		)
 	}
-	if (!Number.isInteger(r.capacity) || r.capacity < 1 || r.capacity > 500) {
+	if (
+		!Number.isInteger(r.capacity) ||
+		r.capacity < MIN_ROOM_CAPACITY ||
+		r.capacity > MAX_ROOM_CAPACITY
+	) {
 		errors.push(
 			error(
 				'ROOM_INVALID_CAPACITY',
-				`Room "${r.number ?? index}" must have a capacity between 1 and 500.`,
+				`Room "${r.number ?? index}" must have a capacity between ${MIN_ROOM_CAPACITY} and ${MAX_ROOM_CAPACITY}.`,
 				`${field}.capacity`
 			)
 		)

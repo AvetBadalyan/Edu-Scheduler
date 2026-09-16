@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { Toaster } from '@/components/ui/Toaster'
 import { useAuthenticatedMode } from '@/hooks/useAuthenticatedMode'
 import { useSeedData } from '@/hooks/useSeedData'
+import { ROUTES } from '@/lib/routes'
 import { supabase } from '@/lib/supabase'
 import {
 	FacultiesPage,
@@ -31,7 +32,7 @@ export default function App() {
 		<ErrorBoundary>
 			<Routes>
 				<Route
-					path="/"
+					path={ROUTES.landing}
 					element={
 						<Suspense fallback={null}>
 							<LandingPage />
@@ -39,7 +40,7 @@ export default function App() {
 					}
 				/>
 				<Route
-					path="/login"
+					path={ROUTES.login}
 					element={
 						<Suspense fallback={null}>
 							<LoginPage />
@@ -48,11 +49,11 @@ export default function App() {
 				/>
 				<Route element={<ProtectedRoute />}>
 					<Route element={<AppLayout />}>
-						<Route path="dashboard" element={<HomePage />} />
-						<Route path="lecturers" element={<LecturersPage />} />
-						<Route path="rooms" element={<RoomsPage />} />
-						<Route path="faculties" element={<FacultiesPage />} />
-						<Route path="schedule" element={<SchedulePage />} />
+						<Route path={ROUTES.dashboard} element={<HomePage />} />
+						<Route path={ROUTES.lecturers} element={<LecturersPage />} />
+						<Route path={ROUTES.rooms} element={<RoomsPage />} />
+						<Route path={ROUTES.faculties} element={<FacultiesPage />} />
+						<Route path={ROUTES.schedule} element={<SchedulePage />} />
 					</Route>
 				</Route>
 				<Route path="*" element={<NotFound />} />
@@ -82,7 +83,7 @@ function NotFound() {
 		<div className="flex min-h-screen flex-col items-center justify-center gap-2 px-4 text-center">
 			<h1 className="text-3xl font-bold">404</h1>
 			<p className="text-muted-foreground">This page could not be found.</p>
-			<Link to="/" className="text-primary underline underline-offset-4">
+			<Link to={ROUTES.landing} className="text-primary underline underline-offset-4">
 				Back to home
 			</Link>
 		</div>

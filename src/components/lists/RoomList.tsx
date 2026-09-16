@@ -5,14 +5,15 @@
  * a circular capacity indicator, an animated utilisation bar and
  * a colour-coded status pill. Hover lifts the card with a coloured glow.
  */
-import { allTimeSlots } from '@/lib/timetable'
+import { CardActions } from '@/components/ui/CardActions'
+import { ALL_DAYS, ALL_HOURS, allTimeSlots } from '@/lib/timetable'
 import { CAPACITY_TIERS, getTier, type CapacityTier } from '@/lib/ui/capacityTiers'
 import { cn } from '@/lib/utils'
 import { selectAllRooms } from '@/store/entitySlice'
 import { useAppSelector } from '@/store/hooks'
 import { selectScheduleRooms } from '@/store/scheduleSlice'
 import type { Room, RoomId } from '@/types'
-import { Pencil, Trash2, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { useMemo } from 'react'
 
 // ─── Utilisation helpers ──────────────────────────────────────────────────────
@@ -26,8 +27,7 @@ function calcUtil(
 	const t = scheduleRooms[room.id]?.timetable
 	if (!t) return 0
 	let used = 0
-	for (const d of [1, 2, 3, 4, 5] as const)
-		for (const h of [1, 2, 3, 4] as const) if (t[d][h] !== null) used++
+	for (const day of ALL_DAYS) for (const hour of ALL_HOURS) if (t[day][hour] !== null) used++
 	return Math.round((used / TOTAL_SLOTS) * 100)
 }
 
@@ -244,27 +244,11 @@ function RoomCard({ room, tier, utilisation, index, onEdit, onDelete }: RoomCard
 				</div>
 
 				{/* Actions */}
-				<div className="flex gap-2 pt-1">
-					{onEdit && (
-						<button
-							onClick={() => onEdit(room)}
-							className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-							aria-label={`Edit room ${room.number}`}
-						>
-							<Pencil className="size-3" aria-hidden />
-							Edit
-						</button>
-					)}
-					{onDelete && (
-						<button
-							onClick={() => onDelete(room.id)}
-							className="flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-400 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-							aria-label={`Delete room ${room.number}`}
-						>
-							<Trash2 className="size-3.5" aria-hidden />
-						</button>
-					)}
-				</div>
+				<CardActions
+					label={`room ${room.number}`}
+					onEdit={onEdit ? () => onEdit(room) : undefined}
+					onDelete={onDelete ? () => onDelete(room.id) : undefined}
+				/>
 			</div>
 		</article>
 	)

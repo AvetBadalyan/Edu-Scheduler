@@ -11,6 +11,9 @@ export const FIELD = 'flex flex-col gap-1.5'
 /** Inline validation error message (icon + text, red). */
 export const ERROR = 'flex items-center gap-1 text-xs text-red-600'
 
+/** Field label: small, semibold, uppercase. */
+export const LABEL = 'text-xs font-semibold text-gray-600 uppercase tracking-wide'
+
 /** Grouped section card (used for the Faculty syllabus/students blocks). */
 export const SECTION = 'rounded-xl border border-gray-100 bg-gray-50/50 p-4 flex flex-col gap-3'
 

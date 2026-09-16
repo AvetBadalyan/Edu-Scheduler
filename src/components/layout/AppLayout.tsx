@@ -5,6 +5,7 @@
  */
 import { SkipLink } from '@/components/accessibility/SkipLink'
 import { Button } from '@/components/ui/button'
+import { ROUTES } from '@/lib/routes'
 import { cn } from '@/lib/utils'
 import { logoutThunk, selectIsDemoMode, selectUser } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -30,11 +31,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-	{ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-	{ to: '/lecturers', label: 'Lecturers', icon: Users },
-	{ to: '/rooms', label: 'Rooms', icon: DoorOpen },
-	{ to: '/faculties', label: 'Faculties', icon: GraduationCap },
-	{ to: '/schedule', label: 'Schedule', icon: CalendarDays },
+	{ to: ROUTES.dashboard, label: 'Dashboard', icon: LayoutDashboard },
+	{ to: ROUTES.lecturers, label: 'Lecturers', icon: Users },
+	{ to: ROUTES.rooms, label: 'Rooms', icon: DoorOpen },
+	{ to: ROUTES.faculties, label: 'Faculties', icon: GraduationCap },
+	{ to: ROUTES.schedule, label: 'Schedule', icon: CalendarDays },
 ]
 
 // Shown only in the content area while a lazy page chunk loads
@@ -114,7 +115,7 @@ export function AppLayout() {
 							key={to}
 							to={to}
 							onClick={closeMobileMenu}
-							end={to === '/dashboard'}
+							end={to === ROUTES.dashboard}
 							className={({ isActive }) =>
 								cn(
 									'group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200',
@@ -179,7 +180,7 @@ export function AppLayout() {
 						<button
 							onClick={async () => {
 								await dispatch(logoutThunk())
-								navigate('/login')
+								navigate(ROUTES.login)
 							}}
 							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-amber-400/80 transition-colors hover:bg-amber-500/10 hover:text-amber-300"
 						>
@@ -189,7 +190,7 @@ export function AppLayout() {
 					) : (
 						<button
 							onClick={() => {
-								dispatch(logoutThunk()).then(() => navigate('/'))
+								dispatch(logoutThunk()).then(() => navigate(ROUTES.landing))
 							}}
 							className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
 						>

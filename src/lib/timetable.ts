@@ -9,6 +9,36 @@ import type { DayOfWeek, HourSlot, TimeSlot, Timetable } from '@/types'
 export const ALL_DAYS: DayOfWeek[] = [1, 2, 3, 4, 5]
 export const ALL_HOURS: HourSlot[] = [1, 2, 3, 4]
 
+/** Short day labels for compact/mobile views. */
+export const DAY_NAMES: Record<DayOfWeek, string> = {
+	1: 'Mon',
+	2: 'Tue',
+	3: 'Wed',
+	4: 'Thu',
+	5: 'Fri',
+}
+
+/** Full day labels for wide views and aria labels. */
+export const DAY_FULL: Record<DayOfWeek, string> = {
+	1: 'Monday',
+	2: 'Tuesday',
+	3: 'Wednesday',
+	4: 'Thursday',
+	5: 'Friday',
+}
+
+/** Start time shown for each hour slot. */
+export const HOUR_LABELS: Record<HourSlot, string> = {
+	1: '09:00',
+	2: '11:00',
+	3: '13:00',
+	4: '15:00',
+}
+
+/** Grid column template used by the timetable grid (time column + 5 days). */
+export const TIMETABLE_GRID_COLS =
+	'grid [grid-template-columns:4rem_repeat(5,minmax(0,1fr))] md:[grid-template-columns:5rem_repeat(5,minmax(0,1fr))]'
+
 /** Creates a fresh timetable with every slot empty. */
 export function emptyTimetable(): Timetable {
 	return {

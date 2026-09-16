@@ -2,6 +2,7 @@
  * toastSlice — notification queue.
  * Auto-dismiss is handled by a thunk so the reducer stays pure.
  */
+import { uid } from '@/lib/utils'
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { AppDispatch, RootState } from './index'
 
@@ -33,7 +34,7 @@ export default toastSlice.reducer
 
 export function addToast(message: string, variant: ToastVariant = 'info', duration = 4000) {
 	return (dispatch: AppDispatch) => {
-		const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
+		const id = uid('toast')
 		dispatch(toastSlice.actions._addToast({ id, message, variant }))
 		setTimeout(() => dispatch(dismissToast(id)), duration)
 	}

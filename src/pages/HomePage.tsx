@@ -1,3 +1,4 @@
+import { ROUTES } from '@/lib/routes'
 import { countTimetableSlots } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { selectIsDemoMode, selectUser } from '@/store/authSlice'
@@ -149,14 +150,14 @@ export default function HomePage() {
 						label="Lecturers"
 						value={lecturers.length}
 						icon={Users}
-						to="/lecturers"
+						to={ROUTES.lecturers}
 						gradient="bg-gradient-to-br from-indigo-700 to-violet-700"
 					/>
 					<StatLinkCard
 						label="Rooms"
 						value={rooms.length}
 						icon={DoorOpen}
-						to="/rooms"
+						to={ROUTES.rooms}
 						gradient="bg-gradient-to-br from-emerald-700 to-teal-700"
 						delay="delay-75"
 					/>
@@ -164,7 +165,7 @@ export default function HomePage() {
 						label="Faculties"
 						value={faculties.length}
 						icon={GraduationCap}
-						to="/faculties"
+						to={ROUTES.faculties}
 						gradient="bg-gradient-to-br from-amber-700 to-orange-700"
 						delay="delay-150"
 					/>
@@ -172,7 +173,7 @@ export default function HomePage() {
 						label="Students"
 						value={totalStudents}
 						icon={GraduationCap}
-						to="/faculties"
+						to={ROUTES.faculties}
 						gradient="bg-gradient-to-br from-rose-700 to-pink-700"
 						delay="delay-225"
 					/>
@@ -189,13 +190,13 @@ export default function HomePage() {
 					</p>
 					<div className="mt-6 flex justify-center gap-3">
 						<Link
-							to="/lecturers"
+							to={ROUTES.lecturers}
 							className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800"
 						>
 							Add lecturers
 						</Link>
 						<Link
-							to="/rooms"
+							to={ROUTES.rooms}
 							className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
 						>
 							Add rooms
@@ -218,7 +219,7 @@ export default function HomePage() {
 					title="Smart Scheduling Engine"
 					description="Constraint-satisfaction solver with backtracking — places every subject in a conflict-free slot while respecting room capacity and lecturer availability."
 					cta="Generate schedule"
-					to="/schedule"
+					to={ROUTES.schedule}
 					accent="bg-gradient-to-br from-indigo-500 to-violet-600"
 				/>
 				<FeatureCard
@@ -226,7 +227,7 @@ export default function HomePage() {
 					title="Instant, Conflict-free Results"
 					description="The solver places every subject in seconds while respecting every constraint, then reports classes placed, backtracks, and any slots it couldn't fill."
 					cta="See it in action"
-					to="/schedule"
+					to={ROUTES.schedule}
 					accent="bg-gradient-to-br from-violet-500 to-purple-600"
 					delay="delay-75"
 				/>
@@ -235,7 +236,7 @@ export default function HomePage() {
 					title="Drag-and-drop Editing"
 					description="Fine-tune any generated schedule by dragging classes between slots. Constraint validation runs on every move. Full undo/redo history."
 					cta="Open schedule"
-					to="/schedule"
+					to={ROUTES.schedule}
 					accent="bg-gradient-to-br from-blue-500 to-cyan-600"
 					delay="delay-150"
 				/>
@@ -243,7 +244,7 @@ export default function HomePage() {
 
 			{!hasSchedule && lecturers.length > 0 && rooms.length > 0 && faculties.length > 0 && (
 				<Link
-					to="/schedule"
+					to={ROUTES.schedule}
 					className={cn(
 						'group flex flex-col gap-4 rounded-2xl p-6 bg-gradient-to-r from-indigo-700 via-violet-700 to-indigo-800 shadow-lg shadow-indigo-700/25 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 animate-fade-up delay-300 sm:flex-row sm:items-center sm:justify-between'
 					)}

@@ -5,13 +5,14 @@
  * with colour-coded pills, a student count badge, sortable/searchable
  * controls and smooth hover animations.
  */
+import { CardActions } from '@/components/ui/CardActions'
 import { Input } from '@/components/ui/input'
 import { subjectPill } from '@/lib/ui/subjectColors'
 import { cn } from '@/lib/utils'
 import { selectAllFaculties } from '@/store/entitySlice'
 import { useAppSelector } from '@/store/hooks'
 import type { Faculty, FacultyId } from '@/types'
-import { BookOpen, GraduationCap, Pencil, Search, Trash2, Users } from 'lucide-react'
+import { BookOpen, GraduationCap, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 // ─── Per-faculty gradient palette (cycles through 6) ─────────────────────────
@@ -304,27 +305,11 @@ function FacultyCard({ faculty, palette, index, onEdit, onDelete }: FacultyCardP
 				</div>
 
 				{/* Actions */}
-				<div className="mt-auto flex gap-2 pt-1">
-					{onEdit && (
-						<button
-							onClick={() => onEdit(faculty)}
-							className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-							aria-label={`Edit ${faculty.name}`}
-						>
-							<Pencil className="size-3" aria-hidden />
-							Edit
-						</button>
-					)}
-					{onDelete && (
-						<button
-							onClick={() => onDelete(faculty.id)}
-							className="flex items-center justify-center rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-400 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-							aria-label={`Delete ${faculty.name}`}
-						>
-							<Trash2 className="size-3.5" aria-hidden />
-						</button>
-					)}
-				</div>
+				<CardActions
+					label={faculty.name}
+					onEdit={onEdit ? () => onEdit(faculty) : undefined}
+					onDelete={onDelete ? () => onDelete(faculty.id) : undefined}
+				/>
 			</div>
 		</article>
 	)

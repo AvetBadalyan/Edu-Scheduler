@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { emptyTimetable } from '@/lib/timetable'
-import { capacityHint } from '@/lib/ui/capacityTiers'
-import { ERROR, FIELD } from '@/lib/ui/formStyles'
+import { capacityHint, MAX_ROOM_CAPACITY, MIN_ROOM_CAPACITY } from '@/lib/ui/capacityTiers'
+import { ERROR, FIELD, LABEL } from '@/lib/ui/formStyles'
 import { cn } from '@/lib/utils'
 import type { CreateRoomInput } from '@/types'
 import { AlertCircle, DoorOpen, Hash, Users } from 'lucide-react'
@@ -29,12 +29,13 @@ export function RoomForm({
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
 	const cap = parseInt(capacity, 10)
-	const tier = !isNaN(cap) && cap >= 1 ? capacityHint(cap) : null
+	const tier = !isNaN(cap) && cap >= MIN_ROOM_CAPACITY ? capacityHint(cap) : null
 
 	const validate = () => {
 		const e: Record<string, string> = {}
 		if (!number.trim()) e.number = 'Room number is required.'
-		if (isNaN(cap) || cap < 1 || cap > 500) e.capacity = 'Capacity must be between 1 and 500.'
+		if (isNaN(cap) || cap < MIN_ROOM_CAPACITY || cap > MAX_ROOM_CAPACITY)
+			e.capacity = `Capacity must be between ${MIN_ROOM_CAPACITY} and ${MAX_ROOM_CAPACITY}.`
 		setErrors(e)
 		return !Object.keys(e).length
 	}
@@ -66,10 +67,7 @@ export function RoomForm({
 
 			{/* Room number */}
 			<div className={FIELD}>
-				<Label
-					htmlFor="rf-num"
-					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-				>
+				<Label htmlFor="rf-num" className={LABEL}>
 					Room Number
 				</Label>
 				<div className="relative">
@@ -94,10 +92,7 @@ export function RoomForm({
 
 			{/* Capacity */}
 			<div className={FIELD}>
-				<Label
-					htmlFor="rf-cap"
-					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-				>
+				<Label htmlFor="rf-cap" className={LABEL}>
 					Capacity (seats)
 				</Label>
 				<div className="flex gap-2 items-start">
@@ -106,8 +101,8 @@ export function RoomForm({
 						<Input
 							id="rf-cap"
 							type="number"
-							min={1}
-							max={500}
+							min={MIN_ROOM_CAPACITY}
+							max={MAX_ROOM_CAPACITY}
 							value={capacity}
 							onChange={e => setCapacity(e.target.value)}
 							className={cn('pl-9', errors.capacity && 'border-red-400 focus-visible:ring-red-400')}

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { emptyTimetable } from '@/lib/timetable'
-import { ERROR, FIELD } from '@/lib/ui/formStyles'
+import { ERROR, FIELD, LABEL } from '@/lib/ui/formStyles'
 import { cn } from '@/lib/utils'
 import type { CreateLecturerInput } from '@/types'
 import { AlertCircle, Image as ImageIcon, Tag, User, Users } from 'lucide-react'
@@ -79,10 +79,7 @@ export function LecturerForm({
 			{/* Name row */}
 			<div className="grid grid-cols-2 gap-3">
 				<div className={FIELD}>
-					<Label
-						htmlFor="lf-name"
-						className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-					>
+					<Label htmlFor="lf-name" className={LABEL}>
 						First Name
 					</Label>
 					<div className="relative">
@@ -106,10 +103,7 @@ export function LecturerForm({
 				</div>
 
 				<div className={FIELD}>
-					<Label
-						htmlFor="lf-surname"
-						className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-					>
+					<Label htmlFor="lf-surname" className={LABEL}>
 						Last Name
 					</Label>
 					<div className="relative">
@@ -134,10 +128,7 @@ export function LecturerForm({
 
 			{/* Specialties */}
 			<div className={FIELD}>
-				<Label
-					htmlFor="lf-spec"
-					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-				>
+				<Label htmlFor="lf-spec" className={LABEL}>
 					Specialties{' '}
 					<span className="normal-case font-normal text-gray-400">(comma-separated)</span>
 				</Label>
@@ -165,10 +156,7 @@ export function LecturerForm({
 
 			{/* Image URL */}
 			<div className={FIELD}>
-				<Label
-					htmlFor="lf-img"
-					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-				>
+				<Label htmlFor="lf-img" className={LABEL}>
 					Photo URL <span className="normal-case font-normal text-gray-400">(optional)</span>
 				</Label>
 				<div className="relative">

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ERROR, FIELD, SECTION, SECTION_TITLE } from '@/lib/ui/formStyles'
+import { ERROR, FIELD, LABEL, SECTION, SECTION_TITLE } from '@/lib/ui/formStyles'
 import { cn } from '@/lib/utils'
 import type { CreateFacultyInput, Student, SyllabusEntry } from '@/types'
 import { AlertCircle, BookOpen, GraduationCap, Plus, Trash2, UserPlus, Users } from 'lucide-react'
@@ -92,10 +92,7 @@ export function FacultyForm({
 
 			{/* Name */}
 			<div className={FIELD}>
-				<Label
-					htmlFor="ff-name"
-					className="text-xs font-semibold text-gray-600 uppercase tracking-wide"
-				>
+				<Label htmlFor="ff-name" className={LABEL}>
 					Faculty Name
 				</Label>
 				<Input

@@ -6,7 +6,9 @@
  *      credentials and navigates to /dashboard (protected home).
  *   2. "Sign in / Sign up" — navigates to /login for real credentials.
  */
+import { ROUTES } from '@/lib/routes'
 import { seedFaculties, seedLecturers, seedRooms } from '@/lib/seedData'
+import { ALL_DAYS, DAY_NAMES } from '@/lib/timetable'
 import { cn } from '@/lib/utils'
 import { DEMO_CREDENTIALS, loginThunk, selectAuthLoading } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -116,7 +118,7 @@ export default function LandingPage() {
 	async function handleDemoClick() {
 		const result = await dispatch(loginThunk(DEMO_CREDENTIALS))
 		if (loginThunk.fulfilled.match(result)) {
-			navigate('/dashboard', { replace: true })
+			navigate(ROUTES.dashboard, { replace: true })
 		}
 	}
 
@@ -191,7 +193,7 @@ export default function LandingPage() {
 						</button>
 
 						<Link
-							to="/login"
+							to={ROUTES.login}
 							className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:text-indigo-700 hover:shadow-md"
 						>
 							Sign up / Sign in
@@ -248,9 +250,9 @@ export default function LandingPage() {
 										<div className="py-2 text-center text-xs font-medium uppercase tracking-wide text-white/30">
 											Time
 										</div>
-										{['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(d => (
+										{ALL_DAYS.map(d => (
 											<div key={d} className="py-2 text-center text-xs font-semibold text-white/50">
-												{d}
+												{DAY_NAMES[d]}
 											</div>
 										))}
 									</div>

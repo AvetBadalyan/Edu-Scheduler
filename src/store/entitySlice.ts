@@ -9,6 +9,7 @@
 import { facultiesApi } from '@/lib/api/faculties'
 import { lecturersApi } from '@/lib/api/lecturers'
 import { roomsApi } from '@/lib/api/rooms'
+import { uid } from '@/lib/utils'
 import type {
 	CreateFacultyInput,
 	CreateLecturerInput,
@@ -27,12 +28,6 @@ import {
 	type PayloadAction,
 } from '@reduxjs/toolkit'
 import type { RootState } from './index'
-
-// ─── ID generator ─────────────────────────────────────────────────────────────
-
-function generateId(): string {
-	return `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
 
 // ─── Entity adapters ──────────────────────────────────────────────────────────
 
@@ -54,7 +49,7 @@ const entitySlice = createSlice({
 		addLecturer(state, action: PayloadAction<CreateLecturerInput>) {
 			lecturersAdapter.addOne(state.lecturers, {
 				...action.payload,
-				id: generateId(),
+				id: uid(),
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
@@ -76,7 +71,7 @@ const entitySlice = createSlice({
 		addRoom(state, action: PayloadAction<CreateRoomInput>) {
 			roomsAdapter.addOne(state.rooms, {
 				...action.payload,
-				id: generateId(),
+				id: uid(),
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})
@@ -98,7 +93,7 @@ const entitySlice = createSlice({
 		addFaculty(state, action: PayloadAction<CreateFacultyInput>) {
 			facultiesAdapter.addOne(state.faculties, {
 				...action.payload,
-				id: generateId(),
+				id: uid(),
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			})

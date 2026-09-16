@@ -4,6 +4,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ROUTES } from '@/lib/routes'
 import {
 	DEMO_CREDENTIALS,
 	clearError,
@@ -101,7 +102,7 @@ export default function LoginPage() {
 	const [confirm, setConfirm] = useState('')
 	const [pwError, setPwError] = useState<string | null>(null)
 
-	const redirectTo = (location.state as LocationState)?.from?.pathname ?? '/dashboard'
+	const redirectTo = (location.state as LocationState)?.from?.pathname ?? ROUTES.dashboard
 
 	useEffect(() => {
 		if (isAuthenticated) navigate(redirectTo, { replace: true })
