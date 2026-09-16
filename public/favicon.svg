@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#grad)"/>
+  <g fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Brain circuit icon simplified -->
+    <circle cx="16" cy="10" r="2"/>
+    <circle cx="10" cy="18" r="2"/>
+    <circle cx="22" cy="18" r="2"/>
+    <circle cx="16" cy="24" r="2"/>
+    <path d="M16 12v4M12 17l2.5-3M20 17l-2.5-3M14 22l-2-2M18 22l2-2"/>
+    <circle cx="16" cy="16" r="1.5" fill="white"/>
+  </g>
+</svg>
