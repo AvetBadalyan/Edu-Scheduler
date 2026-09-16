@@ -177,23 +177,27 @@ function readAssignment(state: RootState, ref: TimeSlotRef): ClassAssignment | n
 	return faculties[entityId]?.timetable[day][hour] ?? null
 }
 
-/** Returns an error message if the class can't go in its slot, or null if it's free. */
-function findConflict(state: RootState, assignment: ClassAssignment): string | null {
+/**
+ * Can `moved` be placed at (day, hour) without a conflict on ANY of its three
+ * timetables (room, lecturer, faculty)? The class's own current slot counts as
+ * free, since dragging moves it out of there. Used by both the drag hints and
+ * the actual move, so they always agree.
+ */
+export function isSlotAvailableFor(
+	state: RootState,
+	moved: ClassAssignment,
+	day: DayOfWeek,
+	hour: HourSlot
+): boolean {
 	const { rooms, lecturers, faculties } = state.schedule
-	const { facultyId, lecturerId, roomId, timeSlot } = assignment
-	const { day, hour } = timeSlot
+	const { roomId, lecturerId, facultyId } = moved
 
-	if (!rooms[roomId]) return 'Room not found'
-	if (!lecturers[lecturerId]) return 'Lecturer not found'
-	if (!faculties[facultyId]) return 'Faculty not found'
+	if (day === moved.timeSlot.day && hour === moved.timeSlot.hour) return true
 
-	if (rooms[roomId].timetable[day][hour] !== null) return 'Room is already booked at this time'
-	if (lecturers[lecturerId].timetable[day][hour] !== null)
-		return 'Lecturer is already booked at this time'
-	if (faculties[facultyId].timetable[day][hour] !== null)
-		return 'Faculty already has a class at this time'
-
-	return null
+	if (rooms[roomId]?.timetable[day][hour] != null) return false
+	if (lecturers[lecturerId]?.timetable[day][hour] != null) return false
+	if (faculties[facultyId]?.timetable[day][hour] != null) return false
+	return true
 }
 
 /**
@@ -208,14 +212,12 @@ export const moveClassWithHistory =
 
 		const moved: ClassAssignment = { ...before, timeSlot: { day: to.day, hour: to.hour } }
 
-		// Free the old slot first, then make sure the new slot is clear.
-		dispatch(_unassignSlot({ ...before, day: from.day, hour: from.hour }))
-		const conflict = findConflict(getState(), moved)
-		if (conflict) {
-			dispatch(_assignClass(before)) // put it back
-			return { success: false, error: conflict }
+		// Reuse the same availability check the drag hints use.
+		if (!isSlotAvailableFor(getState(), moved, to.day, to.hour)) {
+			return { success: false, error: 'That slot is already taken.' }
 		}
 
+		dispatch(_unassignSlot({ ...before, day: from.day, hour: from.hour }))
 		dispatch(_assignClass(moved))
 		dispatch(
 			pushEdit({
@@ -251,28 +253,3 @@ export const selectScheduleRooms = (s: RootState) => s.schedule.rooms
 export const selectScheduleLecturers = (s: RootState) => s.schedule.lecturers
 export const selectScheduleFaculties = (s: RootState) => s.schedule.faculties
 export const selectHasSchedule = (s: RootState) => Object.keys(s.schedule.lecturers).length > 0
-
-/**
- * Can `moved` be placed at (day, hour) without a conflict on ANY of its three
- * timetables (room, lecturer, faculty)? A slot the class already occupies counts
- * as free, since dragging moves it out of there. Used to highlight valid drop
- * targets during drag — matches the check moveClassWithHistory enforces.
- */
-export function isSlotAvailableFor(
-	state: RootState,
-	moved: ClassAssignment,
-	day: DayOfWeek,
-	hour: HourSlot
-): boolean {
-	const { rooms, lecturers, faculties } = state.schedule
-	const { roomId, lecturerId, facultyId } = moved
-
-	// The class's own current slot doesn't block itself (it's moving out of there).
-	if (day === moved.timeSlot.day && hour === moved.timeSlot.hour) return true
-
-	// Otherwise the slot must be free on all three timetables.
-	if (rooms[roomId]?.timetable[day][hour] != null) return false
-	if (lecturers[lecturerId]?.timetable[day][hour] != null) return false
-	if (faculties[facultyId]?.timetable[day][hour] != null) return false
-	return true
-}
