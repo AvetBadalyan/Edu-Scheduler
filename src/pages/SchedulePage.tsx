@@ -66,6 +66,9 @@ export default function SchedulePage() {
 
 	const handleGenerate = () => {
 		setIsGenerating(true)
+		// The solver runs in milliseconds. We hold the "Generating…" state for a
+		// short beat so the user actually sees that work happened, rather than the
+		// schedule snapping in instantly.
 		setTimeout(() => {
 			const outcome = runSchedulingAlgorithm(scheduleInput)
 			dispatch(loadSchedule(outcome.schedule))
@@ -77,7 +80,7 @@ export default function SchedulePage() {
 					)
 				: toast.warning(`${outcome.unresolvedConstraints.length} class(es) could not be placed.`)
 			persist(outcome.schedule)
-		}, 50)
+		}, 1100)
 	}
 
 	const handleReset = () => {

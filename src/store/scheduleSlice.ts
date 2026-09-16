@@ -251,3 +251,28 @@ export const selectScheduleRooms = (s: RootState) => s.schedule.rooms
 export const selectScheduleLecturers = (s: RootState) => s.schedule.lecturers
 export const selectScheduleFaculties = (s: RootState) => s.schedule.faculties
 export const selectHasSchedule = (s: RootState) => Object.keys(s.schedule.lecturers).length > 0
+
+/**
+ * Can `moved` be placed at (day, hour) without a conflict on ANY of its three
+ * timetables (room, lecturer, faculty)? A slot the class already occupies counts
+ * as free, since dragging moves it out of there. Used to highlight valid drop
+ * targets during drag — matches the check moveClassWithHistory enforces.
+ */
+export function isSlotAvailableFor(
+	state: RootState,
+	moved: ClassAssignment,
+	day: DayOfWeek,
+	hour: HourSlot
+): boolean {
+	const { rooms, lecturers, faculties } = state.schedule
+	const { roomId, lecturerId, facultyId } = moved
+
+	// The class's own current slot doesn't block itself (it's moving out of there).
+	if (day === moved.timeSlot.day && hour === moved.timeSlot.hour) return true
+
+	// Otherwise the slot must be free on all three timetables.
+	if (rooms[roomId]?.timetable[day][hour] != null) return false
+	if (lecturers[lecturerId]?.timetable[day][hour] != null) return false
+	if (faculties[facultyId]?.timetable[day][hour] != null) return false
+	return true
+}

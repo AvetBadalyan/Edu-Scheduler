@@ -9,6 +9,7 @@ import { subjectPill } from '@/lib/ui/subjectColors'
 import { cn } from '@/lib/utils'
 import { useAppSelector } from '@/store/hooks'
 import {
+	isSlotAvailableFor,
 	selectScheduleFaculties,
 	selectScheduleLecturers,
 	selectScheduleRooms,
@@ -135,6 +136,8 @@ function Row({ icon, label, value }: { icon: string; label: string; value: strin
 interface CellProps {
 	assignment: ClassAssignment | null
 	isEditable: boolean
+	draggedAssignment: ClassAssignment | null
+	setDraggedAssignment: (assignment: ClassAssignment | null) => void
 	compact: boolean
 	slot: TimeSlot
 	entityId: string
@@ -149,6 +152,8 @@ interface CellProps {
 function TimetableCell({
 	assignment,
 	isEditable,
+	draggedAssignment,
+	setDraggedAssignment,
 	compact,
 	slot,
 	entityId,
@@ -178,19 +183,32 @@ function TimetableCell({
 	}
 	const handleBlur = () => setShowTooltip(false)
 
+	// Is THIS slot a valid drop target for the class being dragged? Checks the
+	// dragged class against all three timetables (room, lecturer, faculty) — not
+	// just the one on screen — so a slot that looks empty here but whose room is
+	// booked elsewhere correctly shows as taken.
+	const canAcceptDrag = useAppSelector(state =>
+		draggedAssignment ? isSlotAvailableFor(state, draggedAssignment, slot.day, slot.hour) : false
+	)
+
 	const handleDragStart = (e: React.DragEvent) => {
 		if (!isEditable || !assignment) return
 		e.dataTransfer.setData('text/plain', JSON.stringify({ ...slot, entityType, entityId }))
 		e.dataTransfer.effectAllowed = 'move'
+		setDraggedAssignment(assignment)
 	}
+
+	const handleDragEnd = () => setDraggedAssignment(null)
 
 	const handleDragOver = (e: React.DragEvent) => {
 		if (!isEditable) return
 		e.preventDefault()
-		e.dataTransfer.dropEffect = 'move'
+		// Only real, conflict-free slots accept the drop.
+		e.dataTransfer.dropEffect = canAcceptDrag ? 'move' : 'none'
 	}
 
 	const handleDrop = (e: React.DragEvent) => {
+		setDraggedAssignment(null)
 		if (!isEditable || !onSlotDrop) return
 		e.preventDefault()
 		try {
@@ -201,6 +219,17 @@ function TimetableCell({
 			// ignore
 		}
 	}
+
+	// While a drag is in progress, hint which slots are truly free vs taken.
+	// Skip the source cell (the class's own slot) — no need to flag it.
+	const isDragging = draggedAssignment !== null
+	const isSource =
+		isDragging &&
+		draggedAssignment.timeSlot.day === slot.day &&
+		draggedAssignment.timeSlot.hour === slot.hour
+	const showDropHints = isEditable && isDragging && !isSource
+	const isFreeTarget = showDropHints && canAcceptDrag
+	const isTakenTarget = showDropHints && !canAcceptDrag
 
 	const cellClass = cn(
 		// Base — content wraps naturally, no overflow clipping needed
@@ -214,7 +243,10 @@ function TimetableCell({
 		isEditable && assignment !== null && 'cursor-grab active:cursor-grabbing',
 		isEditable && assignment === null && 'cursor-pointer',
 		// Manual marker
-		assignment?.isManual && 'border-dashed'
+		assignment?.isManual && 'border-dashed',
+		// Drag hints — free slots invite the drop, taken slots warn it's occupied
+		isFreeTarget && 'bg-emerald-50 ring-2 ring-inset ring-emerald-400 hover:bg-emerald-100',
+		isTakenTarget && 'cursor-not-allowed opacity-60 ring-2 ring-inset ring-rose-300'
 	)
 
 	return (
@@ -230,6 +262,7 @@ function TimetableCell({
 			}
 			draggable={isEditable && assignment !== null}
 			onDragStart={handleDragStart}
+			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
 			onDrop={handleDrop}
 			onClick={() => onSlotClick?.(slot, assignment)}
@@ -327,6 +360,8 @@ interface GridRowProps {
 	viewMode: 'lecturer' | 'room' | 'faculty'
 	entityId: string
 	isEditable: boolean
+	draggedAssignment: ClassAssignment | null
+	setDraggedAssignment: (assignment: ClassAssignment | null) => void
 	resolveLecturerName: (id: string) => string
 	resolveRoomLabel: (id: string) => string
 	resolveFacultyName: (id: string) => string
@@ -341,6 +376,8 @@ function GridRow({
 	viewMode,
 	entityId,
 	isEditable,
+	draggedAssignment,
+	setDraggedAssignment,
 	resolveLecturerName,
 	resolveRoomLabel,
 	resolveFacultyName,
@@ -368,6 +405,8 @@ function GridRow({
 						key={`${day}-${hour}`}
 						assignment={assignment}
 						isEditable={isEditable}
+						draggedAssignment={draggedAssignment}
+						setDraggedAssignment={setDraggedAssignment}
 						compact={compact}
 						slot={{ day, hour }}
 						entityId={entityId}
@@ -395,6 +434,11 @@ export function TimetableGrid({
 	isEditable = false,
 	className,
 }: TimetableGridProps) {
+	// The class currently being dragged (null when not dragging). Used to
+	// highlight which slots it can actually move to — checked against all three
+	// timetables (room, lecturer, faculty), not just the one on screen.
+	const [draggedAssignment, setDraggedAssignment] = React.useState<ClassAssignment | null>(null)
+
 	// Pull entity name maps so cells can display names, not IDs
 	const storeLecturers = useAppSelector(selectScheduleLecturers)
 	const storeRooms = useAppSelector(selectScheduleRooms)
@@ -443,6 +487,8 @@ export function TimetableGrid({
 								viewMode={viewMode}
 								entityId={entityId}
 								isEditable={isEditable}
+								draggedAssignment={draggedAssignment}
+								setDraggedAssignment={setDraggedAssignment}
 								resolveLecturerName={resolveLecturerName}
 								resolveRoomLabel={resolveRoomLabel}
 								resolveFacultyName={resolveFacultyName}
@@ -456,6 +502,8 @@ export function TimetableGrid({
 								viewMode={viewMode}
 								entityId={entityId}
 								isEditable={isEditable}
+								draggedAssignment={draggedAssignment}
+								setDraggedAssignment={setDraggedAssignment}
 								resolveLecturerName={resolveLecturerName}
 								resolveRoomLabel={resolveRoomLabel}
 								resolveFacultyName={resolveFacultyName}
