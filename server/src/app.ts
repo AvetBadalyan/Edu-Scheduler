@@ -1,12 +1,12 @@
-import 'reflect-metadata'
 import cors from 'cors'
 import express from 'express'
-import { connectToDatabase } from './utils/db'
+import 'reflect-metadata'
 import { facultiesRouter } from './routes/faculties'
 import { lecturersRouter } from './routes/lecturers'
 import { roomsRouter } from './routes/rooms'
 import { schedulesRouter } from './routes/schedules'
 import { universitiesRouter } from './routes/universities'
+import { connectToDatabase } from './utils/db'
 
 const app = express()
 
@@ -18,8 +18,10 @@ app.use(
 )
 app.use(express.json())
 
-// Health check — MUST be before the DB middleware so it always responds
-app.get('/healthz', (_req, res) => {
+// Health check — MUST be before the DB middleware so it always responds.
+// Registered under both paths: locally the server is hit at /healthz, while
+// on Vercel every request keeps its /api prefix (rewrite → the function).
+app.get(['/healthz', '/api/healthz'], (_req, res) => {
 	res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
