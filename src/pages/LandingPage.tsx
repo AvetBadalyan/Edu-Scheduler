@@ -202,7 +202,7 @@ export default function LandingPage() {
 					</div>
 
 					{/* trust line */}
-					<p className="animate-fade-up delay-300 mt-5 text-xs text-gray-400">
+					<p className="animate-fade-up delay-300 mt-5 text-xs text-gray-500">
 						No sign-up required for the demo · Data never leaves your browser
 					</p>
 
@@ -482,7 +482,7 @@ export default function LandingPage() {
 						</span>
 						<span className="text-sm font-bold text-gray-900">EduScheduler</span>
 					</div>
-					<p className="text-xs text-gray-400">
+					<p className="text-xs text-gray-600">
 						Portfolio project · React 19, TypeScript, Tailwind CSS, Redux Toolkit, Vite
 					</p>
 				</div>

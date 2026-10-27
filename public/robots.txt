@@ -1,0 +1,8 @@
+# robots.txt for EduScheduler
+# https://edu-scheduler-aca.vercel.app
+
+User-agent: *
+Allow: /
+
+Sitemap: https://edu-scheduler-aca.vercel.app/sitemap.xml
+Agentmap: https://edu-scheduler-aca.vercel.app/.well-known/ard.json

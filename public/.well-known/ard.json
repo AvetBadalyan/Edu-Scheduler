@@ -1,0 +1,17 @@
+{
+	"version": "0.1",
+	"entries": [
+		{
+			"identifier": "urn:air:edu-scheduler-aca.vercel.app:eduscheduler:timetable-generator",
+			"displayName": "EduScheduler",
+			"type": "application/website",
+			"url": "https://edu-scheduler-aca.vercel.app/",
+			"description": "University timetable generator that produces conflict-free schedules using a backtracking constraint-satisfaction solver. Add lecturers, rooms, and faculties, then generate and drag-and-drop edit a timetable in the browser.",
+			"representativeQueries": [
+				"generate a conflict-free university timetable",
+				"schedule lecturers, rooms, and faculties automatically",
+				"constraint-satisfaction class scheduling demo"
+			]
+		}
+	]
+}

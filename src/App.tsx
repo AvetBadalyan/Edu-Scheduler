@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/Toaster'
 import { useAuthenticatedMode } from '@/hooks/useAuthenticatedMode'
 import { useSeedData } from '@/hooks/useSeedData'
 import { ROUTES } from '@/lib/routes'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import {
 	FacultiesPage,
 	HomePage,
@@ -66,15 +66,29 @@ export default function App() {
 function useSupabaseAuthSync() {
 	const dispatch = useAppDispatch()
 	useEffect(() => {
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
-			if (!session) return
-			const user = mapSupabaseUser(session.user)
-			if (user.id === DEMO_USER.id) return
-			dispatch(setSessionUser(user))
+		let unsubscribe: (() => void) | undefined
+		let cancelled = false
+
+		// Load the Supabase client lazily. The subscription keeps Redux in sync
+		// with the session; it isn't needed on the landing page / demo, so
+		// deferring the import keeps the library out of the initial bundle.
+		getSupabase().then(supabase => {
+			if (cancelled) return
+			const {
+				data: { subscription },
+			} = supabase.auth.onAuthStateChange((_event, session) => {
+				if (!session) return
+				const user = mapSupabaseUser(session.user)
+				if (user.id === DEMO_USER.id) return
+				dispatch(setSessionUser(user))
+			})
+			unsubscribe = () => subscription.unsubscribe()
 		})
-		return () => subscription.unsubscribe()
+
+		return () => {
+			cancelled = true
+			unsubscribe?.()
+		}
 	}, [dispatch])
 }
 

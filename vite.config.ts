@@ -17,16 +17,22 @@ export default defineConfig({
 		},
 	},
 	build: {
-		sourcemap: true,
+		sourcemap: 'hidden', // maps are generated for error tools but not served to browsers
 		chunkSizeWarningLimit: 600,
 		rollupOptions: {
 			output: {
 				manualChunks(id) {
-					if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
-						return 'vendor'
-					if (id.includes('node_modules/react-router')) return 'router'
-					if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux'))
+					if (!id.includes('node_modules')) return
+					if (id.includes('lucide-react')) return 'icons'
+					if (id.includes('@reduxjs') || id.includes('react-redux') || id.includes('redux'))
 						return 'redux'
+					if (id.includes('react-router') || id.includes('react-router-dom')) return 'router'
+					if (
+						id.includes('/react/') ||
+						id.includes('/react-dom/') ||
+						id.includes('/scheduler/')
+					)
+						return 'vendor'
 				},
 			},
 		},

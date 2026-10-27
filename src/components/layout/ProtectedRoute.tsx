@@ -7,7 +7,7 @@
  * on initial load to avoid a flash-redirect to /login.
  */
 import { ROUTES } from '@/lib/routes'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { mapSupabaseUser, selectIsAuthenticated, setSessionUser } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useEffect, useState } from 'react'
@@ -27,8 +27,8 @@ export function ProtectedRoute() {
 
 		// Try to restore a Supabase session from storage on first load.
 		// setChecking runs inside the promise callback, not in the effect body.
-		supabase.auth
-			.getSession()
+		getSupabase()
+			.then(supabase => supabase.auth.getSession())
 			.then(({ data }) => {
 				if (data.session?.user) {
 					dispatch(setSessionUser(mapSupabaseUser(data.session.user)))

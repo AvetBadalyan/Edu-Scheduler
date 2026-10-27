@@ -4,12 +4,13 @@
  * Automatically attaches the Supabase access token from the current session.
  * In demo mode (no real session) API calls are skipped at the call site.
  */
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import type { ApiError } from '@/types'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 async function getToken(): Promise<string | null> {
+	const supabase = await getSupabase()
 	const { data } = await supabase.auth.getSession()
 	return data.session?.access_token ?? null
 }

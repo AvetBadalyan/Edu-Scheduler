@@ -6,10 +6,35 @@
 		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="theme-color" content="#4f46e5" />
+		<!-- Agentic Resource Discovery (ARD) catalog for AI agents -->
+		<link rel="ard" href="/.well-known/ard.json" />
+		<link rel="ai-catalog" href="/ai-catalog.json" />
 		<meta
 			name="description"
 			content="EduScheduler — University timetable generator with backtracking constraint-satisfaction algorithm. Add lecturers, rooms, and faculties, then generate conflict-free schedules in seconds."
 		/>
+
+		<!-- Establish font connections early so the first font request is faster -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<!--
+			Load the font stylesheet without blocking render: fetch it as a
+			non-blocking resource, then promote it to a stylesheet once ready.
+			The <noscript> fallback keeps it working without JS.
+		-->
+		<link
+			rel="preload"
+			as="style"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<noscript>
+			<link
+				rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+			/>
+		</noscript>
+
 		<title>EduScheduler</title>
 	</head>
 	<body>

@@ -1,0 +1,19 @@
+# EduScheduler
+
+> A university timetable generator that produces conflict-free schedules using a backtracking constraint-satisfaction (CSP) solver. Add lecturers, rooms, and faculties, then generate a timetable in seconds and fine-tune it with drag-and-drop editing.
+
+EduScheduler is a portfolio web application built with React 19, TypeScript, Tailwind CSS, Redux Toolkit, and Vite on the frontend, with an Express + TypeORM + Supabase PostgreSQL backend. A no-sign-up demo is available; all demo data stays in the browser.
+
+## Pages
+
+- [Home / Landing](https://edu-scheduler-aca.vercel.app/): Overview of the scheduler, with a one-click demo that loads Armenian Code Academy sample data.
+- [Sign in / Sign up](https://edu-scheduler-aca.vercel.app/login): Authentication for creating and persisting your own university data.
+
+## Docs
+
+- [README](https://github.com/AvetBadalyan/Edu-Scheduler#readme): Project overview, tech stack, and setup instructions.
+
+## How it works
+
+- Scheduling uses constraint satisfaction with backtracking: the solver evaluates lecturers, checks room capacity, detects conflicts, and backtracks when it reaches a dead end.
+- Data is scoped per university, so authenticated users manage their own lecturers, rooms, faculties, and schedules.
