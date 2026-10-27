@@ -28,6 +28,7 @@ import {
 	type PayloadAction,
 } from '@reduxjs/toolkit'
 import type { RootState } from './index'
+import { resetAppState } from './resetActions'
 
 // ─── Entity adapters ──────────────────────────────────────────────────────────
 
@@ -37,13 +38,15 @@ const facultiesAdapter = createEntityAdapter<Faculty>()
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
+const entityInitialState = {
+	lecturers: lecturersAdapter.getInitialState(),
+	rooms: roomsAdapter.getInitialState(),
+	faculties: facultiesAdapter.getInitialState(),
+}
+
 const entitySlice = createSlice({
 	name: 'entities',
-	initialState: {
-		lecturers: lecturersAdapter.getInitialState(),
-		rooms: roomsAdapter.getInitialState(),
-		faculties: facultiesAdapter.getInitialState(),
-	},
+	initialState: entityInitialState,
 	reducers: {
 		// ── Lecturers ────────────────────────────────────────────────────────────
 		addLecturer(state, action: PayloadAction<CreateLecturerInput>) {
@@ -121,6 +124,9 @@ const entitySlice = createSlice({
 		setFaculties(state, action: PayloadAction<Faculty[]>) {
 			facultiesAdapter.setAll(state.faculties, action.payload)
 		},
+	},
+	extraReducers: builder => {
+		builder.addCase(resetAppState, () => entityInitialState)
 	},
 })
 

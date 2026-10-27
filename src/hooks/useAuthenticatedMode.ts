@@ -13,7 +13,7 @@ import { facultiesApi } from '@/lib/api/faculties'
 import { lecturersApi } from '@/lib/api/lecturers'
 import { roomsApi } from '@/lib/api/rooms'
 import { universitiesApi } from '@/lib/api/universities'
-import { setCurrentUniversity } from '@/store/appSlice'
+import { setCurrentUniversity, setDataLoadStatus } from '@/store/appSlice'
 import { selectIsAuthenticated, selectIsDemoMode, selectUser } from '@/store/authSlice'
 import { setFaculties, setLecturers, setRooms } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -42,15 +42,21 @@ export function useAuthenticatedMode(): void {
 
 		// Capture the user in a local const so it's non-null inside bootstrap().
 		const currentUser = user
+		// If the user logs out / unmounts mid-load, this flag stops us writing
+		// fetched data into a now-cleared (or demo) store.
+		let cancelled = false
 
 		async function bootstrap() {
+			dispatch(setDataLoadStatus('loading'))
 			try {
 				// 1. Get or create the user's university
 				let universities = await universitiesApi.list()
+				if (cancelled) return
 				if (universities.length === 0) {
 					const created = await universitiesApi.create(universityNameFor(currentUser.email))
 					universities = [created]
 				}
+				if (cancelled) return
 				const university = universities[0]
 				if (!university) return
 				dispatch(setCurrentUniversity(university))
@@ -61,21 +67,30 @@ export function useAuthenticatedMode(): void {
 					roomsApi.list(university.id),
 					facultiesApi.list(university.id),
 				])
+				if (cancelled) return
 				dispatch(setLecturers(lecturers))
 				dispatch(setRooms(rooms))
 				dispatch(setFaculties(faculties))
 
 				// 3. Restore the most recently saved timetable, if any
 				await dispatch(loadLatestScheduleThunk()).unwrap()
+				if (cancelled) return
+				dispatch(setDataLoadStatus('ready'))
 			} catch (err) {
+				if (cancelled) return
 				// Network/API error — surface it so the user isn't left staring
 				// at a blank workspace wondering why nothing loaded.
 				console.error('[useAuthenticatedMode] bootstrap failed:', err)
 				loadedRef.current = null // allow a retry on next render/login
+				dispatch(setDataLoadStatus('error'))
 				toast.error("Couldn't load your data. Check your connection and try again.")
 			}
 		}
 
 		void bootstrap()
+
+		return () => {
+			cancelled = true
+		}
 	}, [isAuthenticated, isDemoMode, user, dispatch, toast])
 }

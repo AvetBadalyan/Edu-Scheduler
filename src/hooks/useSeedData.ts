@@ -1,28 +1,27 @@
 /**
  * useSeedData — loads ACA demo data into Redux when in demo mode.
  *
- * Runs whenever isDemoMode becomes true (initial demo login or page load
- * with an active demo session).
+ * Seeds once whenever the demo workspace is empty (initial demo login, or a
+ * page load with an active demo session). It keys off store state rather than
+ * a ref, so after a logout — which clears the store via resetAppState — the
+ * next demo session re-seeds correctly.
  *
- * In authenticated mode this hook does nothing — useAuthenticatedMode
- * handles data loading from the API and calls setLecturers/setRooms/setFaculties
- * which replaces any previously loaded seed data.
+ * In authenticated mode this hook does nothing: useAuthenticatedMode loads data
+ * from the API, and logout clears any prior session's data via resetAppState.
  */
 import { DEMO_UNIVERSITY, seedFaculties, seedLecturers, seedRooms } from '@/lib/seedData'
 import { setCurrentUniversity } from '@/store/appSlice'
-import { selectIsAuthenticated, selectIsDemoMode } from '@/store/authSlice'
+import { selectIsDemoMode } from '@/store/authSlice'
 import {
 	addFaculty,
 	addLecturer,
 	addRoom,
-	setFaculties,
-	setLecturers,
-	setRooms,
+	selectAllLecturers,
 } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loadSchedule } from '@/store/scheduleSlice'
 import type { ScheduleState } from '@/types'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 // ─── Demo schedule persistence ────────────────────────────────────────────────
 
@@ -58,35 +57,23 @@ function loadDemoSchedule(): ScheduleState | null {
 export function useSeedData(): void {
 	const dispatch = useAppDispatch()
 	const isDemoMode = useAppSelector(selectIsDemoMode)
-	const isAuthenticated = useAppSelector(selectIsAuthenticated)
-	const seededRef = useRef(false)
+	const hasSeedData = useAppSelector(s => selectAllLecturers(s).length > 0)
 
 	useEffect(() => {
-		if (isDemoMode) {
-			// Load seed data once per demo session
-			if (!seededRef.current) {
-				seededRef.current = true
-				seedLecturers.forEach(l => dispatch(addLecturer(l)))
-				seedRooms.forEach(r => dispatch(addRoom(r)))
-				seedFaculties.forEach(f => dispatch(addFaculty(f)))
-				dispatch(setCurrentUniversity(DEMO_UNIVERSITY))
+		if (!isDemoMode) return
+		// Seed only when the demo workspace is empty. Keying off actual state
+		// (rather than a ref) means a logout — which clears the store via
+		// resetAppState — correctly re-seeds on the next demo session, and it
+		// never double-seeds under React StrictMode's double-invoke.
+		if (hasSeedData) return
 
-				// Restore previously generated schedule if one was saved
-				const saved = loadDemoSchedule()
-				if (saved) dispatch(loadSchedule(saved))
-			}
-		} else if (isAuthenticated) {
-			// Authenticated mode — clear any seed data so it doesn't bleed through.
-			// useAuthenticatedMode will replace these with API data.
-			if (seededRef.current) {
-				seededRef.current = false
-				dispatch(setLecturers([]))
-				dispatch(setRooms([]))
-				dispatch(setFaculties([]))
-				dispatch(setCurrentUniversity(null))
-				clearDemoSchedule()
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isDemoMode, isAuthenticated])
+		seedLecturers.forEach(l => dispatch(addLecturer(l)))
+		seedRooms.forEach(r => dispatch(addRoom(r)))
+		seedFaculties.forEach(f => dispatch(addFaculty(f)))
+		dispatch(setCurrentUniversity(DEMO_UNIVERSITY))
+
+		// Restore a previously generated demo schedule if one was saved.
+		const saved = loadDemoSchedule()
+		if (saved) dispatch(loadSchedule(saved))
+	}, [isDemoMode, hasSeedData, dispatch])
 }

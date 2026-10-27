@@ -21,10 +21,13 @@ export function logError(error: unknown, context?: Record<string, unknown>): voi
 		context,
 	}
 
-	console.error('[ErrorLogger]', log)
-
-	// In production, forward to an error reporting service:
-	// if (import.meta.env.PROD) {
-	//   fetch('/api/errors', { method: 'POST', body: JSON.stringify(log) })
-	// }
+	if (import.meta.env.DEV) {
+		// Full detail (including stack) only in development.
+		console.error('[ErrorLogger]', log)
+	} else {
+		// In production, keep the console clean — log just the message, and
+		// forward to an error reporting service here (e.g. Sentry).
+		console.error('[ErrorLogger]', message)
+		// fetch('/api/errors', { method: 'POST', body: JSON.stringify(log) })
+	}
 }

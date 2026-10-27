@@ -81,8 +81,34 @@ facultiesRouter.patch('/:id', async (req: AuthRequest, res, next) => {
 		if (!faculty) return res.status(404).json({ code: 'NOT_FOUND', message: 'Faculty not found.' })
 		if (!faculty.universityId || !(await getOwnedUniversity(faculty.universityId, req.userId!)))
 			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-		delete req.body.universityId
-		repo.merge(faculty, req.body)
+		// Whitelist updatable fields so a client can't reassign ownership
+		// (universityId) or overwrite id / timestamps via the request body.
+		const { name, syllabus, students } = req.body as {
+			name?: string
+			syllabus?: object[]
+			students?: object[]
+		}
+		if (name !== undefined) {
+			if (!name.trim())
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'Faculty name is required.' })
+			faculty.name = name
+		}
+		if (syllabus !== undefined) {
+			if (!Array.isArray(syllabus) || !syllabus.length)
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'Syllabus must have at least one entry.' })
+			faculty.syllabus = syllabus
+		}
+		if (students !== undefined) {
+			if (!Array.isArray(students))
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'students must be an array.' })
+			faculty.students = students
+		}
 		await repo.save(faculty)
 		res.json(faculty)
 	} catch (err) {

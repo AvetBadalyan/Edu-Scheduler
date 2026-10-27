@@ -12,6 +12,7 @@ import { store } from '@/store'
 import { selectIsDemoMode } from '@/store/authSlice'
 import { selectAllFaculties, selectAllLecturers, selectAllRooms } from '@/store/entitySlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { clearHistory } from '@/store/editHistorySlice'
 import {
 	loadSchedule,
 	moveClassWithHistory,
@@ -31,7 +32,7 @@ import {
 	Undo2,
 	Zap,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function SchedulePage() {
 	const dispatch = useAppDispatch()
@@ -45,6 +46,15 @@ export default function SchedulePage() {
 
 	const [result, setResult] = useState<ScheduleResult | null>(null)
 	const [isGenerating, setIsGenerating] = useState(false)
+	const generateTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// Cancel the pending "Generating…" timer if the user leaves the page so we
+	// don't dispatch / set state after unmount.
+	useEffect(() => {
+		return () => {
+			if (generateTimer.current) clearTimeout(generateTimer.current)
+		}
+	}, [])
 
 	const canGenerate = lecturers.length > 0 && rooms.length > 0 && faculties.length > 0
 
@@ -69,9 +79,12 @@ export default function SchedulePage() {
 		// The solver runs in milliseconds. We hold the "Generating…" state for a
 		// short beat so the user actually sees that work happened, rather than the
 		// schedule snapping in instantly.
-		setTimeout(() => {
+		generateTimer.current = setTimeout(() => {
+			generateTimer.current = null
 			const outcome = runSchedulingAlgorithm(scheduleInput)
 			dispatch(loadSchedule(outcome.schedule))
+			// A freshly generated schedule invalidates any prior undo/redo stack.
+			dispatch(clearHistory())
 			setResult(outcome)
 			setIsGenerating(false)
 			outcome.success
@@ -85,6 +98,8 @@ export default function SchedulePage() {
 
 	const handleReset = () => {
 		dispatch(resetSchedule())
+		// Clearing the schedule invalidates the undo/redo stack too.
+		dispatch(clearHistory())
 		setResult(null)
 		if (isDemoMode) clearDemoSchedule()
 		toast.info('Schedule cleared.')

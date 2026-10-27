@@ -86,8 +86,36 @@ lecturersRouter.patch('/:id', async (req: AuthRequest, res, next) => {
 			return res.status(404).json({ code: 'NOT_FOUND', message: 'Lecturer not found.' })
 		if (!lecturer.universityId || !(await getOwnedUniversity(lecturer.universityId, req.userId!)))
 			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-		delete req.body.universityId
-		repo.merge(lecturer, req.body)
+		// Whitelist updatable fields so a client can't reassign ownership
+		// (universityId) or overwrite id / timestamps via the request body.
+		const { name, surname, specialties, imageUrl } = req.body as {
+			name?: string
+			surname?: string
+			specialties?: string[]
+			imageUrl?: string | null
+		}
+		if (name !== undefined) {
+			if (!name.trim())
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'name cannot be empty.' })
+			lecturer.name = name
+		}
+		if (surname !== undefined) {
+			if (!surname.trim())
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'surname cannot be empty.' })
+			lecturer.surname = surname
+		}
+		if (specialties !== undefined) {
+			if (!Array.isArray(specialties) || !specialties.length)
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'At least one specialty is required.' })
+			lecturer.specialties = specialties
+		}
+		if (imageUrl !== undefined) lecturer.imageUrl = imageUrl
 		await repo.save(lecturer)
 		res.json(lecturer)
 	} catch (err) {

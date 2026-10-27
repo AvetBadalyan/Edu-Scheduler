@@ -23,6 +23,7 @@ import type {
 } from '@/types'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from './index'
+import { resetAppState } from './resetActions'
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,8 @@ interface ScheduleSliceState {
 	lecturers: Record<LecturerId, LecturerWithTimetable>
 	faculties: Record<FacultyId, FacultyWithTimetable>
 }
+
+const emptyScheduleState: ScheduleSliceState = { rooms: {}, lecturers: {}, faculties: {} }
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
@@ -57,9 +60,19 @@ const scheduleSlice = createSlice({
 				roomId,
 				timeSlot: { day, hour },
 			} = a
-			state.rooms[roomId].timetable[day][hour] = a
-			state.lecturers[lecturerId].timetable[day][hour] = a
-			state.faculties[facultyId].timetable[day][hour] = a
+			// A replayed undo/redo edit may reference an entity that no longer
+			// exists in the schedule (e.g. after a new generate or a user switch).
+			// Writing through an undefined entity would crash the reducer, so only
+			// assign when ALL THREE sides are present — an all-or-nothing write
+			// keeps the room/lecturer/faculty timetables consistent rather than
+			// leaving the class on some views but not others.
+			const room = state.rooms[roomId]
+			const lecturer = state.lecturers[lecturerId]
+			const faculty = state.faculties[facultyId]
+			if (!room || !lecturer || !faculty) return
+			room.timetable[day][hour] = a
+			lecturer.timetable[day][hour] = a
+			faculty.timetable[day][hour] = a
 		},
 
 		_unassignSlot(
@@ -89,6 +102,9 @@ const scheduleSlice = createSlice({
 			// ScheduleState has the same shape as this slice's state, so use it directly.
 			return action.payload
 		},
+	},
+	extraReducers: builder => {
+		builder.addCase(resetAppState, () => emptyScheduleState)
 	},
 })
 
@@ -146,6 +162,8 @@ export const loadLatestScheduleThunk = createAsyncThunk<boolean, void, { state: 
 		if (!existing) return false
 
 		dispatch(loadSchedule(existing.state))
+		// A loaded schedule starts with a clean undo/redo stack.
+		dispatch(clearHistory())
 		return true
 	}
 )
@@ -155,6 +173,7 @@ export const loadLatestScheduleThunk = createAsyncThunk<boolean, void, { state: 
 // dispatch" work lives here so components stay simple.
 
 import {
+	clearHistory,
 	pushEdit,
 	redo as redoHistory,
 	selectCurrentEdit,
@@ -244,7 +263,13 @@ export const undoLastMove = () => (dispatch: AppDispatch, getState: () => RootSt
 export const redoLastMove = () => (dispatch: AppDispatch, getState: () => RootState) => {
 	const edit = selectNextEdit(getState())
 	dispatch(redoHistory())
-	if (edit?.after) dispatch(_assignClass(edit.after))
+	if (!edit) return
+	// Re-apply the original move symmetrically with undoLastMove: clear the
+	// source slot first, then place the class in its destination. Undo put the
+	// class back in `before`, so redo must vacate it again — otherwise the class
+	// ends up occupying both slots.
+	if (edit.before) dispatch(_unassignSlot({ ...edit.before, ...edit.before.timeSlot }))
+	if (edit.after) dispatch(_assignClass(edit.after))
 }
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
@@ -252,4 +277,18 @@ export const redoLastMove = () => (dispatch: AppDispatch, getState: () => RootSt
 export const selectScheduleRooms = (s: RootState) => s.schedule.rooms
 export const selectScheduleLecturers = (s: RootState) => s.schedule.lecturers
 export const selectScheduleFaculties = (s: RootState) => s.schedule.faculties
-export const selectHasSchedule = (s: RootState) => Object.keys(s.schedule.lecturers).length > 0
+/**
+ * True when at least one class is actually assigned. Counts real slots rather
+ * than key presence, so it correctly flips back to false after resetSchedule
+ * (which keeps the entity keys but empties every timetable).
+ */
+export const selectHasSchedule = (s: RootState) => {
+	for (const lecturer of Object.values(s.schedule.lecturers)) {
+		for (const day of Object.values(lecturer.timetable)) {
+			for (const slot of Object.values(day)) {
+				if (slot != null) return true
+			}
+		}
+	}
+	return false
+}

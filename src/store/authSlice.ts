@@ -10,9 +10,10 @@
  * onAuthStateChange listener keeps Redux in sync with the Supabase session
  * so browser refreshes and tab switches don't log the user out.
  */
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import type { LoginResult, User } from '@/types'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { resetAppState } from './resetActions'
 
 // ─── Demo credentials ─────────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ export const loginThunk = createAsyncThunk<
 	}
 
 	// Authenticated mode — Supabase
+	const supabase = await getSupabase()
 	const { data, error } = await supabase.auth.signInWithPassword({
 		email,
 		password,
@@ -98,6 +100,7 @@ export const signUpThunk = createAsyncThunk<
 	{ email: string; password: string; name: string },
 	{ rejectValue: string }
 >('auth/signUp', async ({ email, password, name }, { rejectWithValue }) => {
+	const supabase = await getSupabase()
 	const { data, error } = await supabase.auth.signUp({
 		email,
 		password,
@@ -117,8 +120,12 @@ export const signUpThunk = createAsyncThunk<
 	}
 })
 
-export const logoutThunk = createAsyncThunk('auth/logout', async () => {
+export const logoutThunk = createAsyncThunk('auth/logout', async (_arg, { dispatch }) => {
 	persistDemoSession(false)
+	// Clear all per-session data (entities, schedule, edit history, university)
+	// so nothing from this session bleeds into the next user or the demo.
+	dispatch(resetAppState())
+	const supabase = await getSupabase()
 	await supabase.auth.signOut()
 })
 

@@ -7,6 +7,7 @@ import { SkipLink } from '@/components/accessibility/SkipLink'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/routes'
 import { cn } from '@/lib/utils'
+import { selectDataLoadStatus } from '@/store/appSlice'
 import { logoutThunk, selectIsDemoMode, selectUser } from '@/store/authSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -48,26 +49,103 @@ function PageFallback() {
 	)
 }
 
+// Covers the content area during the authenticated-mode initial data load,
+// and offers a retry if that load failed.
+function DataLoadGate({ status }: { status: 'loading' | 'error' }) {
+	if (status === 'loading') {
+		return (
+			<div
+				className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center"
+				role="status"
+				aria-live="polite"
+			>
+				<div className="size-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
+				<p className="text-sm text-gray-500">Loading your workspace…</p>
+			</div>
+		)
+	}
+	return (
+		<div
+			className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center"
+			role="alert"
+		>
+			<div className="flex size-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">
+				⚠️
+			</div>
+			<div>
+				<h2 className="text-base font-semibold text-gray-900">Couldn't load your data</h2>
+				<p className="mt-1 text-sm text-gray-500 max-w-sm">
+					Something went wrong reaching the server. Check your connection and try again.
+				</p>
+			</div>
+			<Button onClick={() => window.location.reload()}>Try again</Button>
+		</div>
+	)
+}
+
 export function AppLayout() {
 	const [mobileOpen, setMobileOpen] = useState(false)
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 	const user = useAppSelector(selectUser)
 	const isDemoMode = useAppSelector(selectIsDemoMode)
+	const dataLoadStatus = useAppSelector(selectDataLoadStatus)
 	const sidebarRef = useRef<HTMLElement>(null)
+
+	// In authenticated mode the workspace data loads asynchronously. Show a
+	// loading / error gate so pages don't flash a false "empty" state or strand
+	// the user on an empty workspace after a fetch failure.
+	const showDataGate = !isDemoMode && (dataLoadStatus === 'loading' || dataLoadStatus === 'error')
+
+	const menuButtonRef = useRef<HTMLButtonElement>(null)
 
 	const closeMobileMenu = () => setMobileOpen(false)
 
-	// While the mobile drawer is open: focus it and close it on Escape.
-	// (setState here runs inside the keydown callback, not in the effect body.)
+	// While the mobile drawer is open, treat it as a modal dialog:
+	//   • trap Tab focus inside the drawer
+	//   • close on Escape
+	//   • lock body scroll so the page behind doesn't move
+	//   • restore focus to the menu toggle when it closes
 	useEffect(() => {
 		if (!mobileOpen) return
-		sidebarRef.current?.focus()
+
+		const drawer = sidebarRef.current
+		const menuButton = menuButtonRef.current
+		drawer?.focus()
+
+		const prevOverflow = document.body.style.overflow
+		document.body.style.overflow = 'hidden'
+
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setMobileOpen(false)
+			if (e.key === 'Escape') {
+				setMobileOpen(false)
+				return
+			}
+			if (e.key !== 'Tab' || !drawer) return
+			// Keep focus within the drawer.
+			const focusable = drawer.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'
+			)
+			if (focusable.length === 0) return
+			const first = focusable[0]
+			const last = focusable[focusable.length - 1]
+			const active = document.activeElement
+			if (e.shiftKey && (active === first || active === drawer)) {
+				e.preventDefault()
+				last.focus()
+			} else if (!e.shiftKey && active === last) {
+				e.preventDefault()
+				first.focus()
+			}
 		}
+
 		window.addEventListener('keydown', onKeyDown)
-		return () => window.removeEventListener('keydown', onKeyDown)
+		return () => {
+			window.removeEventListener('keydown', onKeyDown)
+			document.body.style.overflow = prevOverflow
+			// Return focus to the control that opened the drawer.
+			menuButton?.focus()
+		}
 	}, [mobileOpen])
 
 	return (
@@ -78,10 +156,13 @@ export function AppLayout() {
 			<header className="flex items-center justify-between border-b bg-white px-4 py-3 lg:hidden shadow-sm">
 				<Brand />
 				<Button
+					ref={menuButtonRef}
 					variant="ghost"
 					size="icon"
 					onClick={() => setMobileOpen(o => !o)}
 					aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+					aria-expanded={mobileOpen}
+					aria-controls="app-navigation"
 				>
 					{mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 				</Button>
@@ -213,9 +294,13 @@ export function AppLayout() {
 			{/* Main — Suspense wraps only the page content, never the sidebar */}
 			<main id="main-content" className="min-w-0 px-4 py-6 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-6xl">
-					<Suspense fallback={<PageFallback />}>
-						<Outlet />
-					</Suspense>
+					{showDataGate ? (
+						<DataLoadGate status={dataLoadStatus} />
+					) : (
+						<Suspense fallback={<PageFallback />}>
+							<Outlet />
+						</Suspense>
+					)}
 				</div>
 			</main>
 		</div>

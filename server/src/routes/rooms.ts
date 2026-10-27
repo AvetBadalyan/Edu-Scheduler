@@ -76,8 +76,23 @@ roomsRouter.patch('/:id', async (req: AuthRequest, res, next) => {
 		if (!room) return res.status(404).json({ code: 'NOT_FOUND', message: 'Room not found.' })
 		if (!room.universityId || !(await getOwnedUniversity(room.universityId, req.userId!)))
 			return res.status(403).json({ code: 'FORBIDDEN', message: 'Access denied.' })
-		delete req.body.universityId
-		repo.merge(room, req.body)
+		// Whitelist updatable fields so a client can't reassign ownership
+		// (universityId), bypass the capacity bounds, or overwrite id / timestamps.
+		const { number, capacity } = req.body as { number?: string; capacity?: number }
+		if (number !== undefined) {
+			if (!number.trim())
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'Room number is required.' })
+			room.number = number
+		}
+		if (capacity !== undefined) {
+			if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500)
+				return res
+					.status(400)
+					.json({ code: 'VALIDATION_ERROR', message: 'Capacity must be between 1 and 500.' })
+			room.capacity = capacity
+		}
 		await repo.save(room)
 		res.json(room)
 	} catch (err) {

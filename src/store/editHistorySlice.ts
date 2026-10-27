@@ -5,6 +5,7 @@
 import type { ScheduleEdit } from '@/types'
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from './index'
+import { resetAppState } from './resetActions'
 
 const MAX_HISTORY_SIZE = 50
 
@@ -13,10 +14,17 @@ interface EditHistoryState {
 	currentIndex: number
 }
 
+const initialEditHistory: EditHistoryState = { history: [], currentIndex: -1 }
+
 const editHistorySlice = createSlice({
 	name: 'editHistory',
-	initialState: { history: [], currentIndex: -1 } as EditHistoryState,
+	initialState: initialEditHistory,
 	reducers: {
+		/** Drops the whole undo/redo stack (on new/loaded/cleared schedules). */
+		clearHistory(state) {
+			state.history = []
+			state.currentIndex = -1
+		},
 		pushEdit(state, action: PayloadAction<ScheduleEdit>) {
 			// Discard any redo branch
 			const trimmed = state.history.slice(0, state.currentIndex + 1)
@@ -40,9 +48,12 @@ const editHistorySlice = createSlice({
 			}
 		},
 	},
+	extraReducers: builder => {
+		builder.addCase(resetAppState, () => initialEditHistory)
+	},
 })
 
-export const { pushEdit, undo, redo } = editHistorySlice.actions
+export const { clearHistory, pushEdit, undo, redo } = editHistorySlice.actions
 export default editHistorySlice.reducer
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
