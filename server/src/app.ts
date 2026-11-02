@@ -3,6 +3,8 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import 'reflect-metadata'
+import { AppDataSource } from './data-source'
+import { University } from './entities'
 import { facultiesRouter } from './routes/faculties'
 import { lecturersRouter } from './routes/lecturers'
 import { roomsRouter } from './routes/rooms'
@@ -54,6 +56,25 @@ app.use('/api', async (_req, _res, next) => {
 		next()
 	} catch (err) {
 		next(err)
+	}
+})
+
+// Keep-alive — unlike /healthz above, this deliberately runs a tiny read-only
+// query against the database so an uptime monitor (e.g. UptimeRobot) pinging it
+// keeps the Supabase project from pausing on the free tier. It sits AFTER the
+// DB-connection middleware so the query actually touches Postgres.
+// count() on the universities table reads an index/metadata only and writes
+// nothing. No auth so the monitor can reach it without credentials.
+// Exposed as /api/health too so a single monitor URL convention works across
+// apps; /api/healthz above stays the DB-free liveness probe.
+app.get(['/api/keep-alive', '/api/health'], async (_req, res) => {
+	try {
+		await AppDataSource.getRepository(University).count()
+		res.status(200).json({ ok: true })
+	} catch (err) {
+		res
+			.status(500)
+			.json({ ok: false, error: err instanceof Error ? err.message : 'Database unreachable' })
 	}
 })
 
